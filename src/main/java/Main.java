@@ -1,47 +1,47 @@
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
-import com.github.javaparser.ast.stmt.BlockStmt;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Main {
     static List<File> filesToParse = new ArrayList<>();
     static FileWriter fileWriter;
-    static int dfsCounter=0;
-
-    static String getDotName(Node node)
-    {
-        if (node instanceof SimpleName)
-        {
+    static HashMap<Node, Integer> nodeMap = new HashMap<>();
+    static ArrayList<Node> nodeList = new ArrayList<>();
+    static List<Boolean> used = new ArrayList<>();
+    static String getGraphName(Node node) {
+        if (node instanceof SimpleName) {
             SimpleName simpleName = (SimpleName) node;
-            System.out.println(simpleName.getId());
             return simpleName.asString();
         }
         return node.getMetaModel().getTypeNameGenerified();
     }
-    static void dfsAST(Node node) throws IOException {
-        dfsCounter++;
-        int nodeCounter = dfsCounter;
-        fileWriter.write(String.format("node%s [label=\"%s\"]", nodeCounter, getDotName(node)));
-        fileWriter.write(";\n");
+
+    static void dfsASTPrepare(Node node) {
+        nodeMap.put(node, nodeList.size());
+        nodeList.add(node);
         for (Node child : node.getChildNodes())
         {
-            if (child instanceof ImportDeclaration || child instanceof Modifier)
+            dfsASTPrepare(child);
+        }
+    }
+
+    static void dfsAST(Node node) throws IOException {
+        fileWriter.write(String.format("node%s [label=\"%s\"]", nodeMap.get(node), getGraphName(node)));
+        fileWriter.write(";\n");
+        used.set(nodeMap.get(node), true);
+        for (Node child : node.getChildNodes())
+        {
+            if (used.get(nodeMap.get(child)))
                 continue;
-            if (node instanceof MethodDeclaration && (!(child instanceof SimpleName) && !(child instanceof BlockStmt)))
-                continue;
-            fileWriter.write(String.format("node%s -> node%s", nodeCounter, dfsCounter+1));
+            fileWriter.write(String.format("node%s -> node%s", nodeMap.get(node), nodeMap.get(child)));
             fileWriter.write(";\n");
             dfsAST(child);
         }
@@ -56,16 +56,40 @@ public class Main {
                 if (!printFile.exists() && !printFile.getParentFile().mkdirs() && !printFile.createNewFile())
                     throw new Exception();
                 fileWriter = new FileWriter(printFile, false);
-                CompilationUnit cu = StaticJavaParser.parse(sourceFile);
                 fileWriter.write("digraph G {\n");
-                dfsAST(cu);
+                CompilationUnit root = StaticJavaParser.parse(sourceFile);
+                nodeMap.clear();
+                nodeList.clear();
+                dfsASTPrepare(root);
+                used.clear();
+                for (int i=0; i<nodeList.size(); i++)
+                    used.add(false);
+                for (int i=1; i<nodeList.size(); i++)
+                {
+                    if (!used.get(i))
+                    {
+                        String parentClass = nodeList.get(i).getParentNodeForChildren()
+                                .getMetaModel().getTypeNameGenerified();
+                        String nodeClass = nodeList.get(i).getMetaModel().getTypeNameGenerified();
+                        if (nodeClass.equals("BlockStmt") | parentClass.equals("ForStmt") ||
+                                parentClass.equals("ForeachStmt") || parentClass.equals("IfStmt") ||
+                                parentClass.equals("WhileStmt"))
+                        {
+                            dfsAST(nodeList.get(i));
+                        }
+                    }
+                }
+                int counter=0;
+                for (int i=0; i<nodeList.size(); i++)
+                    if (used.get(i))
+                        counter++;
+                System.out.println("nodes used in graph: "+counter+"/"+nodeList.size());
                 fileWriter.write("}");
                 fileWriter.close();
-                System.out.println(dfsCounter);
             } catch (Exception e) {
                 System.out.println("Could not parse this file: "+sourceFile.getAbsolutePath());
-                System.exit(0);
                 e.printStackTrace();
+                System.exit(0);
             }
         }
     }
@@ -98,7 +122,10 @@ public class Main {
         }
     }
     public static void main(String[] args) {
+        long timeInMillisStart = System.currentTimeMillis();
         parseArgs(args);
         makeAST();
+        long timeInMillisEnd = System.currentTimeMillis();
+        System.out.println("Execution time: ~" + (timeInMillisEnd-timeInMillisStart) + "ms");
     }
 }
