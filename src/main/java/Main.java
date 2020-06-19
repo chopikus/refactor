@@ -1,35 +1,71 @@
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.printer.DotPrinter;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.stmt.BlockStmt;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
     static List<File> filesToParse = new ArrayList<>();
+    static FileWriter fileWriter;
+    static int dfsCounter=0;
+
+    static String getDotName(Node node)
+    {
+        if (node instanceof SimpleName)
+        {
+            SimpleName simpleName = (SimpleName) node;
+            System.out.println(simpleName.getId());
+            return simpleName.asString();
+        }
+        return node.getMetaModel().getTypeNameGenerified();
+    }
+    static void dfsAST(Node node) throws IOException {
+        dfsCounter++;
+        int nodeCounter = dfsCounter;
+        fileWriter.write(String.format("node%s [label=\"%s\"]", nodeCounter, getDotName(node)));
+        fileWriter.write(";\n");
+        for (Node child : node.getChildNodes())
+        {
+            if (child instanceof ImportDeclaration || child instanceof Modifier)
+                continue;
+            if (node instanceof MethodDeclaration && (!(child instanceof SimpleName) && !(child instanceof BlockStmt)))
+                continue;
+            fileWriter.write(String.format("node%s -> node%s", nodeCounter, dfsCounter+1));
+            fileWriter.write(";\n");
+            dfsAST(child);
+        }
+    }
+
     static void makeAST()
     {
         for (File sourceFile : filesToParse)
         {
             try {
-                CompilationUnit cu = StaticJavaParser.parse(sourceFile);
-                List<Node> astNodes = new ArrayList<>();
-                cu.walk(astNodes::add);
-                System.out.println("Amount of nodes: "+astNodes.size());
-                DotPrinter printer = new DotPrinter(true);
                 File printFile = new File("temp/"+sourceFile.getName()+".dot");
                 if (!printFile.exists() && !printFile.getParentFile().mkdirs() && !printFile.createNewFile())
                     throw new Exception();
-                FileWriter fileWriter = new FileWriter(printFile, false);
-                fileWriter.write(printer.output(cu));
+                fileWriter = new FileWriter(printFile, false);
+                CompilationUnit cu = StaticJavaParser.parse(sourceFile);
+                fileWriter.write("digraph G {\n");
+                dfsAST(cu);
+                fileWriter.write("}");
                 fileWriter.close();
+                System.out.println(dfsCounter);
             } catch (Exception e) {
-                System.out.println("Could not parse one of your files: "+sourceFile.getAbsolutePath());
-                e.printStackTrace();
+                System.out.println("Could not parse this file: "+sourceFile.getAbsolutePath());
                 System.exit(0);
+                e.printStackTrace();
             }
         }
     }
