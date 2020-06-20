@@ -2,31 +2,23 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.*;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class Main {
     static List<File> filesToParse = new ArrayList<>();
-    static FileWriter fileWriter;
     static HashMap<Node, Integer> nodeMap = new HashMap<>();
     static ArrayList<Node> nodeList = new ArrayList<>();
     static List<Boolean> used = new ArrayList<>();
-    static HashMap<String, String> dotExport = new HashMap<>();
     static String currentFileNameParsing = "";
-
-    static String getGraphName(Node node) {
-        if (node instanceof SimpleName) {
-            SimpleName simpleName = (SimpleName) node;
-            return simpleName.asString();
-        }
-        return node.getMetaModel().getTypeNameGenerified();
-    }
+    static HashMap<File, CompilationUnit> roots = new HashMap<>();
 
     static void dfsASTPrepare(Node node) {
         nodeMap.put(node, nodeList.size());
@@ -37,22 +29,22 @@ public class Main {
         }
     }
 
-    static void dfsAST(Node node) {
+    static boolean dfsAST(Node node) {
+        if (used.get(nodeMap.get(node)))
+            return false;
         used.set(nodeMap.get(node), true);
         if (node instanceof BlockStmt && node.getChildNodes().size()==0)
-            return;
+            return false;
         if (node instanceof ClassOrInterfaceDeclaration)
-            return;
-        dotExport.put(currentFileNameParsing, dotExport.get(currentFileNameParsing)+
-                String.format("node%s [label=\"%s\"];\n", nodeMap.get(node), getGraphName(node)));
+            return false;
+        if (node instanceof SimpleName)
+            return false;
         for (Node child : node.getChildNodes())
         {
-            if (used.get(nodeMap.get(child)))
-                continue;
-            dotExport.put(currentFileNameParsing, dotExport.get(currentFileNameParsing)+
-                    String.format("node%s -> node%s;\n", nodeMap.get(node), nodeMap.get(child)));
-            dfsAST(child);
+            if (dfsAST(child))
+                DotExporter.addEdge(currentFileNameParsing, node, child);
         }
+        return true;
     }
 
     static void makeAST()
@@ -60,14 +52,11 @@ public class Main {
         for (File sourceFile : filesToParse)
         {
             try {
-                CompilationUnit root = StaticJavaParser.parse(sourceFile);
                 currentFileNameParsing = sourceFile.getName();
-                dotExport.put(currentFileNameParsing,
-                        String.format("digraph %s {", sourceFile.getName().split("\\.")[0]));
                 nodeMap.clear();
                 nodeList.clear();
-                dfsASTPrepare(root);
                 used.clear();
+                dfsASTPrepare(roots.get(sourceFile));
                 for (int i=0; i<nodeList.size(); i++) used.add(false);
                 for (int i=1; i<nodeList.size(); i++)
                     if (!used.get(i))
@@ -86,27 +75,10 @@ public class Main {
                         counter,
                         nodeList.size(),
                         Math.round(counter/(double)nodeList.size()*100)));
-                dotExport.put(currentFileNameParsing, dotExport.get(currentFileNameParsing)+"}");
             }
             catch (Exception e) {
                 System.out.println("Could not parse this file: "+sourceFile.getName());
                 e.printStackTrace();
-                System.exit(0);
-            }
-        }
-        for (String key : dotExport.keySet())
-        {
-            try {
-                File printFile = new File("out/" + key + ".dot");
-                if (!printFile.exists() && !printFile.getParentFile().mkdirs() && !printFile.createNewFile())
-                    throw new Exception();
-                fileWriter = new FileWriter(printFile, false);
-                fileWriter.write(dotExport.get(key));
-                fileWriter.close();
-            }
-            catch (Exception e)
-            {
-                System.out.println("Could not export .dot file: " + key.split("\\.")[0]);
                 System.exit(0);
             }
         }
@@ -139,10 +111,21 @@ public class Main {
             }
         }
     }
+
     public static void main(String[] args) {
         long timeInMillisStart = System.currentTimeMillis();
         parseArgs(args);
+        for (File file : filesToParse) {
+            try {
+                roots.put(file, StaticJavaParser.parse(file));
+            } catch (FileNotFoundException e) {
+                System.out.println("Not found file: "+file.getAbsolutePath());
+                e.printStackTrace();
+                System.exit(0);
+            }
+        }
         makeAST();
+        DotExporter.export();
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd-timeInMillisStart) + "ms");
     }
