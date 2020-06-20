@@ -2,7 +2,6 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.*;
 
@@ -23,8 +22,7 @@ public class Main {
     static void dfsASTPrepare(Node node) {
         nodeMap.put(node, nodeList.size());
         nodeList.add(node);
-        for (Node child : node.getChildNodes())
-        {
+        for (Node child : node.getChildNodes()) {
             dfsASTPrepare(child);
         }
     }
@@ -33,65 +31,57 @@ public class Main {
         if (used.get(nodeMap.get(node)))
             return false;
         used.set(nodeMap.get(node), true);
-        if (node instanceof BlockStmt && node.getChildNodes().size()==0)
+        if (node instanceof BlockStmt && node.getChildNodes().size() == 0)
             return false;
         if (node instanceof ClassOrInterfaceDeclaration)
             return false;
         if (node instanceof SimpleName)
             return false;
-        for (Node child : node.getChildNodes())
-        {
+        for (Node child : node.getChildNodes()) {
             if (dfsAST(child))
                 DotExporter.addEdge(currentFileNameParsing, node, child);
         }
         return true;
     }
 
-    static void makeAST()
-    {
-        for (File sourceFile : filesToParse)
-        {
+    static void makeAST() {
+        for (File sourceFile : filesToParse) {
             try {
                 currentFileNameParsing = sourceFile.getName();
                 nodeMap.clear();
                 nodeList.clear();
                 used.clear();
                 dfsASTPrepare(roots.get(sourceFile));
-                for (int i=0; i<nodeList.size(); i++) used.add(false);
-                for (int i=1; i<nodeList.size(); i++)
-                    if (!used.get(i))
-                    {
+                for (int i = 0; i < nodeList.size(); i++) used.add(false);
+                for (int i = 1; i < nodeList.size(); i++)
+                    if (!used.get(i)) {
                         Node node = nodeList.get(i);
                         Node parent = node.getParentNodeForChildren();
                         if (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
                                 || parent instanceof IfStmt || parent instanceof WhileStmt) dfsAST(nodeList.get(i));
                     }
-                int counter=0;
-                for (int i=0; i<nodeList.size(); i++)
+                int counter = 0;
+                for (int i = 0; i < nodeList.size(); i++)
                     if (used.get(i))
                         counter++;
                 System.out.println(String.format("Nodes used in graph %s: %s/%s, %s %%",
                         sourceFile.getName().split("\\.")[0],
                         counter,
                         nodeList.size(),
-                        Math.round(counter/(double)nodeList.size()*100)));
-            }
-            catch (Exception e) {
-                System.out.println("Could not parse this file: "+sourceFile.getName());
+                        Math.round(counter / (double) nodeList.size() * 100)));
+            } catch (Exception e) {
+                System.out.println("Could not parse this file: " + sourceFile.getName());
                 e.printStackTrace();
                 System.exit(0);
             }
         }
     }
-    static void parseArgs(String[] args)
-    {
-        if (args.length!=1)
-        {
+
+    static void parseArgs(String[] args) {
+        if (args.length != 1) {
             System.out.println("You need to specify only path to directory!");
             System.exit(0);
-        }
-        else
-        {
+        } else {
             File folder = new File(args[0]);
             if (folder.isDirectory()) {
                 File[] listOfFiles = folder.listFiles();
@@ -103,9 +93,7 @@ public class Main {
                             filesToParse.add(file);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 filesToParse.add(folder);
                 //cause it's not really a folder, it's a file
             }
@@ -119,7 +107,7 @@ public class Main {
             try {
                 roots.put(file, StaticJavaParser.parse(file));
             } catch (FileNotFoundException e) {
-                System.out.println("Not found file: "+file.getAbsolutePath());
+                System.out.println("Not found file: " + file.getAbsolutePath());
                 e.printStackTrace();
                 System.exit(0);
             }
@@ -127,6 +115,6 @@ public class Main {
         makeAST();
         DotExporter.export();
         long timeInMillisEnd = System.currentTimeMillis();
-        System.out.println("Execution time: ~" + (timeInMillisEnd-timeInMillisStart) + "ms");
+        System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
     }
 }
