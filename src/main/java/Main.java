@@ -106,6 +106,10 @@ public class Main {
         for (File file : filesToParse) {
             try {
                 roots.put(file, StaticJavaParser.parse(file));
+                Metrica metrica = new Metrica(roots.get(file));
+                int sec = (int) metrica.getCodingTime();
+                System.out.println(String.format("Amount of supposed bugs in %s: %s. Time spent on coding: %s hours",
+                        file.getName(), metrica.getBugs(), sec/3600));
             } catch (FileNotFoundException e) {
                 System.out.println("Not found file: " + file.getAbsolutePath());
                 e.printStackTrace();
