@@ -1,25 +1,38 @@
-import com.github.javaparser.TokenRange;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.*;
 
 import java.util.*;
 
 public class Metrica {
-    private static final List<String> operatorsList = Arrays.asList("++", "--", "+", "-", "!", "~", "()", "*", "/", "%", "<<", ">>>", "<", ">",
+    private static final List<String> operatorsList = Arrays.asList("++", "--", "+", "-", "!", "~", "*", "/", "%", "<<", ">>>", "<", ">",
             ">=", "<=", "instanceof", "==", "!=", "&", "^", "|", "&&", "||", "?", ":", "=", "+=", "-=", "*=", "/=", "&=", "|=",
             "^=", "%=", "<<=", ">>=", ">>>=");
-    private static final List<String> bollocksList = Arrays.asList("{", "}");
+    private static final List<String> bollocksList = Arrays.asList("{", "}", "null", "(", ")", "[", "]");
+
     private double n1, n2, N1, N2, n, N, NS, V, D, E, T, B;
+    private List<String> allMess = new ArrayList<>();
+    private Set<String> operators = new TreeSet<>();
+    private Set<String> operands = new TreeSet<>();
 
     public static double log2(double x) {
         return Math.log(x) / Math.log(2);
     }
+    private void dfs(Node node)
+    {
+        if (node instanceof UnaryExpr || node instanceof BinaryExpr || node instanceof AssignExpr
+                || node instanceof VariableDeclarationExpr || node instanceof SimpleName)
+        {
+            node.getTokenRange().ifPresent(javaTokens -> javaTokens.forEach(t -> allMess.add(t.getText())));
+            node.getTokenRange().ifPresent(javaTokens -> javaTokens.forEach(t -> System.out.println(t.getText())));
+        }
+        else
+            for (Node child : node.getChildNodes())
+                dfs(child);
+    }
 
     public Metrica(CompilationUnit unit) {
-        Optional<TokenRange> optional = unit.getTokenRange();
-        List<String> allMess = new ArrayList<>();
-        Set<String> operators = new TreeSet<>();
-        Set<String> operands = new TreeSet<>();
-        optional.ifPresent(javaTokens -> javaTokens.forEach(t -> allMess.add(t.getText())));
+        dfs(unit);
         for (String oper : allMess) {
             if (bollocksList.contains(oper))
             {
@@ -29,6 +42,7 @@ public class Metrica {
                 operators.add(oper);
                 N1++;
             } else {
+                System.out.println(oper);
                 operands.add(oper);
                 N2++;
             }
