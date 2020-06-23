@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class DotExporter {
 
-    private static final HashMap<Pair<String, Node>, Integer> nodeIds = new HashMap<>();
+    private static final HashMap<Pair<String, Integer>, Integer> nodeIds = new HashMap<>();
     private static final HashMap<String, String> fileContent = new HashMap<>();
     private static int counter = 0;
 
@@ -43,7 +43,7 @@ public class DotExporter {
             result = binaryExpr.toString();
         } else if (node instanceof VariableDeclarator) {
             VariableDeclarator declarator = (VariableDeclarator) node;
-            return "decl:" + declarator.getName().asString();
+            result = "decl:" + declarator.getName().asString();
         }
         return result.replace('"', '\'');
     }
@@ -52,8 +52,8 @@ public class DotExporter {
     static void addEdge(String whichGraph, Node from, Node to) {
         if (!fileContent.containsKey(whichGraph))
             fileContent.put(whichGraph, "");
-        Pair<String, Node> pairFrom = new Pair<>(whichGraph, from);
-        Pair<String, Node> pairTo = new Pair<>(whichGraph, to);
+        Pair<String, Integer> pairFrom = new Pair<>(whichGraph, from.getData(Main.NODE_ID));
+        Pair<String, Integer> pairTo = new Pair<>(whichGraph, to.getData(Main.NODE_ID));
         if (!nodeIds.containsKey(pairFrom)) {
             nodeIds.put(pairFrom, counter);
             fileContent.put(whichGraph,

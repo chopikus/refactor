@@ -1,5 +1,6 @@
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.DataKey;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.SimpleName;
@@ -12,15 +13,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Main {
+    public static final DataKey<Integer> NODE_ID = new DataKey<>(){ };
     static List<File> filesToParse = new ArrayList<>();
-    static HashMap<Node, Integer> nodeMap = new HashMap<>();
     static ArrayList<Node> nodeList = new ArrayList<>();
     static List<Boolean> used = new ArrayList<>();
     static String currentFileNameParsing = "";
     static HashMap<File, CompilationUnit> roots = new HashMap<>();
 
     static void dfsASTPrepare(Node node) {
-        nodeMap.put(node, nodeList.size());
+        node.setData(NODE_ID, nodeList.size());
         nodeList.add(node);
         for (Node child : node.getChildNodes()) {
             dfsASTPrepare(child);
@@ -28,11 +29,9 @@ public class Main {
     }
 
     static boolean dfsAST(Node node) {
-        if (used.get(nodeMap.get(node)))
+        if (used.get(node.getData(NODE_ID)))
             return false;
-        used.set(nodeMap.get(node), true);
-        if (node instanceof BlockStmt && node.getChildNodes().size() == 0)
-            return false;
+        used.set(node.getData(NODE_ID), true);
         if (node instanceof ClassOrInterfaceDeclaration)
             return false;
         if (node instanceof SimpleName)
@@ -48,7 +47,6 @@ public class Main {
         for (File sourceFile : filesToParse) {
             try {
                 currentFileNameParsing = sourceFile.getName();
-                nodeMap.clear();
                 nodeList.clear();
                 used.clear();
                 dfsASTPrepare(roots.get(sourceFile));
@@ -106,9 +104,9 @@ public class Main {
         for (File file : filesToParse) {
             try {
                 roots.put(file, StaticJavaParser.parse(file));
-                Metrica metrica = new Metrica(roots.get(file));
+                /*Metrica metrica = new Metrica(roots.get(file));
                 System.out.println(String.format("Amount of supposed bugs in %s: %s. Time spent on coding: %s seconds",
-                        file.getName(), metrica.getBugs(), metrica.getCodingTime()));
+                        file.getName(), metrica.getBugs(), metrica.getCodingTime()));*/
             } catch (FileNotFoundException e) {
                 System.out.println("Not found file: " + file.getAbsolutePath());
                 e.printStackTrace();
