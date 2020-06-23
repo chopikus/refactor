@@ -15,7 +15,7 @@ public class DotExporter {
     private static int counter = 0;
 
     private static String getName(Node node) {
-        String result = node.getMetaModel().getTypeNameGenerified();
+        /*String result = ""; //node.getMetaModel().getTypeNameGenerified();
         if (node instanceof SimpleName) {
             SimpleName simpleName = (SimpleName) node;
             result = simpleName.asString();
@@ -43,8 +43,10 @@ public class DotExporter {
             result = binaryExpr.toString();
         } else if (node instanceof VariableDeclarator) {
             VariableDeclarator declarator = (VariableDeclarator) node;
-            result = "decl:" + declarator.getName().asString();
+            result = declarator.getName().asString();
         }
+        result = node.getMetaModel().getTypeNameGenerified()+" "+result;*/
+        String result = node.toString();
         return result.replace('"', '\'');
     }
 

@@ -3,7 +3,9 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
 
 import java.io.File;
@@ -32,6 +34,8 @@ public class Main {
         if (used.get(node.getData(NODE_ID)))
             return false;
         used.set(node.getData(NODE_ID), true);
+        if (node instanceof BlockStmt && node.getChildNodes().size()==0)
+            return false;
         if (node instanceof ClassOrInterfaceDeclaration)
             return false;
         if (node instanceof SimpleName)
@@ -51,17 +55,22 @@ public class Main {
                 used.clear();
                 dfsASTPrepare(roots.get(sourceFile));
                 for (int i = 0; i < nodeList.size(); i++) used.add(false);
+                int components=0;
                 for (int i = 1; i < nodeList.size(); i++)
                     if (!used.get(i)) {
                         Node node = nodeList.get(i);
                         Node parent = node.getParentNodeForChildren();
                         if (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
-                                || parent instanceof IfStmt || parent instanceof WhileStmt) dfsAST(nodeList.get(i));
+                                || parent instanceof IfStmt || parent instanceof WhileStmt) {
+                            dfsAST(nodeList.get(i));
+                            components++;
+                        }
                     }
                 int counter = 0;
                 for (int i = 0; i < nodeList.size(); i++)
                     if (used.get(i))
                         counter++;
+                System.out.println("Amount of components: " + components);
                 System.out.println(String.format("Nodes used in graph %s: %s/%s, %s %%",
                         sourceFile.getName().split("\\.")[0],
                         counter,
