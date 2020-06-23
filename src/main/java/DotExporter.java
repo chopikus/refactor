@@ -1,7 +1,4 @@
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.utils.Pair;
 
 import java.io.File;
@@ -15,39 +12,12 @@ public class DotExporter {
     private static int counter = 0;
 
     private static String getName(Node node) {
-        /*String result = ""; //node.getMetaModel().getTypeNameGenerified();
-        if (node instanceof SimpleName) {
-            SimpleName simpleName = (SimpleName) node;
-            result = simpleName.asString();
-        }
-        if (node instanceof NameExpr) {
-            NameExpr nameExpr = (NameExpr) node;
-            result = nameExpr.getName().asString();
-        } else if (node instanceof BooleanLiteralExpr) {
-            BooleanLiteralExpr literalExpr = (BooleanLiteralExpr) node;
-            result = "" + literalExpr.getValue();
-        } else if (node instanceof IntegerLiteralExpr) {
-            IntegerLiteralExpr literalExpr = (IntegerLiteralExpr) node;
-            result = "" + literalExpr.getValue();
-        } else if (node instanceof StringLiteralExpr) {
-            StringLiteralExpr literalExpr = (StringLiteralExpr) node;
-            result = "" + literalExpr.getValue();
-        } else if (node instanceof DoubleLiteralExpr) {
-            DoubleLiteralExpr literalExpr = (DoubleLiteralExpr) node;
-            result = "" + literalExpr.getValue();
-        } else if (node instanceof Type) {
-            Type primitiveType = (Type) node;
-            result = primitiveType.asString();
-        } else if (node instanceof BinaryExpr) {
-            BinaryExpr binaryExpr = (BinaryExpr) node;
-            result = binaryExpr.toString();
-        } else if (node instanceof VariableDeclarator) {
-            VariableDeclarator declarator = (VariableDeclarator) node;
-            result = declarator.getName().asString();
-        }
-        result = node.getMetaModel().getTypeNameGenerified()+" "+result;*/
         String result = node.toString();
-        return result.replace('"', '\'');
+        if (result.startsWith("{\n") && result.endsWith("\n}")) {
+            result = result.substring(2);
+            result = result.substring(0, result.length() - 2);
+        }
+        return "ID: "+node.getData(Main.NODE_ID)+" "+result.replace('"', '\'');
     }
 
 
@@ -81,7 +51,7 @@ public class DotExporter {
                 if (!printFile.exists() && !printFile.getParentFile().mkdirs() && !printFile.createNewFile())
                     throw new Exception();
                 FileWriter fileWriter = new FileWriter(printFile, false);
-                fileWriter.write(String.format("digraph %s {\n%s}", fileName.split("\\.")[0],
+                fileWriter.write(String.format("digraph %s {\n%s}", fileName.split("\\.")[0].replace(" ", ""),
                         fileContent.get(fileName)));
                 fileWriter.close();
             } catch (Exception e) {

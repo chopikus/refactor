@@ -3,9 +3,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.SimpleName;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.*;
 
 import java.io.File;
@@ -21,6 +19,22 @@ public class Main {
     static List<Boolean> used = new ArrayList<>();
     static String currentFileNameParsing = "";
     static HashMap<File, CompilationUnit> roots = new HashMap<>();
+    static ArrayList<Graph> graphs = new ArrayList<>();
+
+    static boolean checkNodeToStartDFS(Node node)
+    {
+        Node parent = node.getParentNodeForChildren();
+        return (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
+                || parent instanceof IfStmt || parent instanceof WhileStmt);
+    }
+    static boolean checkNodeDFS(Node node)
+    {
+        if (node instanceof BlockStmt && node.getChildNodes().size()==0)
+            return false;
+        if (node instanceof ClassOrInterfaceDeclaration)
+            return false;
+        return !(node instanceof SimpleName);
+    }
 
     static void dfsASTPrepare(Node node) {
         node.setData(NODE_ID, nodeList.size());
@@ -34,15 +48,11 @@ public class Main {
         if (used.get(node.getData(NODE_ID)))
             return false;
         used.set(node.getData(NODE_ID), true);
-        if (node instanceof BlockStmt && node.getChildNodes().size()==0)
-            return false;
-        if (node instanceof ClassOrInterfaceDeclaration)
-            return false;
-        if (node instanceof SimpleName)
+        if (!checkNodeDFS(node))
             return false;
         for (Node child : node.getChildNodes()) {
             if (dfsAST(child))
-                DotExporter.addEdge(currentFileNameParsing, node, child);
+                graphs.get(graphs.size()-1).addEdge(node, child);
         }
         return true;
     }
@@ -53,29 +63,35 @@ public class Main {
                 currentFileNameParsing = sourceFile.getName();
                 nodeList.clear();
                 used.clear();
+                //preparing AST
                 dfsASTPrepare(roots.get(sourceFile));
+
+                // making full graph
                 for (int i = 0; i < nodeList.size(); i++) used.add(false);
-                int components=0;
+                graphs.add(new Graph("Full AST"));
                 for (int i = 1; i < nodeList.size(); i++)
-                    if (!used.get(i)) {
-                        Node node = nodeList.get(i);
-                        Node parent = node.getParentNodeForChildren();
-                        if (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
-                                || parent instanceof IfStmt || parent instanceof WhileStmt) {
-                            dfsAST(nodeList.get(i));
-                            components++;
-                        }
-                    }
-                int counter = 0;
+                    if (!used.get(i) && checkNodeToStartDFS(nodeList.get(i)))
+                        dfsAST(nodeList.get(i));
+
+                //printing all subtrees
+                List<Integer> usedNodeIndexes = new ArrayList<>();
                 for (int i = 0; i < nodeList.size(); i++)
                     if (used.get(i))
-                        counter++;
-                System.out.println("Amount of components: " + components);
+                        usedNodeIndexes.add(i);
+                for (Integer usedNodeIndex : usedNodeIndexes) {
+                    for (int j = 0; j < nodeList.size(); j++)
+                        used.set(j, false);
+                    graphs.add(new Graph("Subtree " + usedNodeIndex));
+                    dfsAST(nodeList.get(usedNodeIndex));
+                }
+
+                // outputting
+                for (Graph graph : graphs) graph.export();
                 System.out.println(String.format("Nodes used in graph %s: %s/%s, %s %%",
                         sourceFile.getName().split("\\.")[0],
-                        counter,
+                        usedNodeIndexes.size(),
                         nodeList.size(),
-                        Math.round(counter / (double) nodeList.size() * 100)));
+                        Math.round(usedNodeIndexes.size() / (double) nodeList.size() * 100)));
             } catch (Exception e) {
                 System.out.println("Could not parse this file: " + sourceFile.getName());
                 e.printStackTrace();
@@ -113,9 +129,6 @@ public class Main {
         for (File file : filesToParse) {
             try {
                 roots.put(file, StaticJavaParser.parse(file));
-                /*Metrica metrica = new Metrica(roots.get(file));
-                System.out.println(String.format("Amount of supposed bugs in %s: %s. Time spent on coding: %s seconds",
-                        file.getName(), metrica.getBugs(), metrica.getCodingTime()));*/
             } catch (FileNotFoundException e) {
                 System.out.println("Not found file: " + file.getAbsolutePath());
                 e.printStackTrace();
