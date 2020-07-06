@@ -15,11 +15,13 @@ public class Graph {
     Node root;
     File fromWhere;
     Boolean traverseEverything;
+
     static String getName(Node node) {
         String result = node.toString();
         if (result.startsWith("{\n") && result.endsWith("\n}")) {
             result = result.substring(2);
-            result = result.substring(0, result.length() - 2);
+            if (result.length()>=2)
+                result = result.substring(0, result.length() - 2);
         }
         return "ID: "+node.getData(Main.NODE_ID)+" "+result.replace('"', '\'');
     }
@@ -63,6 +65,7 @@ public class Graph {
             dotExport.append(String.format("node%s -> node%s;\n", edge.a.getData(Main.NODE_ID),
                     edge.b.getData(Main.NODE_ID)));
         }
+        System.out.println("Node count in graph "+name+": "+nodes.size());
         for (Map.Entry<Integer, String> entry : nodes.entrySet())
         {
             dotExport.append(String.format("node%s [label=\"%s\"];\n", entry.getKey().toString(), entry.getValue()));

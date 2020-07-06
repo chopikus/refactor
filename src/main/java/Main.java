@@ -64,10 +64,10 @@ public class Main {
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
             entry.getValue().stream().filter(Main::checkNodeToStartDFS)
                     .forEach(node -> graphs.add(new Graph(node, entry.getKey())));
-            graphs.add(new Graph(entry.getValue(), entry.getKey(), true));
         }
         for (Graph graph : graphs)
             graph.export(graph.fromWhere.getName()+" Node "+graph.root.getData(Main.NODE_ID));
+        System.out.println(graphs.size() + " graphs");
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
     }
