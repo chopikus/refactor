@@ -15,6 +15,7 @@ public class Graph {
     Node root;
     File fromWhere;
     Boolean traverseEverything;
+    Integer leaves=0, nodes=0;
 
     static String getName(Node node) {
         String result = node.toString();
@@ -38,12 +39,17 @@ public class Graph {
     }
 
     void dfsAST(Node node) {
+        nodes++;
+        boolean flag = false;
         for (Node child : node.getChildNodes()) {
             if (checkNode(child)) {
                 edges.add(new Pair<>(node, child));
+                flag = true;
                 dfsAST(child);
             }
         }
+        if (!flag)
+            leaves++;
     }
 
     public Graph(Node root, String fromWherePath, boolean... traverseEverything)
@@ -65,11 +71,8 @@ public class Graph {
             dotExport.append(String.format("node%s -> node%s;\n", edge.a.getData(Main.NODE_ID),
                     edge.b.getData(Main.NODE_ID)));
         }
-        System.out.println("Node count in graph "+name+": "+nodes.size());
         for (Map.Entry<Integer, String> entry : nodes.entrySet())
-        {
             dotExport.append(String.format("node%s [label=\"%s\"];\n", entry.getKey().toString(), entry.getValue()));
-        }
         try {
             File printFile = new File("out/" + name + ".dot");
             if (!printFile.exists() && !printFile.getParentFile().mkdirs() && !printFile.createNewFile())
@@ -82,4 +85,5 @@ public class Graph {
             e.printStackTrace();
         }
     }
+
 }
