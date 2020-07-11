@@ -1,3 +1,4 @@
+import at.unisalzburg.dbresearch.apted.distance.APTED;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
@@ -20,16 +21,7 @@ public class Main {
     public static List<File> filesToParse = new ArrayList<>();
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static ArrayList<Graph> graphs = new ArrayList<>();
-
-    public static int log2( int bits ) // returns 0 for bits=0
-    {
-        int log = 0;
-        if( ( bits & 0xffff0000 ) != 0 ) { bits >>>= 16; log = 16; }
-        if( bits >= 256 ) { bits >>>= 8; log += 8; }
-        if( bits >= 16  ) { bits >>>= 4; log += 4; }
-        if( bits >= 4   ) { bits >>>= 2; log += 2; }
-        return log + ( bits >>> 1 );
-    }
+    public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
 
     static boolean checkNodeToStartDFS(Node node) {
         Node parent = node.getParentNodeForChildren();
@@ -80,17 +72,17 @@ public class Main {
             entry.getValue().stream().filter(Main::checkNodeToStartDFS)
                     .forEach(node -> graphs.add(new Graph(node, entry.getKey())));
         }
-        int sum = 0;
-        for (Graph graph : graphs) {
-            int sq = graph.leaves*graph.leaves;
-            sum += sq*log2(sq);
+        for (Graph graph : graphs)
+            graph.export(graph.getPublicName());
+        for (int i=0; i<graphs.size(); i++) {
+            for (int j=i+1; j<graphs.size(); j++) {
+                System.out.println(String.format("Distance between %s and %s is %s", graphs.get(i).getPublicName(),
+                        graphs.get(j).getPublicName(), apted.computeEditDistance(graphs.get(i).algoRoot, graphs.get(j).algoRoot)));
+            }
         }
-        System.out.println(sum);
-        /*for (Graph graph : graphs)
-            graph.export(graph.fromWhere.getName() + " Node " + graph.root.getData(Main.NODE_ID));*/
-        System.out.println(graphs.size() + " graphs");
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
-        System.out.println("Memory usage: ~"+(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/1048576+" MB");
+        System.out.println("Memory usage: ~" +
+                (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576 + " MB");
     }
 }

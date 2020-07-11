@@ -4,6 +4,7 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.utils.Pair;
 
+import javax.xml.crypto.NodeSetData;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.TreeMap;
 
 public class Graph {
     ArrayList<Pair<Node, Node>> edges = new ArrayList<>();
+    at.unisalzburg.dbresearch.apted.node.Node<NodeData> algoRoot;
     Node root;
     File fromWhere;
     Boolean traverseEverything;
@@ -38,18 +40,22 @@ public class Graph {
         return !(node instanceof SimpleName);
     }
 
-    void dfsAST(Node node) {
+    at.unisalzburg.dbresearch.apted.node.Node<NodeData> dfsAST(Node node) {
+        NodeData algoNodeData = new NodeData(node.getMetaModel().getTypeName());
+        at.unisalzburg.dbresearch.apted.node.Node<NodeData> algoNode
+                = new at.unisalzburg.dbresearch.apted.node.Node<>(algoNodeData);
         nodes++;
         boolean flag = false;
         for (Node child : node.getChildNodes()) {
             if (checkNode(child)) {
                 edges.add(new Pair<>(node, child));
                 flag = true;
-                dfsAST(child);
+                algoNode.addChild(dfsAST(child));
             }
         }
         if (!flag)
             leaves++;
+        return algoNode;
     }
 
     public Graph(Node root, String fromWherePath, boolean... traverseEverything)
@@ -57,7 +63,7 @@ public class Graph {
         this.root = root;
         this.fromWhere = new File(fromWherePath);
         this.traverseEverything = traverseEverything.length >= 1 && traverseEverything[0];
-        dfsAST(root);
+        this.algoRoot = dfsAST(root);
     }
 
     void export(String name)
@@ -86,4 +92,8 @@ public class Graph {
         }
     }
 
+    String getPublicName()
+    {
+        return fromWhere.getName() + " Node " + root.getData(Main.NODE_ID);
+    }
 }
