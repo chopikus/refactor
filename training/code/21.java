@@ -1,4 +1,6 @@
-int small = Integer.MAX_VALUE;
+class Shit {
+ void method(){
+ int small = Integer.MAX_VALUE;
 for(int j=0;j<n;j++)
 {
 	if(A[j]==i && B[j]!=i )
@@ -6,3 +8,5 @@ for(int j=0;j<n;j++)
 }
 if(small == Integer.MAX_VALUE)
 	return;
+ }
+ }

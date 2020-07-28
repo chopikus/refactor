@@ -1,4 +1,6 @@
-for(int qq = 1; qq <= q; qq++) {
+class Shit {
+ void method(){
+ for(int qq = 1; qq <= q; qq++) {
 	int i = nextInt()-1;
 	int j = nextInt()-1;
 	int jj = 2*m-1-j;
@@ -8,3 +10,5 @@ for(int qq = 1; qq <= q; qq++) {
 		if(max >= jj) ok = false;
 	} 
 }
+ }
+ }

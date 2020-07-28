@@ -1,4 +1,6 @@
-int n = in.nextInt(), h = in.nextInt(), m = in.nextInt(), k = in.nextInt();
+class Shit {
+ void method(){
+ int n = in.nextInt(), h = in.nextInt(), m = in.nextInt(), k = in.nextInt();
 long optimalTime = 0;
 for (int i = 0; i < n; i++) {
 	int a = in.nextInt(), b = in.nextInt();
@@ -15,3 +17,5 @@ for (int i = 0; i < n; i++) {
 	if (L != 0) changes.get(L).add(2 * i);
 	if (H != 0) changes.get(H).add(2 * i + 1);
 }
+ }
+ }

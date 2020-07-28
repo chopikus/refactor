@@ -1,4 +1,6 @@
-int to = 0;
+class Shit {
+ void method(){
+ int to = 0;
 while (to++ < t) {
 	int n = in.nextInt();
 	int k = in.nextInt();
@@ -11,3 +13,5 @@ while (to++ < t) {
 			f1 = 1;
 	}
 }
+ }
+ }

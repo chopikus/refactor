@@ -1,4 +1,6 @@
-long H = ni();
+class Shit {
+ void method(){
+ long H = ni();
 long M = ni();
 long K = nl();
 M /= 2;
@@ -19,3 +21,5 @@ if(K == 1){
 	out.println();
 	return;
 }
+ }
+ }

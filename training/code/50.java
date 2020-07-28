@@ -1,4 +1,6 @@
-boolean worked = false;
+class Shit {
+ void method(){
+ boolean worked = false;
 for(int k = 0; k <= n - 7; k++)
 {
 	boolean works = true;
@@ -25,3 +27,5 @@ if(!worked)
 {
 	out.println("No");
 }
+ }
+ }

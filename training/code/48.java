@@ -1,4 +1,6 @@
-if(s.contains(p))
+class Shit {
+ void method(){
+ if(s.contains(p))
 {
 	if(s.indexOf(p)==s.lastIndexOf(p))
 	{
@@ -8,3 +10,5 @@ if(s.contains(p))
 		return 2;
 }
 return 0;
+ }
+ }

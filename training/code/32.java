@@ -1,4 +1,6 @@
-long rest = m - n * a;
+class Shit {
+ void method(){
+ long rest = m - n * a;
 long b;
 long c;
 if (rest < 0) {
@@ -13,3 +15,5 @@ if (l <= b && b <= r && l <= c && c <= r && n > 0 && n * a + b - c == m) {
 	System.out.println(a + " " + b + " " + c);
 	return;
 }
+ }
+ }

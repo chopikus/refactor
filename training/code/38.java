@@ -1,4 +1,6 @@
-for(int i = 0;i < n;i++){
+class Shit {
+ void method(){
+ for(int i = 0;i < n;i++){
 	int L = xs[2*i+2];
 	int R = xs[2*i+3];
 	if(L <= R){
@@ -12,3 +14,5 @@ for(int i = 0;i < n;i++){
 	}
 }
 out.println();
+ }
+ }

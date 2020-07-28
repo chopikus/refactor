@@ -1,4 +1,6 @@
-for(int i = 0; i < n; ++i) {
+class Shit {
+ void method(){
+ for(int i = 0; i < n; ++i) {
 	long unsafelo = l - d[i] + 1, unsafehi = k - unsafelo;
 	++lo;
 	++hi;
@@ -14,3 +16,5 @@ for(int i = 0; i < n; ++i) {
 		continue next;
 	}
 }
+ }
+ }

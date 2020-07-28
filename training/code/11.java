@@ -1,4 +1,6 @@
-int n = s.nextInt();
+class Shit {
+ void method(){
+ int n = s.nextInt();
 int k = s.nextInt();
 int l = s.nextInt();
 List<Integer> safe = new ArrayList<Integer>();
@@ -10,3 +12,5 @@ for(int i = 1; i <= n; i++) {
 	if(d[i] + k <= l) safe.add(i);
 }
 safe.add(n+1);
+ }
+ }

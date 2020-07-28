@@ -1,4 +1,6 @@
-String empty = "";
+class Shit {
+ void method(){
+ String empty = "";
 for(int i = 0; i < s.length(); i++)
 {
 	if(s.substring(i,i + 1).equals("?"))
@@ -11,3 +13,5 @@ for(int i = 0; i < s.length(); i++)
 	}
 }
 return empty;
+ }
+ }

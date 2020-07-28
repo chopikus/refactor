@@ -1,4 +1,6 @@
-int n=r.nextInt();
+class Shit {
+ void method(){
+ int n=r.nextInt();
 int h=r.nextInt();
 int m=r.nextInt();
 int k=r.nextInt();
@@ -10,4 +12,5 @@ for(int i=0;i<n;++i){
 	trains.add(new pair(mi%m,i));
 	trains.add(new pair(mi%m+m,i));
 }
-
+ }
+ }

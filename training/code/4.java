@@ -1,4 +1,5 @@
-private static boolean isDoable(int[] depths, int k, int l, int startIndex, int endIndexExclusive) {
+class Shit {
+ private static boolean isDoable(int[] depths, int k, int l, int startIndex, int endIndexExclusive) {
 	int maxTime = k;
 	for (int i = endIndexExclusive - 1; i >= startIndex; i--) {
 		if (depths[i] > l) {
@@ -13,4 +14,5 @@ private static boolean isDoable(int[] depths, int k, int l, int startIndex, int 
 		}
 	}
 	return true;
-}
+ }
+ }

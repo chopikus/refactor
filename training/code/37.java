@@ -1,4 +1,4 @@
-public static class pair{
+ public class pair{
 	int mi,id;
 	public pair(){}
 	public pair(int mi,int id){

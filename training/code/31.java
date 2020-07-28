@@ -1,4 +1,6 @@
-long mul = div1 * i;
+class Shit {
+ void method(){
+ long mul = div1 * i;
 if (mul >= m) {
 	b = l;
 	c = l + (mul - m);
@@ -7,3 +9,5 @@ if (mul >= m) {
 	c = l;
 }
 found = true;
+ }
+ }
