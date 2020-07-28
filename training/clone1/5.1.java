@@ -1,4 +1,6 @@
-boolean isPossible = true;
+class Shit {
+ void method(){
+ boolean isPossible = true;
 int lastRest = -1;
 for (int i = 0; i < n; i++) {
 	if (depths[i] + k <= l) {
@@ -7,3 +9,5 @@ for (int i = 0; i < n; i++) {
 	}
 }
 isPossible = isPossible && isDoable(depths, k, l, lastRest + 1, n);
+ }
+ }

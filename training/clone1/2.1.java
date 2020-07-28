@@ -1,4 +1,6 @@
-for(int i = 0;i < n;i++) {
+class Shit {
+ void method(){
+ for(int i = 0;i < n;i++) {
 					if(i % 2 == 0) {
 						System.out.println('a');
 					}
@@ -6,3 +8,5 @@ for(int i = 0;i < n;i++) {
 						System.out.println('b');
 					}
 				}
+ }
+ }

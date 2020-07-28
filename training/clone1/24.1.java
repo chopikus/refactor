@@ -1,4 +1,6 @@
-int flag=0;
+class Shit {
+ void method(){
+ int flag=0;
 for (int i = 0; i <n ; i++) {
 	if (a[i]>b[i]){
 		flag=1;
@@ -14,3 +16,5 @@ if (flag==1){
 	System.out.println(-1);
 	continue;
 }
+ }
+ }

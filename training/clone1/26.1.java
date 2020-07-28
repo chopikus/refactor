@@ -1,4 +1,6 @@
-if(rem<=z)
+class Shit {
+ void method(){
+ if(rem<=z)
 {
 	long a=i;
 	long b=l;
@@ -7,3 +9,5 @@ if(rem<=z)
 	done=true;
 	break;
 }
+ }
+ }

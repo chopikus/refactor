@@ -1,4 +1,6 @@
-for(int j = 0;j < max;j++) {
+class Shit {
+ void method(){
+ for(int j = 0;j < max;j++) {
 			        if(j < input[i])
 			            System.out.print(arr[j]);
 			        else {
@@ -12,3 +14,5 @@ for(int j = 0;j < max;j++) {
 			            }
 			        }
 			    }
+ }
+ }

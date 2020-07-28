@@ -1,4 +1,6 @@
-if (0 < n && h > 0) {
+class Shit {
+ void method(){
+ if (0 < n && h >0) {
             while (h > 0) {
                 if (a[0] + h <= l) {
                     break;
@@ -7,3 +9,5 @@ if (0 < n && h > 0) {
             }
             j = p.length - h;
         }
+ }
+ }

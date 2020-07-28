@@ -1,13 +1,22 @@
-for(int j=0;j<max;j++) {
-	if(j < input[i]) // checking input
-		System.out.print(arr[j]);
-	else {
-		//changing symbols in array
-		if(arr[j] == 'a') {
-			arr[j] = 'b';System.out.print('b');
-		}
-		else {
-			arr[j] = 'a';System.out.print('a');
+class Shit {
+	void method(){
+		for(int j = 0;j < max;j++) {
+			//checking for input
+			if(j < input[i])
+				System.out.print(arr[j]);
+			else {
+				//changing letter in array
+				if(arr[j] == 'a') {
+					//to b
+					arr[j] = 'b';
+					System.out.print('b');
+				}
+				else {
+					//to a
+					arr[j] = 'a';
+					System.out.print('a');
+				}
+			}
 		}
 	}
 }

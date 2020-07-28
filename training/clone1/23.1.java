@@ -1,4 +1,6 @@
-int cnt = 0;
+class Shit {
+ void method(){
+ int cnt = 0;
 
 for (char ch : dp[rp.a]) {
 
@@ -13,3 +15,5 @@ if (cnt == 0) {
 	dp[rp.a].add(rp.b);
 	vis.add(rp.i);
 }
+ }
+ }

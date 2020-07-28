@@ -1,4 +1,6 @@
-for (i = 1; i < n; i++) {
+class Shit {
+ void method(){
+ for (i = 1; i < n; i++) {
 	//System.out.println(count+" "+change);
 	count += change;
 	//System.out.println(count);
@@ -16,3 +18,5 @@ for (i = 1; i < n; i++) {
 		}
 	}
 }
+ }
+ }
