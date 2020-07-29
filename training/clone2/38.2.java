@@ -1,19 +1,19 @@
 class Shit {
 	void method()
 	{
-		for(int i = 0;i < n;i++){
-			int L = xs[2*i+2];
-			int R = xs[2*i+3];
-			if(L <= R){
-				if(L <= arg && arg < R)
-					out.print((i+1) + " ");
+		for(int j = 0;j < m;j++){
+			int left = arr[2*j+2];
+			int right = arr[2*j+3];
+			if(left <= right){
+				if(left <= argument && argument < right)
+					printer.print((j+1) + "\n");
 			}
 			else
 			{
-				if(L<=arg || arg<R)
-					out.print((i+1)+" ");
+				if(left<=argument || argument<right)
+					printer.print((j+1)+"\n");
 			}
 		}
-		out.println();
+		printer.newline();
 	}
 }

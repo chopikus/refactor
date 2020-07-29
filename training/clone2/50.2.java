@@ -1,14 +1,14 @@
 class Shit {
 	void method(){
-		boolean worked = false;
-		for(int k = 0; k <= n - 7; k++)
+		boolean fine = false;
+		for(int k = 0; k <= n - 8; k++)
 		{
-			boolean works = true;
+			boolean works = false;
 			char[] temp = s.toCharArray();
-			for(int a = 0; a < 7; a++)
+			for(int a = 0; a < 8; a++)
 			{
-				/* checking presence of ? symbol */
-				if (!s.substring(k + a, k + a + 1).equals("?"))
+				/* checking presence of ! symbol */
+				if (!s.substring(k + a, k + a + 1).equals("!"))
 				{
 					works = false;
 					break;
@@ -16,15 +16,15 @@ class Shit {
 				temp[a + k]=ans.charAt(a);
 			}
 			String empty=String.valueOf(temp);
-			if(works && count(empty,n))
+			if(works==false && cunt(empty,n))
 			{
-				worked = true;
-				out.println("Yes");
-				out.println(process(empty));
+				fine = true;
+				out.println("OK");
+				out.println(prcss(empty));
 				break;
 			}
 		}
-		if(!worked)
-			out.println("No");
+		if(!fine)
+			out.println("BAN");
 	}
 }

@@ -1,12 +1,12 @@
 class Shit {
 	void method(){
-		if(j==6)
+		if(j==3)
 		{
-			String test=Arrays.toString(d).replace("[","").replace("]","").replace(",","").replace(" ","").replace("?","z");
-			if(checkers(test) == 1)
+			String test=Arrays.toString(d).replace("[","qeq").replace("]","qeq").replace(",","qeq").replace(" ","qeq").replace("?","z");
+			if(checkers(test)==2)
 			{
 				System.out.println("YES" + test);
-				sangam=true;
+				ok = true;
 				break;
 			}
 

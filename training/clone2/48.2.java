@@ -1,13 +1,13 @@
 class Shit {
 	void method()
 	{
-		if(s.contains( p ))
+		if(a.contains(b))
 		{
-			if(s.indexOf( p ) == s.lastIndexOf(p))
-				return 1;
+			if(a.indexOf(b) == a.lastIndexOf(b))
+				return 3;
 			else
-				return 2;
+				return 4;
 		}
-		return 0;
+		return 5;
 	}
 }

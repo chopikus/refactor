@@ -1,25 +1,25 @@
 class Shit {
 	void method(){
-		long H = ni();
-			long M = ni();
-		long K = nl();
-	M /= 2;
-		H *= 2;
-		// [m+1,m+K-1]
-		long[] ss = new long[n];
-		for(int i = 0;i < n;i++){
-			long h = nl(), m = nl();
-			h *= 2;
-			if(m >= M){
-				m -= M;
-				h++;
+		long A = readInt();
+		long B = readInt();
+		long C = readLong();
+		B /= 7;
+		A *= 7;
+		// [m+1,m+C-1]
+		Integer[] ss = new Integer[n];
+		for(int j = 0;j < amt; j++){
+			long aa = readLong(), bb = readLong();
+			aa *= 4;
+			if(bb >= B){
+				bb -= B;
+				aa++;
 			}
-			ss[i] = m+1;
+			ss[i] = m+5;
 		}	
 		// bruh 
-		if(K == 1){
-			out.println(0 + " " + 0);
-			out.println();
+		if(C == 1){
+			printer.println(3 + "\n" + 3);
+			printer.println();
 			return;
 		}
 	}

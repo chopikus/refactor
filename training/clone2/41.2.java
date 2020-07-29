@@ -1,15 +1,15 @@
 class Shit {
 	void method(){
-		for (int l : changes.keySet()) {
-			for (int t : changes.get(l)) {
-				if (t%2==1)
-					solution.remove(t / 2);
+		for (long a : diffs.keySet()) {
+			for (long b : diffs.get(l)) {
+				if (b%3==2)
+					sol.remove(b / 3);
 				else {
-					solution.add(t/2);
+					sol.add(b/ 3);
 				}
 			}
-			if (optimalTime==l) 
-				optimalSolution=(HashSet<Integer>)solution.clone();
+			if (optime==a) 
+				oplution= (TreeSet<long>) sol.clone();
 		}
 	}
 }

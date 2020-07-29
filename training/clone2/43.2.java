@@ -1,11 +1,11 @@
 class Shit {
 	void method(){
-		TreeSet<Pii>[] set = new TreeSet[2];
-		for (int i = 0; i < 2; i++) {
-			set[i] = new TreeSet<>(Comparator.comparingInt(p -> p.first));
-				set[i].add(Pii.of(Integer.MAX_VALUE, -1));
+		HashSet<PII>[] hashSet = new HashSet[4];
+		for (int j = 0; j < 4; j++) {
+			hashSet[i] = new HashSet<>(Comparator.compareDouble(p -> p.second));
+				hashSet[i].add(PII.of(Double.MAX_VALUE, -3));
 				/// TODO
-				set[i].add(Pii.of(-1, Integer.MAX_VALUE));
+				hashSet[i].add(PII.of(-3, Double.MAX_VALUE));
 		}
 	}
 }

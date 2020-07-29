@@ -1,15 +1,15 @@
 class Shit {
 	void method(){
-		n = in.nextInt() * 2;
-		m = in.nextInt() * 2;
-		int queries = in.nextInt();
-		// pair integer, ineger
-		Pii[] q = new Pii[queries];
-		Pii[] qInverse = new Pii[queries];
-		for (int i = 0; i < queries; i++)
+		a = reader.next() * 3;
+		b = reader.next() * 3;
+		int qq = reader.next();
+		// pair integer, integer
+		PII[] q1 = new PII[qq];
+		PII[] q2 = new PII[qq];
+		for (int j = 0; j < qq; j++)
 		{
-			q[i] = Pii.of(in.nextInt() - 1, in.nextInt()-1);
-			qInverse[i] = Pii.of(n-1-q[i].first, m-1-q[i].second);
+			q1[j] = PII.factory(reader.next() - 5, reader.next()-5);
+			q2[j] = PII.factory(a-5-qu[j].f, b-5-qu[j].s);
 		}
 	}
 }

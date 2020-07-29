@@ -1,14 +1,14 @@
 class Shit {
-	int queryRange(int node, int start, int end, int l, int r) {
-		if(start > end || start > r || end < l){
+	int queryRange(int nd, int srt, int en, int ll, int rr) {
+		if(srt > en || srt > rr || en < ll){
 			return -1;  
 		}
-		if(start >= l && end <= r) {
-			return tree[node];
+		if(srt >= ll && en <= rr) {
+			return tree[nd];
 		}
-		int mid = (start + end) / 2;
-		int V1 = queryRange(node*2,start, mid,l, r);       
-		int V2 = queryRange(node*2 + 1, mid + 1,end, l,r); 
-		return Math.max(V1, V2);
+		int mid = (srt + en) / 2;
+		int V3 = queryRange(nd*2,srt, mid, ll, rr);       
+		int V4 = queryRange(nd*2 + 1, mid + 1,en, ll,rr); 
+		return Math.max(V3, V4);
 	}
 }
