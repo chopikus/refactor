@@ -5,6 +5,7 @@ class Shit {
 			long unsafelo = l-d[i]+1, unsafehi=k-unsafelo;
 			++lo;
 			++hi;
+			System.out.println(unsafelo+" "+unsafehi);
 			if(unsafelo>unsafehi || lo>hi) {
 				lo = unsafelo;
 				hi = unsafehi;
@@ -14,9 +15,9 @@ class Shit {
 			lo = unsafelo;
 			hi = max(unsafehi, hi);
 			}
+			System.out.println(lo+" "+hi);
 			if(hi - lo + 1 >= k) {
-			prn();
-			continue next;
+				System.out.println((hi-lo+1)+" "+k);
 			}
 		}
 	}

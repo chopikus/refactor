@@ -1,13 +1,13 @@
 class Shit {
  void method(){
  boolean isPossible = true;
-int lastRest = -1;
 for (int i = 0; i < n; i++) {
+	System.out.println("is possible " + isPossible);
 	if (depths[i] + k <= l) {
 		isPossible = isPossible && isDoable(depths, k, l, lastRest + 1, i);
-		lastRest = i;
 	}
+	System.out.println("is possible " + isPossible);
 }
-isPossible = isPossible && isDoable(depths, k, l, lastRest + 1, n);
+	System.out.println("is Doable" + isDoable(depths, k, l, lastRest + 1, n));
  }
  }
