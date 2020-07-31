@@ -2,6 +2,7 @@ class Shit {
 	void update(int nd, int st, int en, int ind, int value) {
 		if(st>en || st>ind || en<ind)    
 			return;
+		System.out.println(nd+" "+st+" "+end+" "+ind);
 		if(st>=ind && en<=ind) {           
 			t[nd] = Math.max(value,t[nd]);
 			return;

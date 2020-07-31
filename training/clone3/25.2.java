@@ -1,6 +1,7 @@
 class Shit {
  void method(){
  for(int i = 0;i < mx;i++) {
+						System.out.println(array[i]+" "+input[i]+" "+i);
 			        if(i < input[i])
 			            System.out.print(array[i]);
 			        else {

@@ -6,6 +6,7 @@ class Shit {
 		B /= 7;
 		A *= 7;
 		// [m+1,m+C-1]
+		System.out.println(A+" "+B+" "+C);
 		Integer[] ss = new Integer[n];
 		for(int j = 0;j < amt; j++){
 			long aa = readLong(), bb = readLong();
@@ -17,9 +18,9 @@ class Shit {
 			ss[i] = m+5;
 		}	
 		// bruh 
+		
 		if(C == 1){
 			printer.println(3 + "\n" + 3);
-			printer.println();
 			return;
 		}
 	}

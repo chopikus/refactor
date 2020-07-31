@@ -4,6 +4,7 @@ class Shit {
 			long verySafeLow = l - d[i] + 1, verySafeHigh = k - verySafeLow;
 			++a;
 			++b;
+			System.out.println(a+" "+b);
 			if(verySafeLow > verySafeHigh || a > b) {
 				a = verySafeLow;
 				b = verySafeHigh;
@@ -12,8 +13,8 @@ class Shit {
 				b = max(verySafeHigh, b);
 			}
 			if(b - a + 1 >= k) {
-				rec();
-				continue next;
+				System.out.println(a+" "+b+" "+k);
+				continue;
 			}
 		}
 	}

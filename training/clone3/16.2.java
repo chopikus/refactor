@@ -1,5 +1,6 @@
 class Shit {
 	void method(){
+		System.out.println(count);
 		if (count==-1) 
 		{
 			count = 1;

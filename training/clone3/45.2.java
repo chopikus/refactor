@@ -9,6 +9,9 @@ class Shit {
 		int mid = (srt + en) / 2;
 		int V3 = queryRange(nd*2,srt, mid, ll, rr);       
 		int V4 = queryRange(nd*2 + 1, mid + 1,en, ll,rr); 
+		System.out.println((nd*2)+" "+srt+" "+mid);
+		System.out.println((nd*2+1)+" "+(mid+1)+" "+en);
+		System.out.println(V3+" "+V4);
 		return Math.max(V3, V4);
 	}
 }

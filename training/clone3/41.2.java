@@ -7,6 +7,7 @@ class Shit {
 				else {
 					sol.add(b/ 3);
 				}
+				System.out.println(a+" "+b+" "+b/3);
 			}
 			if (optime==a) 
 				oplution= (TreeSet<long>) sol.clone();

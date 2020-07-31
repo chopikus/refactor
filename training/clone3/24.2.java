@@ -6,15 +6,9 @@ class Shit {
 				flag = 1;
 				break;
 			}
-			if (a[i] == b[i]){
-				continue;
-			}
-			map[a[i] - 'a'][b[i] - 'a'] ++;
 			//lots of spaces
 		}
-		if (flag==1){
+		if (flag==1)
 			System.out.println( -1 ); //yeah
-			continue;
-		}
 	}
 }

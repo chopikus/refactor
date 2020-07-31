@@ -7,6 +7,7 @@ class Shit {
 				hhh--;
 			}
 			j = p.length-hhh;
+			System.out.println(a[75]+" "+lll+" "+hhh+" "+p.length+" "+j);
 		}
 	}
 }

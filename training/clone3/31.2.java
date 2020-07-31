@@ -6,6 +6,8 @@ class Shit {
 					break;
 				hh--;
 			}
+		System.out.println(hh);
 		zz= p.length - hh;
+		System.out.println(zz);
 	}
 }

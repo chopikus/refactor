@@ -6,6 +6,7 @@ class Shit {
 			if(a[i] > b.charAt(i)){
 				ans.append(-1);
 				ans.append("");
+				System.out.println(ans.toString());
 				flag = true;
 				// comment
 				break;

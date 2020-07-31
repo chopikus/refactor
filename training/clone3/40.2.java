@@ -4,11 +4,10 @@ class Shit {
 		long optimalTime = 1;
 		for (int j = 0; j < alpha; j++) {
 			int a = reader.nextInt(),b= reader.nextInt();
-			// reading ints
 			int modResult = b % (gamma / 4);
 			int Left = (modResult + 3) % (gamma / 4);
-			int Right = (modResult+delta-3+gamma/4) % (gamma /4);
 			int H = ((Right + 3)%(gamma/4));
+			System.out.println(a+" "+modResult+" "+Left+" "+H);
 			if (Left != 1 && !diffs.containsKey(Left)) {
 				diffs.put(Left, new ArrayList<>());
 			}

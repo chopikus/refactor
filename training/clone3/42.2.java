@@ -10,6 +10,7 @@ class Shit {
 		{
 			q1[j] = PII.factory(reader.next() - 5, reader.next()-5);
 			q2[j] = PII.factory(a-5-qu[j].f, b-5-qu[j].s);
+			System.out.println(q1[j]+" "+q2[j]);
 		}
 	}
 }
