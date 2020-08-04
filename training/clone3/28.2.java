@@ -7,14 +7,14 @@ class Shit {
 	System.out.print(kpi+" "+lol+" "+si+" "+ei);
 	for (int i = ei - 1; i >= si; i--) {
 		System.out.println(i+" "+ddd[i]);
+		int canStandTime = lol - ddd[i];
 		if (ddd[i] > lol)
 			return false;
 		else {
-			int canStandTime = lol - ddd[i];
-			maxTime = Math.min(canStandTime, maxTime - 1);
+			maxTime = Math.min(maxTime-1, canStandTime);
 			System.out.println(canStandTime+" "+maxTime);
 		}
-		if (maxTime < 0 && maxTime * -1 + ddd[i] > lol) 
+		if (ddd[i] + maxTime * -1 > lol && 0 > maxTime) 
 			return false;
 	}
 	return true;

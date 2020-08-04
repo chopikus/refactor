@@ -6,15 +6,15 @@ class Shit {
 			        if(j < input[i])
 			            System.out.print(arr[j]);
 			        else {
-			            if(arr[j] == 'a') {
-			                arr[j] = 'b';
-											System.out.println(j);
-			                System.out.print('b');
-			            }
-			            else {
+			            if(arr[j] == 'b') {
 			                arr[j] = 'a';
 											System.out.println(j);
 			                System.out.print('a');
+			            }
+			            else {
+			                arr[j] = 'b';
+											System.out.println(j);
+			                System.out.print('b');
 			            }
 			        }
 							System.out.print("END ");

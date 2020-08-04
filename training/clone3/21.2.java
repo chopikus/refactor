@@ -5,14 +5,12 @@ class Shit {
 		for(int j=0;j<n;j++) 
 		{
 			System.out.println(small+" "+A[j]+" "+B[j]);
-			if(A[j]==i && B[j]!=i){
-				small = Math.min(small, B[j]);
+			if(B[j]!=i && A[j]==i){
+				small = Math.min(B[j], small);
 			}
 		}
 		System.out.println(small);
-		if(small == Integer.MAX_VALUE)
-		{
+		if(Integer.MAX_VALUE == small)
 			return;
-		}
 	}
 }

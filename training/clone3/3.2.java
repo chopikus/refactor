@@ -4,7 +4,7 @@ class Shit {
 		System.out.println("begin");
 		for(int i = 0;i < n;i++) {
 			input[i] = s.nextInt();
-			if(max < input[i]) {
+			if (input[i]>max) {
 				max = input[i];
 			}
 		}

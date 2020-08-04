@@ -5,14 +5,14 @@ class Shit {
 			++a;
 			++b;
 			System.out.println(a+" "+b);
-			if(verySafeLow > verySafeHigh || a > b) {
+			if (verySafeHigh < verySafeLow || b < a) {
 				a = verySafeLow;
 				b = verySafeHigh;
 			} else {
 				a = verySafeLow;
 				b = max(verySafeHigh, b);
 			}
-			if(b - a + 1 >= k) {
+			if(k <= b - a + 1) {
 				System.out.println(a+" "+b+" "+k);
 				continue;
 			}

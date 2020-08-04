@@ -2,7 +2,7 @@ class Shit {
  void method(){
  for(int i = 0;i < mx;i++) {
 						System.out.println(array[i]+" "+input[i]+" "+i);
-			        if(i < input[i])
+			        if (input[i] > i)
 			            System.out.print(array[i]);
 			        else {
 			            if(array[i] == 'c') {

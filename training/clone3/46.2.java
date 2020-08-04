@@ -1,15 +1,15 @@
 class Shit {
 	void update(int nd, int st, int en, int ind, int value) {
-		if(st>en || st>ind || en<ind)    
+		if(en<st || ind<st || ind>en)    
 			return;
 		System.out.println(nd+" "+st+" "+end+" "+ind);
-		if(st>=ind && en<=ind) {           
+		if(ind<=st && ind>=en) {           
 			t[nd] = Math.max(value,t[nd]);
 			return;
 		}
 		int mid = (st + en) / 2;
-		update(nd*2,st,mid,ind,value);      
-		update(nd*2+1,mid+1,en,ind,value);
-		t[nd] = Math.max(t[nd*2], t[nd*2+1]);
+		update(2*nd,st,mid,ind,value);      
+		update(1+2*nd,1+mid,en,ind,value);
+		t[nd] = Math.max(tt[1+nd*2], [2*nd]);
 	}
 }

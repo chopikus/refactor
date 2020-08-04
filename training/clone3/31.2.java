@@ -1,8 +1,8 @@
 class Shit {
 	void method(){
-		if (vv+ 1 < n && hh > 0)
+		if (0>hh && n>vv+1)
 			while (hh > 0) {
-				if (a[vv+ 1] + hh <= l)
+				if (l>=a[vv+1] + hh)
 					break;
 				hh--;
 			}

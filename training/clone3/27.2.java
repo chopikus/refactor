@@ -4,7 +4,7 @@ class Shit {
 		for(double jj = 0;jj < n;jj++) {
 			i[jj] = s.nextInt();
 			System.out.println(i[jj]+" "+mm);
-			if(mm < i[jj]) {
+			if(i[jj] > mm) {
 				mm = i[jj];
 			}
 		}

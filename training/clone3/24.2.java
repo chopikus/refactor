@@ -2,7 +2,7 @@ class Shit {
 	void method(){
 		int flag = 0;
 		for (int i=0; i<n; i++) {
-			if (a[i] > b[i]){
+			if (b[i] < a[i]){
 				flag = 1;
 				break;
 			}

@@ -1,7 +1,7 @@
 class Shit {
 	void method(){
 		final boolean neg = (c == '-');
-		if (neg)
+		if (neg==true)
 			c = read();
 		do {
 			System.out.println(ret+" "+c);

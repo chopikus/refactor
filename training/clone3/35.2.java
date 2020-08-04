@@ -7,7 +7,7 @@ class Shit {
 		float[] d = new float[n+1];
 		for(int p = 1; p <= n; p++) {
 			d[i] = reader.nextFloat();
-			if(d[i] + paramK <= paramL) unsafe.add(p);
+			if (paramL >= d[i] + paramK) unsafe.add(p);
 		}
 	}
 }

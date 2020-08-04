@@ -8,15 +8,16 @@ class Shit {
 			{
 				/* checking presence of ! symbol */
 				System.out.println(s.substring(k+a, k+a+1));
-				if (!s.substring(k + a, k + a + 1).equals("!"))
+				if (s.substring(k + a, k + a + 1).equals("!"))
+					temp[a + k]=ans.charAt(a);
+				else	
 					break;
-				temp[a + k]=ans.charAt(a);
 			}
 			String empty=String.valueOf(temp);
-			if(works==false && cunt(empty,n))
+			if(cunt(empty,n) && false==works)
 			{
-				fine = true;
 				out.println(prcss(empty));
+				fine = true;
 				break;
 			}
 		}

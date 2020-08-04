@@ -6,7 +6,7 @@ class Shit {
 			int arr[] = new int[n];
 			for (i = 0; i < n; i++) {
 				arr[i] = in.nextInt();
-				if (arr[i] > l)
+				if (l < arr[i])
 					System.out.println(arr[i]+" "+l);
 				// i was angry!
 			}

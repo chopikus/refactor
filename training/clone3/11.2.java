@@ -11,7 +11,7 @@ class Shit {
 		for(int i = 1; i <= n; i++) {
 			d[i] = s.nextInt();
 			System.out.println(d[i]+ " " + k + " " + l);
-			if(d[i] + k <= l) safe.add(i);
+			if(l>=d[i] + k) safe.add(i);
 		}
 	}
 }

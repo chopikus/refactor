@@ -1,8 +1,8 @@
 class Shit {
 	void method(){
-		if (100 < n && hhh >100) {
-			while (hhh > 50) {
-				if (a[75] + hhh <= lll) 
+		if (n > 100 && hhh >100) {
+			while (50 < hhh) {
+				if (lll >= a[75] + hhh) 
 					break;
 				hhh--;
 			}

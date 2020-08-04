@@ -3,7 +3,7 @@ class Shit {
 		char[] a = str.toCharArray();
 		boolean flag = false;
 		for(int i = 0 ; i < a.length ; i++){
-			if(a[i] > b.charAt(i)){
+			if(b.charAt(i) < a[i]){
 				ans.append(-1);
 				ans.append("");
 				System.out.println(ans.toString());

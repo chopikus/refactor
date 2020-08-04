@@ -6,7 +6,7 @@ class Shit {
 			++lo;
 			++hi;
 			System.out.println(unsafelo+" "+unsafehi);
-			if(unsafelo>unsafehi || lo>hi) {
+			if(hi<lo || unsafelo>unsafehi) {
 				lo = unsafelo;
 				hi = unsafehi;
 			}

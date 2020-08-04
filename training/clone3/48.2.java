@@ -5,10 +5,10 @@ class Shit {
 		if(a.contains(b))
 		{
 			System.out.println(a.indexOf(b));
-			if(a.indexOf(b) == a.lastIndexOf(b))
-				return 3;
-			else
+			if(a.lastIndexOf(b) != a.indexOf(b))
 				return 4;
+			else
+				return 3;
 		}
 		return 5;
 	}
