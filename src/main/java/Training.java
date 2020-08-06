@@ -86,6 +86,7 @@ public class Training
             else
                 c2++;
         }
+        System.out.println(c1+" "+c2);
         return (float) (c1-c2*c2);
     }
 
