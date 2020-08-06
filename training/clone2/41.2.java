@@ -9,7 +9,7 @@ class Shit {
 				}
 			}
 			if (optime==a) 
-				oplution= (TreeSet<long>) sol.clone();
+				oplution= (TreeSet<Long>) sol.clone();
 		}
 	}
 }

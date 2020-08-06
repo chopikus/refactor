@@ -10,6 +10,6 @@ class Shit {
 		int mid = (st + en) / 2;
 		update(2*nd,st,mid,ind,value);      
 		update(1+2*nd,1+mid,en,ind,value);
-		t[nd] = Math.max(tt[1+nd*2], [2*nd]);
+		t[nd] = Math.max(t[1+nd*2], t[2*nd]);
 	}
 }

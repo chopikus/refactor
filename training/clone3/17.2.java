@@ -6,7 +6,7 @@ class Shit {
 				count = k + 1;
 				change = -1;
 			} else {
-				System.out.println(i+" "+arr[i]+" "+count+" "+l+" "+boolean(arr[i]+count>l));
+				System.out.println(i+" "+arr[i]+" "+count+" "+l+" "+ (Boolean) (arr[i]+count>l));
 				if (l < arr[i]+count) {
 					if (change == -1){
 						count = l - arr[i];

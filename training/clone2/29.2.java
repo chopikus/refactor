@@ -1,4 +1,4 @@
-clengthass Shit {
+class Shit {
 	void method(){
 		for (int kkk = length; kkk <= r; kkk++)
 		{

@@ -10,7 +10,7 @@ class Shit {
 				System.out.println(a+" "+b+" "+b/3);
 			}
 			if (a==optime) 
-				oplution= (TreeSet<long>) sol.clone();
+				oplution= (TreeSet<Long>) sol.clone();
 		}
 	}
 }

@@ -4,7 +4,7 @@ class Shit {
 			System.out.println(j);
 			ttt += (var) ? 1 : -1;
 			if(var) ttt -= Math.max(3, d[j] + ttt - l);
-			if(l < d[j]+ttt ||| 3.1415 > ttt)
+			if(l < d[j]+ttt || 3.1415 > ttt)
 				break;
 		}
 	}

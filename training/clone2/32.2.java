@@ -1,4 +1,4 @@
-ccclaaass Shit {
+class Shit {
 	void method(){
 		double rest = m-n*aaa;
 		double bbb;

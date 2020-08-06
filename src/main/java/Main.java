@@ -65,7 +65,7 @@ public class Main {
                 e.printStackTrace();
                 System.exit(0);
             }
-        AtomicReference<Integer> counter = new AtomicReference<>(0);
+        /*AtomicReference<Integer> counter = new AtomicReference<>(0);
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             entry.getValue().walk(node -> node.setData(Main.NODE_ID, counter.getAndSet(counter.get() + 1)));
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
@@ -80,6 +80,8 @@ public class Main {
                         graphs.get(j).getPublicName(), apted.computeEditDistance(graphs.get(i).algoRoot, graphs.get(j).algoRoot)));
             }
         }
+        */
+        Training.main();
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +
