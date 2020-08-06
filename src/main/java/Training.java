@@ -86,7 +86,6 @@ public class Training
             else
                 c2++;
         }
-
         return (float) (c1-c2*c2);
     }
 
@@ -95,10 +94,10 @@ public class Training
         double Tmin = 0.1, Tmax = 1000;
         double T = Tmax;
         ArrayList<Float> params = new ArrayList<>();
-        params.add(11.0f);
+        params.add(5.0f);
         params.add(2.0f);
-        params.add(8.0f);
-        params.add(206.0f);
+        params.add(5.0f);
+        params.add(120.0f);
         double i = 1;
         double res = E(params);
         System.out.println(res);
@@ -134,10 +133,7 @@ public class Training
     static void main()
     {
         readFiles();
-        /*cost.setInsCost(1);
-        cost.setRenCost(1);
-        cost.setDelCost(1);
-        for (Pair<Graph, Graph> clone : clones)
+        /*for (Pair<Graph, Graph> clone : clones)
         {
             System.out.println(apted.computeEditDistance(clone.a.algoRoot, clone.b.algoRoot));
         }
