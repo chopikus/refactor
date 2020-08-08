@@ -2,9 +2,9 @@ import at.unisalzburg.dbresearch.apted.costmodel.CostModel;
 import at.unisalzburg.dbresearch.apted.node.Node;
 
 class Cost implements CostModel<NodeData> {
-    private float delCost = 5.0f;
-    private float insCost = 5.0f;
-    private float renCost = 1.0f;
+    private float delCost = 3.0f;
+    private float insCost = 3.0f;
+    private float renCost = 2.0f;
 
     public float del(Node<NodeData> n) {
         return delCost;

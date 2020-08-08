@@ -1,4 +1,6 @@
 import at.unisalzburg.dbresearch.apted.distance.APTED;
+import com.github.javaparser.Position;
+import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
@@ -23,7 +25,18 @@ public class Main {
     public static ArrayList<Graph> graphs = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
 
-    static boolean checkNodeToStartDFS(Node node) {
+    static boolean dontCollide(File fromWhere1, Range r1, File fromWhere2, Range r2)
+    {
+        boolean flag = false;
+        if (!(fromWhere1.getAbsolutePath()).equals(fromWhere2.getAbsolutePath()))
+            flag = true;
+        else
+            flag = Math.max(r1.begin.line, r2.begin.line)>Math.min(r1.end.line, r2.end.line);
+        return (flag && fromWhere1.getAbsolutePath().compareTo(fromWhere2.getAbsolutePath())<=0
+                && r1.begin.line<=r2.begin.line);
+    }
+
+    static boolean checkNodeToMakeGraph(Node node) {
         Node parent = node.getParentNodeForChildren();
         return (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
                 || parent instanceof IfStmt || parent instanceof WhileStmt);
@@ -47,6 +60,35 @@ public class Main {
         }
     }
 
+    static void dfs(Node node, File fromWhere)
+    {
+        boolean flag = false;
+        if (checkNodeToMakeGraph(node))
+        {
+            Graph g = new Graph(node, fromWhere.getAbsolutePath());
+            for (Graph graph : graphs) {
+                if (node.getRange().isPresent() && graph.root.getRange().isPresent()
+                        && dontCollide(fromWhere, node.getRange().get(), graph.fromWhere,
+                        graph.root.getRange().get())) {
+                    float distance = apted.computeEditDistance(g.algoRoot, graph.algoRoot);
+                    if (distance > 0.0f && distance <= 98.0f) {
+                        flag = true;
+                        System.out.printf("found copy: %s lines %s->%s, and %s lines %s->%s \n",
+                                fromWhere.getAbsolutePath(), node.getRange().get().begin.line,
+                                node.getRange().get().end.line, graph.fromWhere.getAbsolutePath(),
+                                graph.root.getRange().get().begin.line, graph.root.getRange().get().end.line);
+                    }
+                }
+            }
+        }
+        if (!flag)
+            for (Node child : node.getChildNodes())
+            {
+                dfs(child, fromWhere);
+            }
+    }
+
+
     public static void main(String[] args) {
         Runtime.getRuntime().gc();
         long timeInMillisStart = System.currentTimeMillis();
@@ -65,23 +107,15 @@ public class Main {
                 e.printStackTrace();
                 System.exit(0);
             }
-        /*AtomicReference<Integer> counter = new AtomicReference<>(0);
+        AtomicReference<Integer> counter = new AtomicReference<>(0);
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             entry.getValue().walk(node -> node.setData(Main.NODE_ID, counter.getAndSet(counter.get() + 1)));
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
-            entry.getValue().stream().filter(Main::checkNodeToStartDFS)
+            entry.getValue().stream().filter(Main::checkNodeToMakeGraph)
                     .forEach(node -> graphs.add(new Graph(node, entry.getKey())));
         }
-        for (Graph graph : graphs)
-            graph.export(graph.getPublicName());
-        for (int i=0; i<graphs.size(); i++) {
-            for (int j=i+1; j<graphs.size(); j++) {
-                System.out.println(String.format("Distance between %s and %s is %s", graphs.get(i).getPublicName(),
-                        graphs.get(j).getPublicName(), apted.computeEditDistance(graphs.get(i).algoRoot, graphs.get(j).algoRoot)));
-            }
-        }
-        */
-        Training.main();
+        for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
+            dfs(entry.getValue(), new File(entry.getKey()));
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +
