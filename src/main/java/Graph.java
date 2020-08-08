@@ -26,7 +26,7 @@ public class Graph {
             if (result.length()>=2)
                 result = result.substring(0, result.length() - 2);
         }
-        return "ID: "+node.getData(Main.NODE_ID)+" "+result.replace('"', '\'');
+        return "Type: "+node.getMetaModel().getTypeName()+" "+result.replace('"', '\'');
     }
 
     boolean checkNode(Node node)

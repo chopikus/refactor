@@ -5,6 +5,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.*;
 
 import java.io.File;
@@ -77,6 +78,17 @@ public class Main {
                                 fromWhere.getAbsolutePath(), node.getRange().get().begin.line,
                                 node.getRange().get().end.line, graph.fromWhere.getAbsolutePath(),
                                 graph.root.getRange().get().begin.line, graph.root.getRange().get().end.line);
+                        MethodCallExpr expr = new MethodCallExpr();
+                        expr.setName("func3");
+                        if (node instanceof BlockStmt) {
+                            BlockStmt stmt = new BlockStmt();
+                            stmt.addStatement(expr);
+                            node.replace(stmt);
+                        }
+                        else
+                        {
+                            node.replace(expr);
+                        }
                     }
                 }
             }
@@ -114,8 +126,14 @@ public class Main {
             entry.getValue().stream().filter(Main::checkNodeToMakeGraph)
                     .forEach(node -> graphs.add(new Graph(node, entry.getKey())));
         }
+        for (Graph graph : graphs)
+        {
+            graph.export(graph.getPublicName());
+        }
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             dfs(entry.getValue(), new File(entry.getKey()));
+        for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
+            System.out.println(entry.getValue().toString());
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +
