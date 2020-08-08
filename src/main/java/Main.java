@@ -5,6 +5,8 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.*;
 
@@ -25,22 +27,33 @@ public class Main {
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static ArrayList<Graph> graphs = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
-
+    public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
     static boolean dontCollide(File fromWhere1, Range r1, File fromWhere2, Range r2)
     {
+        if (!fromWhere1.getAbsolutePath().equals(fromWhere2.getAbsolutePath()) && Math.min(r1.getLineCount(), r2.getLineCount())<=5)
+            return false;
         boolean flag = false;
         if (!(fromWhere1.getAbsolutePath()).equals(fromWhere2.getAbsolutePath()))
-            flag = true;
+            flag = (fromWhere1.getAbsolutePath().compareTo(fromWhere2.getAbsolutePath())<0);
         else
-            flag = Math.max(r1.begin.line, r2.begin.line)>Math.min(r1.end.line, r2.end.line);
-        return (flag && fromWhere1.getAbsolutePath().compareTo(fromWhere2.getAbsolutePath())<=0
-                && r1.begin.line<=r2.begin.line);
+            flag = (Math.max(r1.begin.line, r2.begin.line)>Math.min(r1.end.line, r2.end.line) && r1.begin.line<=r2.begin.line);
+        return flag;
     }
-
+    static boolean checkDistance(float distance, int l1, int l2)
+    {
+        if (Math.min(l1, l2)<=3)
+            return false;
+        if (Math.min(l1, l2)<=7)
+            return distance<=Math.min(l1, l2)*2;
+        else if (Math.min(l1, l2)<=15)
+            return distance<=Math.min(l1, l2)*5;
+        else
+            return distance<=Math.min(l1, l2)*5;
+    }
     static boolean checkNodeToMakeGraph(Node node) {
         Node parent = node.getParentNodeForChildren();
         return (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
-                || parent instanceof IfStmt || parent instanceof WhileStmt);
+                || parent instanceof IfStmt || parent instanceof WhileStmt || node instanceof ClassOrInterfaceDeclaration);
     }
 
     static void parseArgs(String[] args) throws IOException {
@@ -72,23 +85,14 @@ public class Main {
                         && dontCollide(fromWhere, node.getRange().get(), graph.fromWhere,
                         graph.root.getRange().get())) {
                     float distance = apted.computeEditDistance(g.algoRoot, graph.algoRoot);
-                    if (distance > 0.0f && distance <= 98.0f) {
-                        flag = true;
+                    if (checkDistance(distance, graph.root.getRange().get().getLineCount(),
+                            node.getRange().get().getLineCount())) {
                         System.out.printf("found copy: %s lines %s->%s, and %s lines %s->%s \n",
                                 fromWhere.getAbsolutePath(), node.getRange().get().begin.line,
                                 node.getRange().get().end.line, graph.fromWhere.getAbsolutePath(),
                                 graph.root.getRange().get().begin.line, graph.root.getRange().get().end.line);
-                        MethodCallExpr expr = new MethodCallExpr();
-                        expr.setName("func3");
-                        if (node instanceof BlockStmt) {
-                            BlockStmt stmt = new BlockStmt();
-                            stmt.addStatement(expr);
-                            node.replace(stmt);
-                        }
-                        else
-                        {
-                            node.replace(expr);
-                        }
+                        flag = true;
+                        DSU.unite(node, graph.root);
                     }
                 }
             }
@@ -119,9 +123,8 @@ public class Main {
                 e.printStackTrace();
                 System.exit(0);
             }
-        AtomicReference<Integer> counter = new AtomicReference<>(0);
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
-            entry.getValue().walk(node -> node.setData(Main.NODE_ID, counter.getAndSet(counter.get() + 1)));
+            entry.getValue().walk(node -> node.setData(Main.NODE_ID, nodeIDCounter.getAndSet(nodeIDCounter.get() + 1)));
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
             entry.getValue().stream().filter(Main::checkNodeToMakeGraph)
                     .forEach(node -> graphs.add(new Graph(node, entry.getKey())));
@@ -132,8 +135,12 @@ public class Main {
         }
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             dfs(entry.getValue(), new File(entry.getKey()));
-        for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
-            System.out.println(entry.getValue().toString());
+        List<List<Node>> subsets = DSU.getAllSubsets();
+        for (List<Node> subset : subsets)
+        {
+            for (Node node : subset)
+                node.remove();
+        }
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +

@@ -245,7 +245,8 @@ public class MainActivity extends AppCompatActivity {
                 RecyclerView.Adapter adapter;
                 String refreshing="";
                 final Context context = getActivity();
-                @Override
+                
+								@Override
                 protected void onPreExecute() {
                     super.onPreExecute();
                     if (refreshing.equals("false"))

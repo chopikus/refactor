@@ -17,4 +17,9 @@ class Main
 			a = xx;
 			b = yy;
 	}
+
+	void func3()
+	{
+		System.out.println("OK boomer!");
+	}
 }
