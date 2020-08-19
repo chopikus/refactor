@@ -1,8 +1,14 @@
+import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.resolution.types.ResolvedTypeVariable;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.utils.Pair;
+import javassist.compiler.ast.Variable;
 
 import javax.xml.crypto.NodeSetData;
 import java.io.File;
@@ -26,7 +32,16 @@ public class Graph {
             if (result.length()>=2)
                 result = result.substring(0, result.length() - 2);
         }
-        return "Type: "+node.getMetaModel().getTypeName()+" "+result.replace('"', '\'');
+        String id="";
+        if (node instanceof Expression) {
+            JavaParserFacade facade = JavaParserFacade.get(Main.typeSolver);
+            id = facade.getType(node).isReference()+"";
+        }
+        if (node instanceof Name || node instanceof NameExpr || node instanceof LiteralExpr || node instanceof SimpleName) {
+            return id+" "+result.replace('"', '\'');
+        }
+        //return "Type: "+node.getMetaModel().getTypeName()+" "+result.replace('"', '\'');
+        return id+" "+node.getMetaModel().getTypeName();
     }
 
     boolean checkNode(Node node)
@@ -37,7 +52,7 @@ public class Graph {
             return false;
         if (node instanceof ClassOrInterfaceDeclaration)
             return false;
-        return !(node instanceof SimpleName);
+        return true;//!(node instanceof SimpleName);
     }
 
     at.unisalzburg.dbresearch.apted.node.Node<NodeData> dfsAST(Node node) {

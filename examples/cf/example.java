@@ -1,5 +1,6 @@
 class Main
 {
+	double xxx=0;
 	void func1(double x, double y, double angle, int n)
 	{
 		for (int i=0; i<n; i++)
@@ -14,8 +15,8 @@ class Main
 	{
 			double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 			double bb = Math.sin(angle)*a+Math.cos(angle)*b;
-			a = xx;
-			b = yy;
+			this.xxx = aa;
+			b = bb;
 	}
 
 	void func3()

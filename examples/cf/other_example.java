@@ -12,8 +12,8 @@ class Main
 	{
 		while (n--)
 		{
-			x+=angle;
-			y+=angle;
+			a+=angle;
+			b+=angle;
 		}
 	}
 

@@ -9,6 +9,12 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,10 +34,12 @@ public class Main {
     public static ArrayList<Graph> graphs = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
+    public static int counter=0;
+    public static TypeSolver typeSolver = null;
     static boolean dontCollide(File fromWhere1, Range r1, File fromWhere2, Range r2)
     {
-        if (!fromWhere1.getAbsolutePath().equals(fromWhere2.getAbsolutePath()) && Math.min(r1.getLineCount(), r2.getLineCount())<=5)
-            return false;
+        //if (!fromWhere1.getAbsolutePath().equals(fromWhere2.getAbsolutePath()) && Math.min(r1.getLineCount(), r2.getLineCount())<)
+        //    return false;
         boolean flag = false;
         if (!(fromWhere1.getAbsolutePath()).equals(fromWhere2.getAbsolutePath()))
             flag = (fromWhere1.getAbsolutePath().compareTo(fromWhere2.getAbsolutePath())<0);
@@ -42,7 +50,7 @@ public class Main {
     static boolean checkDistance(float distance, int l1, int l2)
     {
         if (Math.min(l1, l2)<=3)
-            return false;
+            return distance<=1;
         if (Math.min(l1, l2)<=7)
             return distance<=Math.min(l1, l2)*2;
         else if (Math.min(l1, l2)<=15)
@@ -62,6 +70,11 @@ public class Main {
             System.exit(0);
         } else {
             File file = new File(args[0]);
+            CombinedTypeSolver solver = new CombinedTypeSolver();
+            solver.add(new ReflectionTypeSolver());
+            solver.add(new JavaParserTypeSolver(file));
+            typeSolver = solver;
+            System.out.println(typeSolver.toString());
             Files.walk(Paths.get(file.getAbsolutePath()))
                     .filter(Files::isRegularFile)
                     .filter(path -> {
@@ -87,10 +100,13 @@ public class Main {
                     float distance = apted.computeEditDistance(g.algoRoot, graph.algoRoot);
                     if (checkDistance(distance, graph.root.getRange().get().getLineCount(),
                             node.getRange().get().getLineCount())) {
-                        System.out.printf("found copy: %s lines %s->%s, and %s lines %s->%s \n",
+                        System.out.printf("found copy: %s lines %s->%s, and %s lines %s->%s %s\n",
                                 fromWhere.getAbsolutePath(), node.getRange().get().begin.line,
                                 node.getRange().get().end.line, graph.fromWhere.getAbsolutePath(),
-                                graph.root.getRange().get().begin.line, graph.root.getRange().get().end.line);
+                                graph.root.getRange().get().begin.line, graph.root.getRange().get().end.line, counter);
+                        g.export(counter+" 1");
+                        graph.export(counter+" 2");
+                        counter++;
                         flag = true;
                         DSU.unite(node, graph.root);
                     }
@@ -115,6 +131,8 @@ public class Main {
             e.printStackTrace();
             System.exit(0);
         }
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
+        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
         for (File file : filesToParse)
             try {
                 units.put(file.getAbsolutePath(), StaticJavaParser.parse(file));
@@ -129,17 +147,12 @@ public class Main {
             entry.getValue().stream().filter(Main::checkNodeToMakeGraph)
                     .forEach(node -> graphs.add(new Graph(node, entry.getKey())));
         }
-        for (Graph graph : graphs)
-        {
-            graph.export(graph.getPublicName());
-        }
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             dfs(entry.getValue(), new File(entry.getKey()));
         List<List<Node>> subsets = DSU.getAllSubsets();
         for (List<Node> subset : subsets)
         {
-            for (Node node : subset)
-                node.remove();
+
         }
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
