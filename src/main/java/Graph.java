@@ -36,16 +36,6 @@ public class Graph {
                 result = result.substring(0, result.length() - 2);
         }
         String id="";
-        if (node instanceof NameExpr) {
-            SymbolReference<? extends ResolvedValueDeclaration> reference = Main.facade.solve((NameExpr) node);
-            if (reference.isSolved())
-            {
-                ResolvedValueDeclaration declaration = reference.getCorrespondingDeclaration();
-                System.out.println(node.toString() + " " + declaration.isVariable() + " " + declaration.isEnumConstant() + " " + declaration.isField() + " " + declaration.isMethod() + " " + declaration.isParameter());
-            }
-            else
-                id="not solved!";
-        }
         if (node instanceof Name || node instanceof NameExpr || node instanceof LiteralExpr || node instanceof SimpleName) {
             return id+" "+result.replace('"', '\'');
         }

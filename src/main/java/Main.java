@@ -1,13 +1,10 @@
 import at.unisalzburg.dbresearch.apted.distance.APTED;
-import com.github.javaparser.Position;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.expr.ClassExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
@@ -29,6 +26,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Main {
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
     };
+    public static final DataKey<Boolean> IS_VARIABLE = new DataKey<>() {
+    };
     public static List<File> filesToParse = new ArrayList<>();
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static ArrayList<Graph> graphs = new ArrayList<>();
@@ -41,7 +40,7 @@ public class Main {
     {
         //if (!fromWhere1.getAbsolutePath().equals(fromWhere2.getAbsolutePath()) && Math.min(r1.getLineCount(), r2.getLineCount())<)
         //    return false;
-        boolean flag = false;
+        boolean flag;
         if (!(fromWhere1.getAbsolutePath()).equals(fromWhere2.getAbsolutePath()))
             flag = (fromWhere1.getAbsolutePath().compareTo(fromWhere2.getAbsolutePath())<0);
         else
@@ -50,14 +49,7 @@ public class Main {
     }
     static boolean checkDistance(float distance, int l1, int l2)
     {
-        if (Math.min(l1, l2)<=3)
-            return distance<=1;
-        if (Math.min(l1, l2)<=7)
-            return distance<=Math.min(l1, l2)*2;
-        else if (Math.min(l1, l2)<=15)
-            return distance<=Math.min(l1, l2)*5;
-        else
-            return distance<=Math.min(l1, l2)*5;
+        return distance<=Math.min(l1, l2)*4;
     }
     static boolean checkNodeToMakeGraph(Node node) {
         Node parent = node.getParentNodeForChildren();
@@ -116,9 +108,7 @@ public class Main {
         }
         if (!flag)
             for (Node child : node.getChildNodes())
-            {
                 dfs(child, fromWhere);
-            }
     }
 
 
@@ -152,10 +142,7 @@ public class Main {
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             dfs(entry.getValue(), new File(entry.getKey()));
         List<List<Node>> subsets = DSU.getAllSubsets();
-        for (List<Node> subset : subsets)
-        {
-
-        }
+        Uniter.unite(subsets.get(0));
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +

@@ -7,8 +7,9 @@ class Main
 	{
 		for (int i=0; i<n; i++)
 		{
-			Double xx = Math.cos(angle)*x-Math.sin(angle)*y;
+			double xx = Math.cos(angle)*x-Math.sin(angle)*y;
 			double yy = Math.sin(angle)*x+Math.cos(angle)*y;
+			//yy++;
 			x = xx;
 			y = yy;
 		}
@@ -17,7 +18,8 @@ class Main
 	{
 			double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 			double bb = Math.sin(angle)*a+Math.cos(angle)*b;
-			this.xxx = aa;
+			//bb++;
+			a = aa;
 			b = bb;
 	}
 
