@@ -9,7 +9,6 @@ class Main
 		{
 			double xx = Math.cos(angle)*x-Math.sin(angle)*y;
 			double yy = Math.sin(angle)*x+Math.cos(angle)*y;
-			//yy++;
 			x = xx;
 			y = yy;
 		}
@@ -18,9 +17,10 @@ class Main
 	{
 			double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 			double bb = Math.sin(angle)*a+Math.cos(angle)*b;
-			//bb++;
 			a = aa;
 			b = bb;
+			if (aa==bb)
+				System.out.println("aa==bb");
 	}
 
 	void func3()

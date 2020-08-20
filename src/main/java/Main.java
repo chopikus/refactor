@@ -49,7 +49,7 @@ public class Main {
     }
     static boolean checkDistance(float distance, int l1, int l2)
     {
-        return distance<=Math.min(l1, l2)*4;
+        return distance<=Math.min(l1, l2)*5;
     }
     static boolean checkNodeToMakeGraph(Node node) {
         Node parent = node.getParentNodeForChildren();

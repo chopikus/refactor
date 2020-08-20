@@ -1,19 +1,10 @@
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
-import com.github.javaparser.resolution.types.ResolvedType;
-import com.github.javaparser.resolution.types.ResolvedTypeVariable;
-import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
-import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.utils.Pair;
-import javassist.compiler.ast.Variable;
 
-import javax.xml.crypto.NodeSetData;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -36,6 +27,10 @@ public class Graph {
                 result = result.substring(0, result.length() - 2);
         }
         String id="";
+        if (node instanceof UnaryExpr)
+        {
+            id = ((UnaryExpr) node).getOperator().asString();
+        }
         if (node instanceof Name || node instanceof NameExpr || node instanceof LiteralExpr || node instanceof SimpleName) {
             return id+" "+result.replace('"', '\'');
         }
@@ -55,7 +50,7 @@ public class Graph {
     }
 
     at.unisalzburg.dbresearch.apted.node.Node<NodeData> dfsAST(Node node) {
-        NodeData algoNodeData = new NodeData(node.getMetaModel().getTypeName());
+        NodeData algoNodeData = new NodeData(node.getMetaModel().getTypeName(), node instanceof ExpressionStmt);
         at.unisalzburg.dbresearch.apted.node.Node<NodeData> algoNode
                 = new at.unisalzburg.dbresearch.apted.node.Node<>(algoNodeData);
         nodes++;
