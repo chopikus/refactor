@@ -36,6 +36,7 @@ public class Main {
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
     public static int counter=0;
     public static TypeSolver typeSolver = null;
+    public static JavaParserFacade facade = null;
     static boolean dontCollide(File fromWhere1, Range r1, File fromWhere2, Range r2)
     {
         //if (!fromWhere1.getAbsolutePath().equals(fromWhere2.getAbsolutePath()) && Math.min(r1.getLineCount(), r2.getLineCount())<)
@@ -133,6 +134,7 @@ public class Main {
         }
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
         StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+        facade = JavaParserFacade.get(typeSolver);
         for (File file : filesToParse)
             try {
                 units.put(file.getAbsolutePath(), StaticJavaParser.parse(file));

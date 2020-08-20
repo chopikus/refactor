@@ -4,9 +4,12 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.resolution.types.ResolvedTypeVariable;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.utils.Pair;
 import javassist.compiler.ast.Variable;
 
@@ -33,9 +36,15 @@ public class Graph {
                 result = result.substring(0, result.length() - 2);
         }
         String id="";
-        if (node instanceof Expression) {
-            JavaParserFacade facade = JavaParserFacade.get(Main.typeSolver);
-            id = facade.getType(node).isReference()+"";
+        if (node instanceof NameExpr) {
+            SymbolReference<? extends ResolvedValueDeclaration> reference = Main.facade.solve((NameExpr) node);
+            if (reference.isSolved())
+            {
+                ResolvedValueDeclaration declaration = reference.getCorrespondingDeclaration();
+                System.out.println(node.toString() + " " + declaration.isVariable() + " " + declaration.isEnumConstant() + " " + declaration.isField() + " " + declaration.isMethod() + " " + declaration.isParameter());
+            }
+            else
+                id="not solved!";
         }
         if (node instanceof Name || node instanceof NameExpr || node instanceof LiteralExpr || node instanceof SimpleName) {
             return id+" "+result.replace('"', '\'');
