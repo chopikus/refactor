@@ -56,7 +56,7 @@ public class Main {
     static boolean checkNodeToMakeGraph(Node node) {
         Node parent = node.getParentNodeForChildren();
         return (node instanceof BlockStmt || parent instanceof ForStmt || parent instanceof ForEachStmt
-                || parent instanceof IfStmt || parent instanceof WhileStmt || node instanceof ClassOrInterfaceDeclaration);
+                || parent instanceof IfStmt || parent instanceof WhileStmt);
     }
 
     static void parseArgs(String[] args) throws IOException {

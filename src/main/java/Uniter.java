@@ -9,6 +9,7 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.utils.Pair;
 
@@ -180,7 +181,7 @@ public class Uniter {
         }
         List<List<Pair<Statement, Integer>>> statementsToWrite = new ArrayList<>();
         List<Statement> firstNodeCommonStatements = new ArrayList<>();
-
+        List<LiteralExpr> firstNodeLiteralExprs = new ArrayList<>();
         for (int i=0; i<=commonStatements; i++)
             statementsToWrite.add(new ArrayList<>());
         int prevNode = -1;
@@ -200,6 +201,7 @@ public class Uniter {
                         literalExprCounter.getAndIncrement();
                         ResolvedType type = node1.calculateResolvedType();
                         literalTypes.add(type);
+                        firstNodeLiteralExprs.add(node1);
                         node1.replace(new NameExpr("commonLiteral"+literalExprCounter.get()));
                     });
                 }
@@ -218,13 +220,28 @@ public class Uniter {
                 statementsToActuallyWrite.add(new Pair<>(firstNodeCommonStatements.get(i), -1));
         }
         writeInOneMethod(statementsToActuallyWrite, literalTypes, which);
+        AtomicInteger atomicStmtCounter= new AtomicInteger();
+        final List<Boolean> finalIsCommonStmt = isCommonStmt;
+        nodeCounter = 0;
         for (Node node : nodes)
         {
+            final List<LiteralExpr> lst = new ArrayList<>();
+            if (nodeCounter==0)
+                lst.addAll(firstNodeLiteralExprs);
+            node.walk(Node.TreeTraversal.PREORDER, node1->{
+               if (isStatement(node1))
+                   if (finalIsCommonStmt.get(atomicStmtCounter.getAndIncrement()))
+                       node1.findAll(LiteralExpr.class, lst::add);
+            });
             BlockStmt stmt = new BlockStmt();
             MethodCallExpr expr = new MethodCallExpr();
             expr.setName("repeatedCode"+which);
+            expr.addArgument(new IntegerLiteralExpr(Integer.toString(nodeCounter)));
+            for (LiteralExpr lexpr : lst)
+                expr.addArgument(lexpr);
             stmt.addStatement(expr);
             node.replace(stmt);
+            nodeCounter++;
         }
     }
 
@@ -232,8 +249,10 @@ public class Uniter {
         MethodDeclaration decl = copied.addMethod("repeatedCode"+which);
         BlockStmt blockStmt = new BlockStmt();
         decl.setBody(blockStmt);
-        for (int i=0; i<literalTypes.size(); i++)
-            decl.addParameter(new Parameter(StaticJavaParser.parseType(literalTypes.get(i).describe()), "commonLiteral"+(i+1)));
+        decl.addParameter(PrimitiveType.shortType(), "whoCalled");
+        for (int i=0; i<literalTypes.size(); i++) {
+            decl.addParameter(new Parameter(literalTypes.get(i).isNull() ? PrimitiveType.booleanType() : StaticJavaParser.parseType(literalTypes.get(i).describe()), "commonLiteral" + (i + 1)));
+        }
         for (Pair<Statement, Integer> statementListPair : statements) {
             if (statementListPair.b == -1)
                 blockStmt.addStatement(statementListPair.a);
