@@ -1,5 +1,6 @@
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -7,12 +8,16 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.utils.Pair;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,7 +27,8 @@ public class Uniter {
 
     static boolean isStatement(Node node)
     {
-        return (node instanceof Statement && node.containsData(Main.IS_DEPTH_ONE) && node.getData(Main.IS_DEPTH_ONE));
+        return (node instanceof Statement && node.containsData(Main.IS_DEPTH_ONE) && node.getData(Main.IS_DEPTH_ONE) 
+                && !(node instanceof ExplicitConstructorInvocationStmt));
     }
 
     static List<Boolean> getCommonStmts(List<Statement> stmts, List<Integer> stmtToNode, int nodesSize, boolean hashVariables) {
@@ -235,6 +241,7 @@ public class Uniter {
             });
             BlockStmt stmt = new BlockStmt();
             MethodCallExpr expr = new MethodCallExpr();
+            expr.setScope(new NameExpr("Copied"));
             expr.setName("repeatedCode"+which);
             expr.addArgument(new IntegerLiteralExpr(Integer.toString(nodeCounter)));
             for (LiteralExpr lexpr : lst)
@@ -249,27 +256,55 @@ public class Uniter {
         MethodDeclaration decl = copied.addMethod("repeatedCode"+which);
         BlockStmt blockStmt = new BlockStmt();
         decl.setBody(blockStmt);
+        decl.setStatic(true);
         decl.addParameter(PrimitiveType.shortType(), "whoCalled");
         for (int i=0; i<literalTypes.size(); i++) {
             decl.addParameter(new Parameter(literalTypes.get(i).isNull() ? PrimitiveType.booleanType() : StaticJavaParser.parseType(literalTypes.get(i).describe()), "commonLiteral" + (i + 1)));
         }
+        int prevB=-1;
+        String prevA="";
         for (Pair<Statement, Integer> statementListPair : statements) {
             if (statementListPair.b == -1)
                 blockStmt.addStatement(statementListPair.a);
             else {
-                IfStmt stmt = new IfStmt();
-                stmt.setThenStmt(statementListPair.a);
-                Expression condition = new BinaryExpr(new NameExpr("whoCalled"),
-                        new IntegerLiteralExpr(statementListPair.b.toString()), BinaryExpr.Operator.EQUALS);
-                stmt.setCondition(condition);
-                blockStmt.addStatement(stmt);
+                if (statementListPair.b==prevB)
+                {
+                    blockStmt.getStatement(blockStmt.getStatements().size()-1).asIfStmt().getThenStmt().
+                            asBlockStmt().addStatement(statementListPair.a);
+                }
+                else if (statementListPair.a.toString().equals(prevA))
+                {
+                    Expression condition1 = blockStmt.getStatement(blockStmt.getStatements().size()-1).asIfStmt().getCondition();
+                    Expression condition2 = new BinaryExpr(new NameExpr("whoCalled"),
+                            new IntegerLiteralExpr(statementListPair.b.toString()), BinaryExpr.Operator.EQUALS);
+                    Expression condition = new BinaryExpr(condition1, condition2, BinaryExpr.Operator.OR);
+                    blockStmt.getStatement(blockStmt.getStatements().size()-1).asIfStmt().setCondition(condition);
+                }
+                else {
+                    IfStmt stmt = new IfStmt();
+                    stmt.setThenStmt(new BlockStmt().addStatement(statementListPair.a));
+                    Expression condition = new BinaryExpr(new NameExpr("whoCalled"),
+                            new IntegerLiteralExpr(statementListPair.b.toString()), BinaryExpr.Operator.EQUALS);
+                    stmt.setCondition(condition);
+                    blockStmt.addStatement(stmt);
+                }
             }
+            prevA = statementListPair.a.toString();
+            prevB = statementListPair.b;
         }
     }
 
     static void exportClass()
     {
-        System.out.println(copied);
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter("out/Copied.java");
+            writer.write(copied.toString());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

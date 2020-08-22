@@ -3,6 +3,7 @@ import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.stmt.*;
@@ -14,6 +15,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,7 +23,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+
 
 public class Main {
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
@@ -33,15 +37,17 @@ public class Main {
     public static List<File> filesToParse = new ArrayList<>();
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static ArrayList<Graph> graphs = new ArrayList<>();
-    public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
     public static int counter=0;
     public static TypeSolver typeSolver = null;
     public static JavaParserFacade facade = null;
+    public static CountDownLatch doneSignal;
+    public static int availableThreads = Runtime.getRuntime().availableProcessors();
+
     static boolean dontCollide(File fromWhere1, Range r1, File fromWhere2, Range r2)
     {
-        //if (!fromWhere1.getAbsolutePath().equals(fromWhere2.getAbsolutePath()) && Math.min(r1.getLineCount(), r2.getLineCount())<)
-        //    return false;
+        if (Math.min(r1.getLineCount(), r2.getLineCount())<4)
+            return false;
         boolean flag;
         if (!(fromWhere1.getAbsolutePath()).equals(fromWhere2.getAbsolutePath()))
             flag = (fromWhere1.getAbsolutePath().compareTo(fromWhere2.getAbsolutePath())<0);
@@ -84,31 +90,43 @@ public class Main {
 
     static void dfs(Node node, File fromWhere)
     {
-        boolean flag = false;
+        final boolean[] flag = {false};
         if (checkNodeToMakeGraph(node))
         {
             Graph g = new Graph(node, fromWhere.getAbsolutePath());
-            for (Graph graph : graphs) {
-                if (node.getRange().isPresent() && graph.root.getRange().isPresent()
-                        && dontCollide(fromWhere, node.getRange().get(), graph.fromWhere,
-                        graph.root.getRange().get())) {
-                    float distance = apted.computeEditDistance(g.algoRoot, graph.algoRoot);
-                    if (checkDistance(distance, graph.root.getRange().get().getLineCount(),
-                            node.getRange().get().getLineCount())) {
-                        System.out.printf("found copy: %s lines %s->%s, and %s lines %s->%s %s\n",
-                                fromWhere.getAbsolutePath(), node.getRange().get().begin.line,
-                                node.getRange().get().end.line, graph.fromWhere.getAbsolutePath(),
-                                graph.root.getRange().get().begin.line, graph.root.getRange().get().end.line, counter);
-                        g.export(counter+" 1");
-                        graph.export(counter+" 2");
-                        counter++;
-                        flag = true;
-                        DSU.unite(node, graph.root);
+            doneSignal = new CountDownLatch(availableThreads);
+            for (int i=0; i<availableThreads; i++)
+            {
+                final int finalI = i;
+                (new Thread(){
+                    public void run()
+                    {
+                        APTED<Cost, NodeData> apted = new APTED<>(new Cost());
+                        for (int j = finalI; j<graphs.size(); j+=availableThreads) {
+                            Graph graph = graphs.get(j);
+                            if (node.getRange().isPresent() && graph.root.getRange().isPresent()
+                                    && dontCollide(fromWhere, node.getRange().get(), graph.fromWhere,
+                                    graph.root.getRange().get())) {
+                                float distance = apted.computeEditDistance(g.algoRoot, graph.algoRoot);
+                                if (checkDistance(distance, graph.root.getRange().get().getLineCount(),
+                                        node.getRange().get().getLineCount())) {
+                                    counter++;
+                                    flag[0] = true;
+                                    DSU.unite(node, graph.root);
+                                }
+                            }
+                        }
+                        doneSignal.countDown();
                     }
-                }
+                }).start();
+            }
+            try {
+                doneSignal.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        if (!flag)
+        if (!flag[0])
             for (Node child : node.getChildNodes())
                 dfs(child, fromWhere);
     }
@@ -144,12 +162,22 @@ public class Main {
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             dfs(entry.getValue(), new File(entry.getKey()));
         List<List<Node>> subsets = DSU.getAllSubsets();
+        long timeInMillisEnd = System.currentTimeMillis();
+        System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         for (int i=0; i<subsets.size(); i++)
             Uniter.uniteCode(subsets.get(i), i+1);
-        for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
-            System.out.println(entry.getValue());
         Uniter.exportClass();
-        long timeInMillisEnd = System.currentTimeMillis();
+        for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
+        {
+            try {
+                FileWriter writer = new FileWriter("out/"+(new File(entry.getKey()).getName()));
+                writer.write(entry.getValue().toString());
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +
                 (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576 + " MB");

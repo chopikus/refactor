@@ -17,7 +17,7 @@ class Main
 	{
 			double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 			double bb = Math.sin(angle)*a+Math.cos(angle)*b;
-			this.xxx = aa;
+			a = aa;
 			b = bb;
 	}
 
