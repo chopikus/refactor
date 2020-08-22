@@ -28,6 +28,8 @@ public class Main {
     };
     public static final DataKey<Boolean> IS_VARIABLE = new DataKey<>() {
     };
+    public static final DataKey<Boolean> IS_DEPTH_ONE = new DataKey<>() {
+    };
     public static List<File> filesToParse = new ArrayList<>();
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static ArrayList<Graph> graphs = new ArrayList<>();
@@ -142,7 +144,11 @@ public class Main {
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
             dfs(entry.getValue(), new File(entry.getKey()));
         List<List<Node>> subsets = DSU.getAllSubsets();
-        Uniter.unite(subsets.get(0));
+        for (int i=0; i<subsets.size(); i++)
+            Uniter.uniteCode(subsets.get(i), i+1);
+        for (Map.Entry<String, CompilationUnit> entry : units.entrySet())
+            System.out.println(entry.getValue());
+        Uniter.exportClass();
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +

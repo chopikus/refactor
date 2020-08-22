@@ -1,109 +1,110 @@
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.utils.Pair;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Uniter {
+    static CompilationUnit cu = new CompilationUnit();
+    static ClassOrInterfaceDeclaration copied = cu.addClass("Copied");
 
-    static List<Boolean> getCommonStmts(List<Statement> stmts, List<Integer> stmtToNode, int nodesSize, boolean hashWithVariableNames)
+    static boolean isStatement(Node node)
     {
+        return (node instanceof Statement && node.containsData(Main.IS_DEPTH_ONE) && node.getData(Main.IS_DEPTH_ONE));
+    }
+
+    static List<Boolean> getCommonStmts(List<Statement> stmts, List<Integer> stmtToNode, int nodesSize, boolean hashVariables) {
         Map<List<String>, List<Integer>> stmtMap = new HashMap<>();
         List<Boolean> result = new ArrayList<>();
-        for (int i=0; i<stmts.size(); i++)
+        for (int i = 0; i < stmts.size(); i++)
             result.add(false);
-        int stmtCounter=0;
-        for (Statement stmt : stmts)
-        {
+        int stmtCounter = 0;
+        for (Statement stmt : stmts) {
             List<String> dfsed = new ArrayList<String>();
             int finalStmtCounter = stmtCounter;
             stmt.walk(node -> {
                 if (!node.getData(Main.IS_VARIABLE) && !(node instanceof LiteralExpr))
                     dfsed.add(node.getMetaModel().getTypeNameGenerified());
-                if (hashWithVariableNames && node.getData(Main.IS_VARIABLE))
-                    dfsed.add(stmtToNode.get(finalStmtCounter)+";"+node.toString());
+                if (hashVariables && node.getData(Main.IS_VARIABLE))
+                    dfsed.add(stmtToNode.get(finalStmtCounter) + ";" + node.toString());
             });
-            List<Integer> list;
-            if (!stmtMap.containsKey(dfsed)) {
-                list = new ArrayList<>();
-            }
-            else
-                list = stmtMap.get(dfsed);
+            List<Integer> list = stmtMap.containsKey(dfsed) ? stmtMap.get(dfsed) : new ArrayList<>();
             list.add(stmtCounter);
             stmtMap.put(dfsed, list);
             stmtCounter++;
         }
-        Map<Integer, List<Integer> > ofWhichNode = new HashMap<>();
-        for (Map.Entry<List<String>, List<Integer>> entry : stmtMap.entrySet())
-        {
+        Map<Integer, List<Integer>> ofWhichNode = new HashMap<>();
+        for (Map.Entry<List<String>, List<Integer>> entry : stmtMap.entrySet()) {
             ofWhichNode.clear();
             Set<Integer> nodeSet = new HashSet<>();
             for (Integer stmtNumber : entry.getValue()) {
                 int nodeNum = stmtToNode.get(stmtNumber);
-                List<Integer> lst;
-                if (ofWhichNode.containsKey(nodeNum))
-                    lst = ofWhichNode.get(nodeNum);
-                else
-                    lst = new ArrayList<>();
+                List<Integer> lst = ofWhichNode.containsKey(nodeNum) ? ofWhichNode.get(nodeNum) : new ArrayList<>();
                 lst.add(stmtNumber);
                 ofWhichNode.put(nodeNum, lst);
                 nodeSet.add(nodeNum);
             }
-            if (nodeSet.size()==nodesSize)
-            {
+            if (nodeSet.size() == nodesSize) {
                 int mn = Integer.MAX_VALUE;
-                for (List<Integer> value: ofWhichNode.values())
+                for (List<Integer> value : ofWhichNode.values())
                     mn = Math.min(mn, value.size());
-                for (List<Integer> value: ofWhichNode.values())
-                    for (int i=0; i<mn; i++)
+                for (List<Integer> value : ofWhichNode.values())
+                    for (int i = 0; i < mn; i++)
                         result.set(value.get(i), true);
             }
         }
         return result;
     }
 
-    static void unite(List<Node> nodes)
-    {
+    static void uniteCode(List<Node> nodes, int which) {
         List<Statement> stmts = new ArrayList<>();
         List<Integer> stmtToNode = new ArrayList<>();
-        Map<String, List<String> > variableHash = new HashMap<>();
-        Map<List<String>, List<String> > varMap = new HashMap<>();
+        Map<String, List<String>> variableHash = new HashMap<>();
+        Map<List<String>, List<String>> varMap = new HashMap<>();
         List<Boolean> isCommonStmt;
-        int nodeCounter=0;
-        for (Node node : nodes)
-        {
+        int nodeCounter = 0;
+        for (Node node : nodes) {
             Set<String> variableNames = new HashSet<>();
             int finalNodeCounter = nodeCounter;
+            node.walk(Node.TreeTraversal.DIRECT_CHILDREN, node1 -> {
+                node1.setData(Main.IS_DEPTH_ONE, true);
+            });
             node.walk(Node.TreeTraversal.PREORDER, stmt -> {
-                if (stmt instanceof Statement) {
+                if (isStatement(stmt)) {
                     stmts.add((Statement) stmt);
                     stmtToNode.add(finalNodeCounter);
                 }
-                if (stmt instanceof VariableDeclarator)
-                {
+                if (stmt instanceof VariableDeclarator) {
                     VariableDeclarator variableDecl = (VariableDeclarator) stmt;
-                    System.out.println("DECL: "+variableDecl);
                     variableNames.add(variableDecl.getName().getIdentifier());
                 }
             });
             node.walk(stmt -> {
-               if (stmt instanceof SimpleName && !(stmt.getParentNodeForChildren() instanceof NameExpr)
-                && variableNames.contains(((SimpleName) stmt).getIdentifier()))
-                   stmt.setData(Main.IS_VARIABLE, true);
-               else if (stmt instanceof NameExpr && variableNames.contains(((NameExpr) stmt).getName().getIdentifier()))
-                   stmt.setData(Main.IS_VARIABLE, true);
-               else
-                   stmt.setData(Main.IS_VARIABLE, false);
+                if (stmt instanceof SimpleName && !(stmt.getParentNodeForChildren() instanceof NameExpr)
+                        && variableNames.contains(((SimpleName) stmt).getIdentifier()))
+                    stmt.setData(Main.IS_VARIABLE, true);
+                else if (stmt instanceof NameExpr && variableNames.contains(((NameExpr) stmt).getName().getIdentifier()))
+                    stmt.setData(Main.IS_VARIABLE, true);
+                else
+                    stmt.setData(Main.IS_VARIABLE, false);
             });
             nodeCounter++;
         }
-        isCommonStmt = (List<Boolean>) getCommonStmts(stmts, stmtToNode, nodes.size(), false);
+        isCommonStmt = getCommonStmts(stmts, stmtToNode, nodes.size(), false);
         int stmtCounter = 0;
-        for (Statement stmt : stmts)
-        {
-            if (isCommonStmt.get(stmtCounter))
-            {
+        for (Statement stmt : stmts) {
+            if (isCommonStmt.get(stmtCounter)) {
                 int finalStmtCounter = stmtCounter;
                 stmt.walk(node1 -> {
                     if (node1.getData(Main.IS_VARIABLE)) {
@@ -122,7 +123,7 @@ public class Uniter {
                                     lst.add(((UnaryExpr) node2).getOperator().asString());
                                 lst.add(node2.getMetaModel().getTypeNameGenerified());
                             }
-                            if (node2 instanceof Statement)
+                            if (isStatement(node2))
                                 wasStmt[0] = true;
                         });
                         variableHash.put(key, lst);
@@ -132,66 +133,124 @@ public class Uniter {
             stmtCounter++;
         }
 
-        for (Map.Entry<String, List<String> > entry : variableHash.entrySet())
-        {
+        for (Map.Entry<String, List<String>> entry : variableHash.entrySet()) {
             String varName = entry.getKey();
             List<String> hash = entry.getValue();
-            List<String> list;
-            if (varMap.containsKey(hash))
-                list = varMap.get(hash);
-            else
-                list = new ArrayList<>();
+            List<String> list = varMap.containsKey(hash) ? varMap.get(hash) : new ArrayList<>();
             list.add(varName);
             varMap.put(hash, list);
         }
-        Map<Integer, List<String> > ofWhichNode = new HashMap<>();
+        Map<Integer, List<String>> ofWhichNode = new HashMap<>();
         Set<String> reallyCommonVariables = new HashSet<>();
-        for (List<String> commonVariables : varMap.values())
-        {
-            System.out.println(commonVariables);
+        for (List<String> commonVariables : varMap.values()) {
             ofWhichNode.clear();
-            for (String variable : commonVariables)
-            {
+            for (String variable : commonVariables) {
                 Integer key = Integer.parseInt(variable.split(";")[0]);
-                List<String> list;
-                if (ofWhichNode.containsKey(key))
-                    list = ofWhichNode.get(key);
-                else
-                    list = new ArrayList<>();
+                List<String> list = ofWhichNode.containsKey(key) ? ofWhichNode.get(key) : new ArrayList<>();
                 list.add(variable);
                 ofWhichNode.put(key, list);
             }
             int minSize = Integer.MAX_VALUE;
-            if (ofWhichNode.size()<nodes.size())
+            if (ofWhichNode.size() < nodes.size())
                 continue;
-            for (Map.Entry<Integer, List<String> > entry : ofWhichNode.entrySet())
-            {
+            for (Map.Entry<Integer, List<String>> entry : ofWhichNode.entrySet()) {
                 minSize = Math.min(minSize, entry.getValue().size());
             }
-            for (Map.Entry<Integer, List<String> > entry : ofWhichNode.entrySet())
-            {
+            for (Map.Entry<Integer, List<String>> entry : ofWhichNode.entrySet()) {
                 List<String> list = entry.getValue();
-                for (int j=0; j<minSize; j++) {
+                for (int j = 0; j < minSize; j++)
                     reallyCommonVariables.add(list.get(j));
-                    System.out.print(list.get(j)+" ");
-                }
-                System.out.println();
             }
         }
         nodeCounter = 0;
-        for (Node node : nodes)
-        {
+        for (Node node : nodes) {
             int finalNodeCounter = nodeCounter;
             node.walk(node1 -> {
-                if (node1.getData(Main.IS_VARIABLE) && reallyCommonVariables.contains(finalNodeCounter+";"+node1.toString()))
+                if (node1.getData(Main.IS_VARIABLE) && reallyCommonVariables.contains(finalNodeCounter + ";" + node1.toString()))
                     node1.setData(Main.IS_VARIABLE, false);
             });
             nodeCounter++;
         }
         isCommonStmt = getCommonStmts(stmts, stmtToNode, nodes.size(), true);
-        for (stmtCounter = 0; stmtCounter<stmts.size(); stmtCounter++)
+        int commonStatements = 0;
+        for (stmtCounter=0; stmtCounter<stmts.size(); stmtCounter++)
         {
-            System.out.println("EXPR: "+stmts.get(stmtCounter) + " " + isCommonStmt.get(stmtCounter));
+            if (stmtToNode.get(stmtCounter)==0 && isCommonStmt.get(stmtCounter))
+                commonStatements++;
+        }
+        List<List<Pair<Statement, Integer>>> statementsToWrite = new ArrayList<>();
+        List<Statement> firstNodeCommonStatements = new ArrayList<>();
+
+        for (int i=0; i<=commonStatements; i++)
+            statementsToWrite.add(new ArrayList<>());
+        int prevNode = -1;
+        AtomicInteger literalExprCounter= new AtomicInteger();
+        List<ResolvedType> literalTypes = new ArrayList<>();
+        int howManyCommon = 0;
+        stmtCounter = 0;
+        for (Statement stmt : stmts)
+        {
+            int thisNode = stmtToNode.get(stmtCounter);
+            if (thisNode!=prevNode)
+                howManyCommon = 0;
+            if (isCommonStmt.get(stmtCounter)) {
+                if (thisNode==0) {
+                    firstNodeCommonStatements.add(stmt);
+                    stmt.findAll(LiteralExpr.class).forEach(node1->{
+                        literalExprCounter.getAndIncrement();
+                        ResolvedType type = node1.calculateResolvedType();
+                        literalTypes.add(type);
+                        node1.replace(new NameExpr("commonLiteral"+literalExprCounter.get()));
+                    });
+                }
+                howManyCommon++;
+            }
+            else
+                statementsToWrite.get(howManyCommon).add(new Pair<>(stmt, thisNode));
+            prevNode = thisNode;
+            stmtCounter++;
+        }
+        List<Pair<Statement, Integer>> statementsToActuallyWrite = new ArrayList<>();
+        for (int i=0; i<=commonStatements; i++)
+        {
+            statementsToActuallyWrite.addAll(statementsToWrite.get(i));
+            if (i!=commonStatements)
+                statementsToActuallyWrite.add(new Pair<>(firstNodeCommonStatements.get(i), -1));
+        }
+        writeInOneMethod(statementsToActuallyWrite, literalTypes, which);
+        for (Node node : nodes)
+        {
+            BlockStmt stmt = new BlockStmt();
+            MethodCallExpr expr = new MethodCallExpr();
+            expr.setName("repeatedCode"+which);
+            stmt.addStatement(expr);
+            node.replace(stmt);
         }
     }
+
+    static void writeInOneMethod(List<Pair<Statement, Integer> > statements, List<ResolvedType> literalTypes, int which) {
+        MethodDeclaration decl = copied.addMethod("repeatedCode"+which);
+        BlockStmt blockStmt = new BlockStmt();
+        decl.setBody(blockStmt);
+        for (int i=0; i<literalTypes.size(); i++)
+            decl.addParameter(new Parameter(StaticJavaParser.parseType(literalTypes.get(i).describe()), "commonLiteral"+(i+1)));
+        for (Pair<Statement, Integer> statementListPair : statements) {
+            if (statementListPair.b == -1)
+                blockStmt.addStatement(statementListPair.a);
+            else {
+                IfStmt stmt = new IfStmt();
+                stmt.setThenStmt(statementListPair.a);
+                Expression condition = new BinaryExpr(new NameExpr("whoCalled"),
+                        new IntegerLiteralExpr(statementListPair.b.toString()), BinaryExpr.Operator.EQUALS);
+                stmt.setCondition(condition);
+                blockStmt.addStatement(stmt);
+            }
+        }
+    }
+
+    static void exportClass()
+    {
+        System.out.println(copied);
+    }
+
 }

@@ -3,6 +3,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.utils.Pair;
 
 import java.io.File;
@@ -50,7 +51,7 @@ public class Graph {
     }
 
     at.unisalzburg.dbresearch.apted.node.Node<NodeData> dfsAST(Node node) {
-        NodeData algoNodeData = new NodeData(node.getMetaModel().getTypeName(), node instanceof ExpressionStmt);
+        NodeData algoNodeData = new NodeData(node.getMetaModel().getTypeName(), Uniter.isStatement(node));
         at.unisalzburg.dbresearch.apted.node.Node<NodeData> algoNode
                 = new at.unisalzburg.dbresearch.apted.node.Node<>(algoNodeData);
         nodes++;
