@@ -1,0 +1,12 @@
+.text-changed {
+    -fx-fill: darkgreen;
+}
+
+.text-added {
+    -fx-fill: blue;
+}
+
+.text-removed {
+    -fx-fill: red;
+}
+

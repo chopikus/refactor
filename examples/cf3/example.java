@@ -14,7 +14,7 @@ class Main
 			y = yy;
 		}
 	}
-	void func2(int n, double angle, double a, double b)
+	void func2(double a, double b, double angle, double n)
 	{
 			double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 			double bb = Math.sin(angle)*a+Math.cos(angle)*b;
@@ -31,6 +31,6 @@ class Main
 
 	void func4()
 	{
-		System.out.println("OK boomer123123!");
+		System.out.println("Hello, World!");
 	}
 }

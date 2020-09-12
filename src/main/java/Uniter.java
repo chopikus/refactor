@@ -1,21 +1,17 @@
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.utils.Pair;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -23,11 +19,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Uniter {
     static CompilationUnit cu = new CompilationUnit();
-    static ClassOrInterfaceDeclaration copied = cu.addClass("Copied");
-
+    static ClassOrInterfaceDeclaration copied = cu.addClass("Copied").setPublic(false);
+    static int x = 0;
     static boolean isStatement(Node node)
     {
-        return (node instanceof Statement && node.containsData(Main.IS_DEPTH_ONE) && node.getData(Main.IS_DEPTH_ONE) 
+        return (node instanceof Statement && node.containsData(Main.IS_DEPTH_ONE) && node.getData(Main.IS_DEPTH_ONE)
                 && !(node instanceof ExplicitConstructorInvocationStmt));
     }
 
@@ -38,7 +34,7 @@ public class Uniter {
             result.add(false);
         int stmtCounter = 0;
         for (Statement stmt : stmts) {
-            List<String> dfsed = new ArrayList<String>();
+            List<String> dfsed = new ArrayList<>();
             int finalStmtCounter = stmtCounter;
             stmt.walk(node -> {
                 if (!node.getData(Main.IS_VARIABLE) && !(node instanceof LiteralExpr))
@@ -74,7 +70,7 @@ public class Uniter {
         return result;
     }
 
-    static void uniteCode(List<Node> nodes, int which) {
+    static void uniteCode(List<Node> nodes, int subsetNumber) {
         List<Statement> stmts = new ArrayList<>();
         List<Integer> stmtToNode = new ArrayList<>();
         Map<String, List<String>> variableHash = new HashMap<>();
@@ -84,9 +80,7 @@ public class Uniter {
         for (Node node : nodes) {
             Set<String> variableNames = new HashSet<>();
             int finalNodeCounter = nodeCounter;
-            node.walk(Node.TreeTraversal.DIRECT_CHILDREN, node1 -> {
-                node1.setData(Main.IS_DEPTH_ONE, true);
-            });
+            node.walk(Node.TreeTraversal.DIRECT_CHILDREN, node1 -> node1.setData(Main.IS_DEPTH_ONE, true));
             node.walk(Node.TreeTraversal.PREORDER, stmt -> {
                 if (isStatement(stmt)) {
                     stmts.add((Statement) stmt);
@@ -186,9 +180,8 @@ public class Uniter {
                 commonStatements++;
         }
         List<List<Pair<Statement, Integer>>> statementsToWrite = new ArrayList<>();
-        List<Statement> firstNodeCommonStatements = new ArrayList<>();
         List<LiteralExpr> firstNodeLiteralExprs = new ArrayList<>();
-        for (int i=0; i<=commonStatements; i++)
+        for (int i=0; i<=2*commonStatements; i++)
             statementsToWrite.add(new ArrayList<>());
         int prevNode = -1;
         AtomicInteger literalExprCounter= new AtomicInteger();
@@ -202,30 +195,26 @@ public class Uniter {
                 howManyCommon = 0;
             if (isCommonStmt.get(stmtCounter)) {
                 if (thisNode==0) {
-                    firstNodeCommonStatements.add(stmt);
                     stmt.findAll(LiteralExpr.class).forEach(node1->{
-                        literalExprCounter.getAndIncrement();
-                        ResolvedType type = node1.calculateResolvedType();
-                        literalTypes.add(type);
-                        firstNodeLiteralExprs.add(node1);
-                        node1.replace(new NameExpr("commonLiteral"+literalExprCounter.get()));
+                        try {
+                            ResolvedType type = node1.calculateResolvedType();
+                            literalExprCounter.getAndIncrement();
+                            literalTypes.add(type);
+                            firstNodeLiteralExprs.add(node1);
+                            node1.replace(new NameExpr("commonLiteral" + literalExprCounter.get()));
+                        }
+                        catch (Exception ignored){}
                     });
+                    statementsToWrite.get(howManyCommon*2+1).add(new Pair<>(stmt, -1));
                 }
                 howManyCommon++;
             }
             else
-                statementsToWrite.get(howManyCommon).add(new Pair<>(stmt, thisNode));
+                statementsToWrite.get(2*howManyCommon).add(new Pair<>(stmt, thisNode));
             prevNode = thisNode;
             stmtCounter++;
         }
-        List<Pair<Statement, Integer>> statementsToActuallyWrite = new ArrayList<>();
-        for (int i=0; i<=commonStatements; i++)
-        {
-            statementsToActuallyWrite.addAll(statementsToWrite.get(i));
-            if (i!=commonStatements)
-                statementsToActuallyWrite.add(new Pair<>(firstNodeCommonStatements.get(i), -1));
-        }
-        writeInOneMethod(statementsToActuallyWrite, literalTypes, which);
+        writeInOneMethod(statementsToWrite, literalTypes, subsetNumber);
         AtomicInteger atomicStmtCounter= new AtomicInteger();
         final List<Boolean> finalIsCommonStmt = isCommonStmt;
         nodeCounter = 0;
@@ -235,14 +224,18 @@ public class Uniter {
             if (nodeCounter==0)
                 lst.addAll(firstNodeLiteralExprs);
             node.walk(Node.TreeTraversal.PREORDER, node1->{
-               if (isStatement(node1))
-                   if (finalIsCommonStmt.get(atomicStmtCounter.getAndIncrement()))
+               if (isStatement(node1)) {
+                   if (finalIsCommonStmt.size() > atomicStmtCounter.get() && finalIsCommonStmt.get(atomicStmtCounter.get())) {
+                       System.out.println(finalIsCommonStmt.size() + " " + atomicStmtCounter.get());
                        node1.findAll(LiteralExpr.class, lst::add);
+                   }
+                   atomicStmtCounter.getAndIncrement();
+               }
             });
             BlockStmt stmt = new BlockStmt();
             MethodCallExpr expr = new MethodCallExpr();
             expr.setScope(new NameExpr("Copied"));
-            expr.setName("repeatedCode"+which);
+            expr.setName("repeatedCode"+subsetNumber);
             expr.addArgument(new IntegerLiteralExpr(Integer.toString(nodeCounter)));
             for (LiteralExpr lexpr : lst)
                 expr.addArgument(lexpr);
@@ -252,7 +245,7 @@ public class Uniter {
         }
     }
 
-    static void writeInOneMethod(List<Pair<Statement, Integer> > statements, List<ResolvedType> literalTypes, int which) {
+    static void writeInOneMethod(List<List<Pair<Statement, Integer>>> statements, List<ResolvedType> literalTypes, int which) {
         MethodDeclaration decl = copied.addMethod("repeatedCode"+which);
         BlockStmt blockStmt = new BlockStmt();
         decl.setBody(blockStmt);
@@ -261,42 +254,46 @@ public class Uniter {
         for (int i=0; i<literalTypes.size(); i++) {
             decl.addParameter(new Parameter(literalTypes.get(i).isNull() ? PrimitiveType.booleanType() : StaticJavaParser.parseType(literalTypes.get(i).describe()), "commonLiteral" + (i + 1)));
         }
-        int prevB=-1;
-        String prevA="";
-        for (Pair<Statement, Integer> statementListPair : statements) {
-            if (statementListPair.b == -1)
-                blockStmt.addStatement(statementListPair.a);
-            else {
-                if (statementListPair.b==prevB)
+        for (List<Pair<Statement, Integer>> lst : statements)
+        {
+            if (lst.size()>=1 && lst.get(0).b==-1)
+                blockStmt.addStatement(lst.get(0).a);
+            else if (lst.size()>=1)
+            {
+                SwitchStmt switchStmt = new SwitchStmt();
+                switchStmt.setSelector(new NameExpr("whoCalled"));
+                Map<Integer, List<Statement> > map = new TreeMap<>();
+                NodeList<SwitchEntry> entries = new NodeList<>();
+                for (Pair<Statement, Integer> statementIntegerPair : lst) {
+                    List<Statement> stmtLst = map.get(statementIntegerPair.b);
+                    if (stmtLst==null)
+                        stmtLst = new ArrayList<>();
+                    stmtLst.add(statementIntegerPair.a);
+                    map.put(statementIntegerPair.b, stmtLst);
+                }
+                for (Map.Entry<Integer, List<Statement>> mapEntry : map.entrySet())
                 {
-                    blockStmt.getStatement(blockStmt.getStatements().size()-1).asIfStmt().getThenStmt().
-                            asBlockStmt().addStatement(statementListPair.a);
+                    x++;
+                    SwitchEntry entry = new SwitchEntry();
+                    NodeList<Expression> labels = new NodeList<>();
+                    labels.add(new IntegerLiteralExpr(mapEntry.getKey().toString()));
+                    entry.setLabels(labels);
+                    for (Statement stmtLst : mapEntry.getValue())
+                        entry.addStatement(stmtLst.clone());
+                    entry.addStatement(new BreakStmt().removeLabel());
+                    //                                                                                                                                                                                                                                                                                                                                        if (x%7<=1 || Main.lineCount<=200)
+                    entries.add(entry);
                 }
-                else if (statementListPair.a.toString().equals(prevA))
-                {
-                    Expression condition1 = blockStmt.getStatement(blockStmt.getStatements().size()-1).asIfStmt().getCondition();
-                    Expression condition2 = new BinaryExpr(new NameExpr("whoCalled"),
-                            new IntegerLiteralExpr(statementListPair.b.toString()), BinaryExpr.Operator.EQUALS);
-                    Expression condition = new BinaryExpr(condition1, condition2, BinaryExpr.Operator.OR);
-                    blockStmt.getStatement(blockStmt.getStatements().size()-1).asIfStmt().setCondition(condition);
-                }
-                else {
-                    IfStmt stmt = new IfStmt();
-                    stmt.setThenStmt(new BlockStmt().addStatement(statementListPair.a));
-                    Expression condition = new BinaryExpr(new NameExpr("whoCalled"),
-                            new IntegerLiteralExpr(statementListPair.b.toString()), BinaryExpr.Operator.EQUALS);
-                    stmt.setCondition(condition);
-                    blockStmt.addStatement(stmt);
-                }
+                entries.add(new SwitchEntry().addStatement(new BreakStmt().removeLabel()));
+                switchStmt.setEntries(entries);
+                blockStmt.addStatement(switchStmt);
             }
-            prevA = statementListPair.a.toString();
-            prevB = statementListPair.b;
         }
     }
 
     static void exportClass()
     {
-        FileWriter writer = null;
+        FileWriter writer;
         try {
             writer = new FileWriter("out/Copied.java");
             writer.write(copied.toString());

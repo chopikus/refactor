@@ -17,8 +17,8 @@ class Main
 	{
 			double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 			double bb = Math.sin(angle)*a+Math.cos(angle)*b;
-			if (aa==0)
-			aa++;
+			//if (aa==0)
+			//aa++;
 			a = aa;
 			b = bb;
 	}
