@@ -1,3 +1,5 @@
+import at.unisalzburg.dbresearch.apted.distance.APTED;
+import at.unisalzburg.dbresearch.apted.node.Node;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
@@ -8,15 +10,13 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import com.github.javaparser.utils.Pair;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -34,6 +34,9 @@ public class Main {
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
     public static float threshold = 0.5f;
+    public static List<SortedSet<Integer>> replacedPieces = new ArrayList<>();
+    public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
+
     static void countMemoryAndTime()
     {
         long timeInMillisEnd = System.currentTimeMillis();
@@ -91,11 +94,28 @@ public class Main {
         facade = JavaParserFacade.get(typeSolver);
     }
 
+
     public static void main(String[] args) {
         setup(args);
         for (CompilationUnit cu : units.values())
             cu.findAll(BlockStmt.class).forEach(blockStmt -> blocks.add(new Block(blockStmt)));
-
+        for (int i=0; i<blocks.size(); i++)
+            replacedPieces.add(new TreeSet<>());
+        Map<Integer, List<Pair<Integer, Integer>>> pieceMap = new TreeMap<>();
+        int b=0;
+        for (Block block : blocks)
+        {
+            int i=0;
+            for (Piece piece : block.list)
+            {
+                List<Pair<Integer, Integer>> list = pieceMap.getOrDefault(piece.hash, new ArrayList<>());
+                list.add(new Pair<>(b, i));
+                pieceMap.put(piece.hash, list);
+                i++;
+            }
+            b++;
+        }
+        
         countMemoryAndTime();
     }
 }
