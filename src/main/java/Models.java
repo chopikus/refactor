@@ -1,17 +1,20 @@
 import at.unisalzburg.dbresearch.apted.costmodel.CostModel;
 import at.unisalzburg.dbresearch.apted.node.Node;
-import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.LiteralExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.utils.Pair;
-import org.apache.commons.math3.analysis.UnivariateFunction;
+import flanagan.math.MaximisationFunction;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class Cost implements CostModel<NodeData> {
-    private float delCost = 100.0f;
-    private float insCost = 100.0f;
-    private float renCost = 0.0f;
+    private float delCost = 0.5f;
+    private float insCost = 0.5f;
+    private float renCost = 1f;
 
     public float del(Node<NodeData> n) {
         //if (n.getNodeData().isStmt())
@@ -121,6 +124,8 @@ class Block
         Node<NodeData> algoNode = new Node<>(new NodeData(root.getData(Main.NODE_ID)));
         for (int i=l; i<r; i++)
         {
+            if (i>=list.size())
+                break;
             com.github.javaparser.ast.Node pieceNode = list.get(i).node;
             Integer hash = list.get(i).hash;
             queue.add(new Pair<>(pieceNode, hash));
@@ -149,7 +154,6 @@ class Block
                 }
             });
         }
-        System.out.println(edges);
         Queue<Node<NodeData>> algoQ = new ArrayDeque<>();
         algoQ.add(algoNode);
         while (!algoQ.isEmpty())
@@ -167,23 +171,12 @@ class Block
     }
 }
 
-class SimilarityFunction implements UnivariateFunction
+class SimilarityFunction implements MaximisationFunction
 {
 
-    public static float dist(int b1, int i1, int b2, int i2, int l)
-    {
-        assert(b1>=0 && b1<Main.blocks.size() && b2>=0 && b2<Main.blocks.size());
-        assert(i1>=0 && i1<Main.blocks.get(b1).list.size() && i2>=0 && i2<Main.blocks.get(b2).list.size());
-        int j1 = Math.min(i1+l, Main.blocks.size());
-        int j2 = Math.min(i2+l, Main.blocks.size());
-        Node<NodeData> graph1 = Main.blocks.get(b1).algoGraph(i1, j1);
-        Node<NodeData> graph2 = Main.blocks.get(b1).algoGraph(i2, j2);
-        return Main.apted.computeEditDistance(graph1, graph2);
-    }
-
     @Override
-    public double value(double x) {
-        long x1 = Math.round(x);
+    public double function(double[] doubles) {
+        long x1 = Math.round(doubles[0]);
         List<Node<NodeData>> graphs = new ArrayList<>();
         for (Pair<Integer, Integer> p : Main.piecesToCompare)
         {
@@ -200,7 +193,7 @@ class SimilarityFunction implements UnivariateFunction
                 res+=(Main.threshold-distance)/Main.threshold;
             }
         }
-        res*=x;
+        res*=x1;
         return res;
     }
 }

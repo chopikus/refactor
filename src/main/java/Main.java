@@ -1,5 +1,4 @@
 import at.unisalzburg.dbresearch.apted.distance.APTED;
-import at.unisalzburg.dbresearch.apted.node.Node;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
@@ -11,14 +10,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.Pair;
-import org.apache.commons.math3.optim.linear.LinearConstraint;
-import org.apache.commons.math3.optim.linear.Relationship;
-import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.NelderMeadSimplex;
-import org.apache.commons.math3.optim.univariate.BrentOptimizer;
-import org.apache.commons.math3.optim.univariate.MultiStartUnivariateOptimizer;
-import org.apache.commons.math3.optim.univariate.UnivariateOptimizer;
+import flanagan.math.Maximisation;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +33,7 @@ public class Main {
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
-    public static float threshold = 0.5f;
+    public static float threshold = 5f;
     public static List<NavigableSet<Integer>> replacedPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> piecesToCompare = new ArrayList<>();
@@ -116,18 +108,15 @@ public class Main {
             int i=0;
             for (Piece piece : block.list)
             {
-                System.out.print(piece.node+" ");
                 List<Pair<Integer, Integer>> list = pieceMap.getOrDefault(piece.hash, new ArrayList<>());
                 list.add(new Pair<>(b, i));
                 pieceMap.put(piece.hash, list);
                 i++;
             }
-            System.out.println();
             b++;
         }
         for (Map.Entry<Integer, List<Pair<Integer, Integer>>> entry : pieceMap.entrySet())
         {
-            System.out.println(entry.getValue());
             Set<Integer> set = new TreeSet<>();
             List<Pair<Integer, Integer>> ll = new ArrayList<>();
             for (Pair<Integer, Integer> p : entry.getValue())
@@ -149,7 +138,16 @@ public class Main {
                     r = replacedPieces.get(p.a).ceiling(p.b);
                 maxL = Math.min(maxL, r-p.b);
             }
-            
+            Maximisation max = new Maximisation();
+            SimilarityFunction function = new SimilarityFunction();
+            double[] start = {0};
+            double[] step = new double[start.length];
+            Arrays.fill(step, 100);
+            double ftol = 0.0001;
+            int maxIter = 5000;
+            max.addConstraint(0, -1, 0);
+            max.addConstraint(0, 1, maxL);
+            max.nelderMead(function, start, step, ftol, maxIter);
         }
         countMemoryAndTime();
     }
