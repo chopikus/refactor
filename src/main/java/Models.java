@@ -184,7 +184,23 @@ class SimilarityFunction implements UnivariateFunction
     @Override
     public double value(double x) {
         long x1 = Math.round(x);
-
-        return 0;
+        List<Node<NodeData>> graphs = new ArrayList<>();
+        for (Pair<Integer, Integer> p : Main.piecesToCompare)
+        {
+            graphs.add(Main.blocks.get(p.a).algoGraph(p.b, Math.toIntExact(p.b + x1)));
+        }
+        if (graphs.size()==0)
+            return 0;
+        float res = 0;
+        for (int i=1; i<graphs.size(); i++)
+        {
+            float distance = Main.apted.computeEditDistance(graphs.get(0), graphs.get(1));
+            if (distance<=Main.threshold)
+            {
+                res+=(Main.threshold-distance)/Main.threshold;
+            }
+        }
+        res*=x;
+        return res;
     }
 }

@@ -11,6 +11,14 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.Pair;
+import org.apache.commons.math3.optim.linear.LinearConstraint;
+import org.apache.commons.math3.optim.linear.Relationship;
+import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.NelderMeadSimplex;
+import org.apache.commons.math3.optim.univariate.BrentOptimizer;
+import org.apache.commons.math3.optim.univariate.MultiStartUnivariateOptimizer;
+import org.apache.commons.math3.optim.univariate.UnivariateOptimizer;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +42,9 @@ public class Main {
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
     public static float threshold = 0.5f;
-    public static List<SortedSet<Integer>> replacedPieces = new ArrayList<>();
+    public static List<NavigableSet<Integer>> replacedPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
-
+    public static List<Pair<Integer, Integer>> piecesToCompare = new ArrayList<>();
     static void countMemoryAndTime()
     {
         long timeInMillisEnd = System.currentTimeMillis();
@@ -108,14 +116,41 @@ public class Main {
             int i=0;
             for (Piece piece : block.list)
             {
+                System.out.print(piece.node+" ");
                 List<Pair<Integer, Integer>> list = pieceMap.getOrDefault(piece.hash, new ArrayList<>());
                 list.add(new Pair<>(b, i));
                 pieceMap.put(piece.hash, list);
                 i++;
             }
+            System.out.println();
             b++;
         }
-        
+        for (Map.Entry<Integer, List<Pair<Integer, Integer>>> entry : pieceMap.entrySet())
+        {
+            System.out.println(entry.getValue());
+            Set<Integer> set = new TreeSet<>();
+            List<Pair<Integer, Integer>> ll = new ArrayList<>();
+            for (Pair<Integer, Integer> p : entry.getValue())
+            {
+                if (replacedPieces.get(p.a).contains(p.b))
+                    continue;
+                if (!set.contains(p.a))
+                {
+                    set.add(p.a);
+                    ll.add(p);
+                }
+            }
+            piecesToCompare = ll;
+            int maxL = Integer.MAX_VALUE;
+            for (Pair<Integer, Integer> p : piecesToCompare)
+            {
+                int r = blocks.get(p.a).list.size();
+                if (replacedPieces.get(p.a).size()>0)
+                    r = replacedPieces.get(p.a).ceiling(p.b);
+                maxL = Math.min(maxL, r-p.b);
+            }
+            
+        }
         countMemoryAndTime();
     }
 }
