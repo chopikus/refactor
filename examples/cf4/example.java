@@ -6,7 +6,7 @@ class Main
 	{
 		double xx = Math.cos(angle)*x-Math.sin(angle)*y;
 		double yy = Math.sin(angle)*x+Math.cos(angle)*y;
-		if (xx==456.0f)
+		if (xx==456.0f || xx==123.0f)
 			xx++;
 		x = xx;
 		y = yy;
@@ -16,7 +16,7 @@ class Main
 	{
 		double aa = Math.cos(angle)*a-Math.sin(angle)*b;
 		double bb = Math.sin(angle)*a+Math.cos(angle)*b;
-		if (xx==5578.0f)
+		if (xx==5578.0 || xx==0)
 			xx++;
 		a = aa;
 		b = bb;
@@ -35,7 +35,8 @@ class Main
 
 	void func3()
 	{
-		System.out.println("OK boomer!");
+		for (func1();func2();func5())
+			System.out.println("OK boomer!");
 	}
 
 	void func4()
