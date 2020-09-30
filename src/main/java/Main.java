@@ -33,12 +33,11 @@ public class Main {
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
-    public static float threshold = 5f;
-    public static List<NavigableSet<Integer>> replacedPieces = new ArrayList<>();
+    public static float threshold = 0.1f;
+    public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
-    public static List<Pair<Integer, Integer>> piecesToCompare = new ArrayList<>();
-    static void countMemoryAndTime()
-    {
+    public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
+    static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +
@@ -74,8 +73,7 @@ public class Main {
                 }
         }
     }
-    private static void setup(String[] args)
-    {
+    private static void setup(String[] args) {
         timeInMillisStart = System.currentTimeMillis();
         try {
             parseArgsToUnits(args);
@@ -94,61 +92,73 @@ public class Main {
         facade = JavaParserFacade.get(typeSolver);
     }
 
+    static void findCopiedPieces()  {
+        double[] start = {0};double[] step = new double[start.length];Arrays.fill(step, 100);double ftol = 0.0001;
+        int maxIterations = 5000; Maximisation maximize = new Maximisation();
+        SimilarityFunction function = new SimilarityFunction();
+        //some bollocks for Nelder Mead algo
+        for (int i=0; i<blocks.size(); i++) piecesToReplace.add(new TreeSet<>());
+        Map<Integer, List<Pair<Integer, Integer>>> piecesByHash = new TreeMap<>();
+        int blockIndex=0;
+        for (Block block : blocks) {
+            int pieceIndex=0;
+            for (Piece piece : block.list) {
+                List<Pair<Integer, Integer>> list = piecesByHash.getOrDefault(piece.hash, new ArrayList<>());
+                list.add(new Pair<>(blockIndex, pieceIndex));
+                piecesByHash.put(piece.hash, list);
+                pieceIndex++;
+            }
+            blockIndex++;
+        }
+        for (Map.Entry<Integer, List<Pair<Integer, Integer>>> entry : piecesByHash.entrySet()) {
+            Set<Integer> set = new TreeSet<>();
+            blockPieceIndexesToCompare.clear();
+            for (Pair<Integer, Integer> blockPieceIndexes : entry.getValue()) {
+                int pairBlockIndex = blockPieceIndexes.a;
+                int pairPieceIndex = blockPieceIndexes.b;
+                if (piecesToReplace.get(pairBlockIndex).contains(pairPieceIndex))
+                    continue;
+                if (!set.contains(pairBlockIndex)) {
+                    set.add(pairBlockIndex);
+                    blockPieceIndexesToCompare.add(blockPieceIndexes);
+                }
+            }
+            int funcConstraint = Integer.MAX_VALUE;
+            for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
+                int nearestReplacePiece = blocks.get(blockPiece.a).list.size();
+                try {
+                    nearestReplacePiece = piecesToReplace.get(blockPiece.a).ceiling(blockPiece.b); }
+                catch (Exception ignored){}
+                funcConstraint = Math.min(funcConstraint, nearestReplacePiece-blockPiece.b);
+            }
+            maximize.removeConstraints();
+            maximize.addConstraint(0, -1, 1);
+            maximize.addConstraint(0, 1, funcConstraint);
+            maximize.nelderMead(function, start, step, ftol, maxIterations);
+            double argWithMaxRes = maximize.getParamValues()[0];
+            long lenMaxRes = Math.round(argWithMaxRes);
+            Set<Integer> blocksToReplacePieces = function.getBlocksToReplacePieces(lenMaxRes);
+            for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare)
+                for (Integer piece = blockPiece.b; piece<blockPiece.b+lenMaxRes; piece++)
+                    if (blocksToReplacePieces.contains(blockPiece.a)){
+                        piecesToReplace.get(blockPiece.a).add(piece);
+                        System.out.println("REPLACING PIECE "+blocks.get(blockPiece.a).list.get(piece).node);
+                    }
+            System.out.println();
+        }
+        for (int i=0; i<blocks.size(); i++)
+        {
+            System.out.println("BLOCK "+i+"===========");
+            for (int j=0; j<blocks.get(i).list.size(); j++)
+                System.out.println(blocks.get(i).list.get(j).node+" "+ piecesToReplace.get(i).contains(j));
+        }
+    }
 
     public static void main(String[] args) {
         setup(args);
         for (CompilationUnit cu : units.values())
             cu.findAll(BlockStmt.class).forEach(blockStmt -> blocks.add(new Block(blockStmt)));
-        for (int i=0; i<blocks.size(); i++)
-            replacedPieces.add(new TreeSet<>());
-        Map<Integer, List<Pair<Integer, Integer>>> pieceMap = new TreeMap<>();
-        int b=0;
-        for (Block block : blocks)
-        {
-            int i=0;
-            for (Piece piece : block.list)
-            {
-                List<Pair<Integer, Integer>> list = pieceMap.getOrDefault(piece.hash, new ArrayList<>());
-                list.add(new Pair<>(b, i));
-                pieceMap.put(piece.hash, list);
-                i++;
-            }
-            b++;
-        }
-        for (Map.Entry<Integer, List<Pair<Integer, Integer>>> entry : pieceMap.entrySet())
-        {
-            Set<Integer> set = new TreeSet<>();
-            List<Pair<Integer, Integer>> ll = new ArrayList<>();
-            for (Pair<Integer, Integer> p : entry.getValue())
-            {
-                if (replacedPieces.get(p.a).contains(p.b))
-                    continue;
-                if (!set.contains(p.a))
-                {
-                    set.add(p.a);
-                    ll.add(p);
-                }
-            }
-            piecesToCompare = ll;
-            int maxL = Integer.MAX_VALUE;
-            for (Pair<Integer, Integer> p : piecesToCompare)
-            {
-                int r = blocks.get(p.a).list.size();
-                if (replacedPieces.get(p.a).size()>0)
-                    r = replacedPieces.get(p.a).ceiling(p.b);
-                maxL = Math.min(maxL, r-p.b);
-            }
-            Maximisation max = new Maximisation();
-            SimilarityFunction function = new SimilarityFunction();
-            double[] start = {0};
-            double[] step = new double[start.length];
-            Arrays.fill(step, 100);
-            double ftol = 0.0001;
-            int maxIter = 5000;
-            max.addConstraint(0, -1, 0);
-            max.addConstraint(0, 1, maxL);
-            max.nelderMead(function, start, step, ftol, maxIter);
-        }
+        findCopiedPieces();
         countMemoryAndTime();
     }
 }

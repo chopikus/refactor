@@ -10,7 +10,7 @@ class Main
 			xx++;
 		x = xx;
 		y = yy;
-		angle--;
+		yy--;
 	}
 	void func2(double a, double b, double angle)
 	{
@@ -20,7 +20,7 @@ class Main
 			xx++;
 		a = aa;
 		b = bb;
-		bb++;
+		bb--;
 	}
 	void func5(double a, double b, double angle)
 	{
