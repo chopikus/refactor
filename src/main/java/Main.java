@@ -34,7 +34,7 @@ public class Main {
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
     public static float threshold = 3f;
-    public static Integer minimumSegmentPieceCount = 4;
+    public static Integer minimumSegmentPieceCount = 10;
     public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
@@ -53,6 +53,7 @@ public class Main {
             execFile = file;
             CombinedTypeSolver solver = new CombinedTypeSolver();
             solver.add(new ReflectionTypeSolver());
+            if (file.isDirectory())
             solver.add(new JavaParserTypeSolver(file));
             typeSolver = solver;
             Files.walk(Paths.get(file.getAbsolutePath()))
@@ -113,6 +114,7 @@ public class Main {
         }
         List<List<Pair<Integer, Integer>>> piecesByHashList = new ArrayList<>(piecesByHash.values());
         piecesByHashList.sort(new Utils.ListBlockIndexComparator());
+        int replacedPieces=0;
         for (List<Pair<Integer, Integer>> blockPieceList : piecesByHashList) {
             blockPieceList.sort(new Utils.PotentialLengthComparator());
             Set<Integer> blockSet = new TreeSet<>();
@@ -130,11 +132,11 @@ public class Main {
             int funcMaxConstraint = Integer.MAX_VALUE;
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
                 Integer nearestReplacePiece = piecesToReplace.get(blockPiece.a).ceiling(blockPiece.b);
-                if (nearestReplacePiece==null)
+                if (nearestReplacePiece == null)
                     nearestReplacePiece = blocks.get(blockPiece.a).list.size();
-                funcMaxConstraint = Math.min(funcMaxConstraint, nearestReplacePiece-blockPiece.b);
+                funcMaxConstraint = Math.min(funcMaxConstraint, nearestReplacePiece - blockPiece.b);
             }
-            if (funcMaxConstraint<minimumSegmentPieceCount)
+            if (funcMaxConstraint < minimumSegmentPieceCount)
                 continue;
             maximize.removeConstraints();
             maximize.addConstraint(0, -1, minimumSegmentPieceCount);
@@ -143,26 +145,32 @@ public class Main {
             double argWithMaxRes = maximize.getParamValues()[0];
             long lenMaxRes = Math.round(argWithMaxRes);
             Set<Integer> blocksToReplacePieces = function.getBlocksToReplacePieces(lenMaxRes);
+            if (blocksToReplacePieces.size() <= 1)
+                continue;
+            //System.out.println("LEN MAX RES:" + lenMaxRes);
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare)
-                for (Integer piece = blockPiece.b; piece<blockPiece.b+lenMaxRes; piece++)
-                    if (blocksToReplacePieces.contains(blockPiece.a)){
+                for (Integer piece = blockPiece.b; piece < blockPiece.b + lenMaxRes; piece++)
+                    if (blocksToReplacePieces.contains(blockPiece.a)) {
                         piecesToReplace.get(blockPiece.a).add(piece);
-                        System.out.println("REPLACING PIECE "+blocks.get(blockPiece.a).list.get(piece).node);
+                        replacedPieces++;
+                        //System.out.println("REPLACING PIECE: "+blocks.get(blockPiece.a).list.get(piece).node);
                     }
-            System.out.println();
         }
+        int all=0;
         for (int i=0; i<blocks.size(); i++)
-        {
-            System.out.println("BLOCK "+i+"===========");
-            for (int j=0; j<blocks.get(i).list.size(); j++)
-                System.out.println(blocks.get(i).list.get(j).node+" "+ piecesToReplace.get(i).contains(j));
-        }
+            all+=blocks.get(i).list.size();
+        System.out.println(replacedPieces+"/"+all);
     }
 
     public static void main(String[] args) {
         setup(args);
-        for (CompilationUnit cu : units.values())
-            cu.findAll(BlockStmt.class).forEach(blockStmt -> blocks.add(new Block(blockStmt)));
+        for (CompilationUnit cu : units.values()) {
+            cu.findAll(BlockStmt.class).forEach(blockStmt -> {
+                if (blockStmt.getParentNode().isPresent() && Piece.checkBranching(blockStmt.getParentNode().get()))
+                    return;
+                blocks.add(new Block(blockStmt));
+            });
+        }
         findCopiedPieces();
         countMemoryAndTime();
     }
