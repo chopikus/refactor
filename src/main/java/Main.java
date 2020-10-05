@@ -34,6 +34,7 @@ public class Main {
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
     public static float threshold = 3f;
+    public static Integer minimumSegmentPieceCount = 4;
     public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
@@ -113,6 +114,7 @@ public class Main {
         List<List<Pair<Integer, Integer>>> piecesByHashList = new ArrayList<>(piecesByHash.values());
         piecesByHashList.sort(new Utils.ListBlockIndexComparator());
         for (List<Pair<Integer, Integer>> blockPieceList : piecesByHashList) {
+            blockPieceList.sort(new Utils.PotentialLengthComparator());
             Set<Integer> blockSet = new TreeSet<>();
             blockPieceIndexesToCompare.clear();
             for (Pair<Integer, Integer> blockPieceIndexes : blockPieceList) {
@@ -125,17 +127,18 @@ public class Main {
                     blockPieceIndexesToCompare.add(blockPieceIndexes);
                 }
             }
-            int funcConstraint = Integer.MAX_VALUE;
+            int funcMaxConstraint = Integer.MAX_VALUE;
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
-                int nearestReplacePiece = blocks.get(blockPiece.a).list.size();
-                try {
-                    nearestReplacePiece = piecesToReplace.get(blockPiece.a).ceiling(blockPiece.b); }
-                catch (Exception ignored){}
-                funcConstraint = Math.min(funcConstraint, nearestReplacePiece-blockPiece.b);
+                Integer nearestReplacePiece = piecesToReplace.get(blockPiece.a).ceiling(blockPiece.b);
+                if (nearestReplacePiece==null)
+                    nearestReplacePiece = blocks.get(blockPiece.a).list.size();
+                funcMaxConstraint = Math.min(funcMaxConstraint, nearestReplacePiece-blockPiece.b);
             }
+            if (funcMaxConstraint<minimumSegmentPieceCount)
+                continue;
             maximize.removeConstraints();
-            maximize.addConstraint(0, -1, 1);
-            maximize.addConstraint(0, 1, funcConstraint);
+            maximize.addConstraint(0, -1, minimumSegmentPieceCount);
+            maximize.addConstraint(0, 1, funcMaxConstraint);
             maximize.nelderMead(function, start, step, ftol, maxIterations);
             double argWithMaxRes = maximize.getParamValues()[0];
             long lenMaxRes = Math.round(argWithMaxRes);

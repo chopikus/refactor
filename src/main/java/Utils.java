@@ -4,14 +4,19 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Utils {
-    static class PairIntComparator implements Comparator<Pair<Integer, Integer>>
+
+    /* compares by maximum potential length of segment starting from that piece */
+    static class PotentialLengthComparator implements Comparator<Pair<Integer, Integer>>
     {
         @Override
         public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
-            int res = o1.a.compareTo(o2.a);
-            if (res==0)
-                return o1.b.compareTo(o2.b);
-            return res;
+            Integer nearestReplacePiece1 = Main.piecesToReplace.get(o1.a).ceiling(o1.b);
+            if (nearestReplacePiece1==null)
+                nearestReplacePiece1 = Main.blocks.get(o1.a).list.size();
+            Integer nearestReplacePiece2 = Main.piecesToReplace.get(o1.a).ceiling(o1.b);
+            if (nearestReplacePiece2==null)
+                nearestReplacePiece2 = Main.blocks.get(o1.a).list.size();
+            return Integer.compare(nearestReplacePiece1-o1.b, nearestReplacePiece2-o2.b);
         }
     }
     /*
