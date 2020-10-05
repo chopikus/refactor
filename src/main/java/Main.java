@@ -33,7 +33,7 @@ public class Main {
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
-    public static float threshold = 0.1f;
+    public static float threshold = 3f;
     public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
@@ -110,16 +110,18 @@ public class Main {
             }
             blockIndex++;
         }
-        for (Map.Entry<Integer, List<Pair<Integer, Integer>>> entry : piecesByHash.entrySet()) {
-            Set<Integer> set = new TreeSet<>();
+        List<List<Pair<Integer, Integer>>> piecesByHashList = new ArrayList<>(piecesByHash.values());
+        piecesByHashList.sort(new Utils.ListBlockIndexComparator());
+        for (List<Pair<Integer, Integer>> blockPieceList : piecesByHashList) {
+            Set<Integer> blockSet = new TreeSet<>();
             blockPieceIndexesToCompare.clear();
-            for (Pair<Integer, Integer> blockPieceIndexes : entry.getValue()) {
+            for (Pair<Integer, Integer> blockPieceIndexes : blockPieceList) {
                 int pairBlockIndex = blockPieceIndexes.a;
                 int pairPieceIndex = blockPieceIndexes.b;
                 if (piecesToReplace.get(pairBlockIndex).contains(pairPieceIndex))
                     continue;
-                if (!set.contains(pairBlockIndex)) {
-                    set.add(pairBlockIndex);
+                if (!blockSet.contains(pairBlockIndex)) {
+                    blockSet.add(pairBlockIndex);
                     blockPieceIndexesToCompare.add(blockPieceIndexes);
                 }
             }
