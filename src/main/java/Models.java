@@ -52,6 +52,12 @@ class Piece
     int hash=0;
     boolean isReplaced = false;
 
+    @Override
+    public String toString()
+    {
+        return node.toString();
+    }
+
     Piece(com.github.javaparser.ast.Node node) {
         this.node = node;
         this.hash = hashPiece();
@@ -173,23 +179,27 @@ class Block
 class SimilarityFunction implements MaximisationFunction
 {
     List<Node<NodeData>> graphs = new ArrayList<>();
-
     Set<Integer> getBlocksToReplacePieces(long len)
     {
         graphs.clear();
-        for (Pair<Integer, Integer> p : Main.blockPieceIndexesToCompare)
-            graphs.add(Main.blocks.get(p.a).algoGraph(p.b, Math.toIntExact(p.b + len)));
+        List<Integer> graphBlockIndexes = new ArrayList<>();
+        for (Pair<Integer, Integer> p : Main.blockPieceIndexesToCompare) {
+            graphs.add(Main.blocks.get(p.a).algoGraph(p.b,
+                    Math.min(Main.blocks.get(p.a).list.size(), Math.toIntExact(p.b + len))));
+            graphBlockIndexes.add(p.a);
+        }
         Set<Integer> res = new TreeSet<>();
         boolean add0=false;
         for (int i=1; i<graphs.size(); i++) {
             float distance = Main.apted.computeEditDistance(graphs.get(0), graphs.get(i));
             if (distance<=Main.threshold) {
-                res.add(Main.blockPieceIndexesToCompare.get(i).a);
+                System.out.println(distance);
+                res.add(graphBlockIndexes.get(i));
                 add0 = true;
             }
         }
         if (add0)
-            res.add(Main.blockPieceIndexesToCompare.get(0).a);
+            res.add(graphBlockIndexes.get(0));
         return res;
     }
 
@@ -197,14 +207,17 @@ class SimilarityFunction implements MaximisationFunction
     public double function(double[] doubles) {
         long x1 = Math.round(doubles[0]);
         graphs.clear();
-        for (Pair<Integer, Integer> p : Main.blockPieceIndexesToCompare)
-            graphs.add(Main.blocks.get(p.a).algoGraph(p.b, Math.toIntExact(p.b + x1)));
+        for (Pair<Integer, Integer> p : Main.blockPieceIndexesToCompare) {
+            graphs.add(Main.blocks.get(p.a).algoGraph(p.b,
+                    Math.min(Main.blocks.get(p.a).list.size(), Math.toIntExact(p.b + x1))));
+        }
+        if (graphs.size()<=1)
+            return 0;
         float res = 0;
         for (int i=1; i<graphs.size(); i++)
         {
             float distance = Main.apted.computeEditDistance(graphs.get(0), graphs.get(i));
-            if (distance<=Main.threshold)
-                res+=(Main.threshold-distance)/Main.threshold;
+            res+=(Main.threshold-distance)/Main.threshold;
         }
         res*=x1;
         return res;

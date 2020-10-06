@@ -34,17 +34,19 @@ public class Main {
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
     public static float threshold = 3f;
-    public static Integer minimumSegmentPieceCount = 10;
+    public static Integer minimumSegmentPieceCount = 7;
     public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
+
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
         System.out.println("Memory usage: ~" +
                 (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576 + " MB");
     }
-   static void parseArgsToUnits(String[] args) throws IOException {
+
+    static void parseArgsToUnits(String[] args) throws IOException {
         if (args.length != 1) {
             System.out.println("You need to specify only path to directory!");
             System.exit(0);
@@ -54,7 +56,7 @@ public class Main {
             CombinedTypeSolver solver = new CombinedTypeSolver();
             solver.add(new ReflectionTypeSolver());
             if (file.isDirectory())
-            solver.add(new JavaParserTypeSolver(file));
+                solver.add(new JavaParserTypeSolver(file));
             typeSolver = solver;
             Files.walk(Paths.get(file.getAbsolutePath()))
                     .filter(Files::isRegularFile)
@@ -75,6 +77,7 @@ public class Main {
                 }
         }
     }
+
     private static void setup(String[] args) {
         timeInMillisStart = System.currentTimeMillis();
         try {
@@ -87,23 +90,27 @@ public class Main {
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
             entry.getValue().walk(node -> node.setData(Main.NODE_ID, nodeIDCounter.getAndSet(nodeIDCounter.get() + 1)));
-            lineCount+=entry.getValue().getRange().get().getLineCount();
+            lineCount += entry.getValue().getRange().get().getLineCount();
             symbolSolver.inject(entry.getValue());
         }
         StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
         facade = JavaParserFacade.get(typeSolver);
     }
 
-    static void findCopiedPieces()  {
-        double[] start = {0};double[] step = new double[start.length];Arrays.fill(step, 100);double ftol = 0.0001;
-        int maxIterations = 5000; Maximisation maximize = new Maximisation();
+    static void findCopiedPieces() {
+        double[] start = {0};
+        double[] step = new double[start.length];
+        Arrays.fill(step, 100);
+        double ftol = 0.0001;
+        int maxIterations = 5000;
+        Maximisation maximize = new Maximisation();
         SimilarityFunction function = new SimilarityFunction();
         //some bollocks for Nelder Mead algo
-        for (int i=0; i<blocks.size(); i++) piecesToReplace.add(new TreeSet<>());
+        for (int i = 0; i < blocks.size(); i++) piecesToReplace.add(new TreeSet<>());
         Map<Integer, List<Pair<Integer, Integer>>> piecesByHash = new TreeMap<>();
-        int blockIndex=0;
+        int blockIndex = 0;
         for (Block block : blocks) {
-            int pieceIndex=0;
+            int pieceIndex = 0;
             for (Piece piece : block.list) {
                 List<Pair<Integer, Integer>> list = piecesByHash.getOrDefault(piece.hash, new ArrayList<>());
                 list.add(new Pair<>(blockIndex, pieceIndex));
@@ -114,7 +121,8 @@ public class Main {
         }
         List<List<Pair<Integer, Integer>>> piecesByHashList = new ArrayList<>(piecesByHash.values());
         piecesByHashList.sort(new Utils.ListBlockIndexComparator());
-        int replacedPieces=0;
+        int replacedPieces = 0;
+        int func = 0;
         for (List<Pair<Integer, Integer>> blockPieceList : piecesByHashList) {
             blockPieceList.sort(new Utils.PotentialLengthComparator());
             Set<Integer> blockSet = new TreeSet<>();
@@ -129,12 +137,12 @@ public class Main {
                     blockPieceIndexesToCompare.add(blockPieceIndexes);
                 }
             }
-            int funcMaxConstraint = Integer.MAX_VALUE;
+            int funcMaxConstraint = Integer.MIN_VALUE;
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
                 Integer nearestReplacePiece = piecesToReplace.get(blockPiece.a).ceiling(blockPiece.b);
                 if (nearestReplacePiece == null)
                     nearestReplacePiece = blocks.get(blockPiece.a).list.size();
-                funcMaxConstraint = Math.min(funcMaxConstraint, nearestReplacePiece - blockPiece.b);
+                funcMaxConstraint = Math.max(funcMaxConstraint, nearestReplacePiece - blockPiece.b);
             }
             if (funcMaxConstraint < minimumSegmentPieceCount)
                 continue;
@@ -147,19 +155,24 @@ public class Main {
             Set<Integer> blocksToReplacePieces = function.getBlocksToReplacePieces(lenMaxRes);
             if (blocksToReplacePieces.size() <= 1)
                 continue;
-            //System.out.println("LEN MAX RES:" + lenMaxRes);
-            for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare)
-                for (Integer piece = blockPiece.b; piece < blockPiece.b + lenMaxRes; piece++)
-                    if (blocksToReplacePieces.contains(blockPiece.a)) {
+            func++;
+            for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
+                if (blocksToReplacePieces.contains(blockPiece.a)) {
+                    for (Integer piece = blockPiece.b; piece < Math.min(blocks.get(blockPiece.a).list.size(),
+                            blockPiece.b + lenMaxRes); piece++) {
+                        System.out.print(blocks.get(blockPiece.a).list.get(piece).node + " ");
                         piecesToReplace.get(blockPiece.a).add(piece);
                         replacedPieces++;
-                        //System.out.println("REPLACING PIECE: "+blocks.get(blockPiece.a).list.get(piece).node);
                     }
+                    System.out.println("\n=");
+                }
+            }
+            System.out.println("\n=========");
         }
-        int all=0;
-        for (int i=0; i<blocks.size(); i++)
-            all+=blocks.get(i).list.size();
-        System.out.println(replacedPieces+"/"+all);
+        int all = 0;
+        for (int i = 0; i < blocks.size(); i++)
+            all += blocks.get(i).list.size();
+        System.out.println(func + "," + replacedPieces + "/" + all);
     }
 
     public static void main(String[] args) {
@@ -172,6 +185,12 @@ public class Main {
             });
         }
         findCopiedPieces();
+        /*for (Block block : blocks) {
+            for (int j = 0; j < block.list.size(); j++) {
+                System.out.print(block.list.get(j).node + " ");
+            }
+            System.out.println("\n========");
+        }*/
         countMemoryAndTime();
     }
 }
