@@ -16,6 +16,6 @@
 * Бесполезный класс, создаваемый только для одного метода, или, еще хуже, для одной переменной
 * Значение, которое изменяется, но не используется
 
-Оценка "степени грязности кода" в разработке. (#8)
+"Степень грязности кода" оценивается при помощи SonarQube.
 
 Icons made by <a href="https://www.flaticon.com/authors/flat-icons" title="Flat Icons">Flat Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com </a>
