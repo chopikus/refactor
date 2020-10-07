@@ -21,6 +21,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 public class Main {
+    enum Bullshit{
+        ONE, TWO, THREE
+    }
+
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
     };
     public static List<File> filesToParse = new ArrayList<>();
@@ -38,7 +42,7 @@ public class Main {
     public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
-
+    public static List<List<List<Pair<Integer, Integer>>>> duplicatedSegments = new ArrayList<>();
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
@@ -156,23 +160,22 @@ public class Main {
             if (blocksToReplacePieces.size() <= 1)
                 continue;
             func++;
+            duplicatedSegments.add(new ArrayList<>());
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
                 if (blocksToReplacePieces.contains(blockPiece.a)) {
+                    Utils.getLast(duplicatedSegments).add(new ArrayList<>());
                     for (Integer piece = blockPiece.b; piece < Math.min(blocks.get(blockPiece.a).list.size(),
                             blockPiece.b + lenMaxRes); piece++) {
-                        System.out.print(blocks.get(blockPiece.a).list.get(piece).node + " ");
+                        Utils.getLast(Utils.getLast(duplicatedSegments)).add(new Pair<>(blockPiece.a, piece));
                         piecesToReplace.get(blockPiece.a).add(piece);
                         replacedPieces++;
                     }
-                    System.out.println("\n=");
                 }
             }
-            System.out.println("\n=========");
         }
         int all = 0;
         for (int i = 0; i < blocks.size(); i++)
             all += blocks.get(i).list.size();
-        System.out.println(func + "," + replacedPieces + "/" + all);
     }
 
     public static void main(String[] args) {
@@ -185,12 +188,7 @@ public class Main {
             });
         }
         findCopiedPieces();
-        /*for (Block block : blocks) {
-            for (int j = 0; j < block.list.size(); j++) {
-                System.out.print(block.list.get(j).node + " ");
-            }
-            System.out.println("\n========");
-        }*/
+        Uniter.makeMethod(duplicatedSegments);
         countMemoryAndTime();
     }
 }

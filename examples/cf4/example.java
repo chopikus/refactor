@@ -2,35 +2,35 @@ import java.lang.Math;
 
 class Main
 {
+	static Thread yy = new Thread();
+	static final double PI = 3.1415;
 	void func1(double x, double y, double angle)
 	{
-		double xx = Math.cos(angle)*x-Math.sin(angle)*y;
-		double yy = Math.sin(angle)*x+Math.cos(angle)*y;
+		double xx = Math.cos(PI/2)-Math.sin(PI/2);
+		double yy = Math.sin(PI/2)+Math.cos(PI/2);
 		if (xx==456.0f || xx==123.0f){
 			if (xx==456.0f)
 				xx++;
 			else if (xx==123.0f)
 				xx++;
 		}
-		x = xx;
-		y = yy;
-		yy--;
+		x++;
+		y++;
 	}
 	void func2(double a, double b, double angle)
 	{
-		double aa = Math.cos(angle)*a-Math.sin(angle)*b;
-		double bb = Math.sin(angle)*a+Math.cos(angle)*b;
+		double aa = Math.cos(PI/2)-Math.sin(PI/2);
+		double bb = Math.sin(PI/2)+Math.cos(PI/2);
 		if (xx==466.0f || xx==143.0f){
 			if (xx==466.0f)
 				xx++;
 			else if (xx==143.0f)
 				xx++;
 		}
-		a = aa;
-		b = bb;
-		bb--;
+		a++;
+		b++;
 	}
-	void func5(double a, double b, double angle)
+	void func5(double x, double y, double angle)
 	{
 		double xx = Math.cos(angle)*x-Math.sin(angle)*y;
 		double yy = Math.sin(angle)*x+Math.cos(angle)*y;

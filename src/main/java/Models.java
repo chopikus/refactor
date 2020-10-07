@@ -193,7 +193,6 @@ class SimilarityFunction implements MaximisationFunction
         for (int i=1; i<graphs.size(); i++) {
             float distance = Main.apted.computeEditDistance(graphs.get(0), graphs.get(i));
             if (distance<=Main.threshold) {
-                System.out.println(distance);
                 res.add(graphBlockIndexes.get(i));
                 add0 = true;
             }

@@ -2,6 +2,7 @@ import com.github.javaparser.utils.Pair;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class Utils {
 
@@ -34,5 +35,10 @@ public class Utils {
                 max2 = Math.max(p.b, max2);
             return Integer.compare(max1, max2);
         }
+    }
+
+    static <T> T getLast(List<T> l)
+    {
+        return l.get(l.size()-1);
     }
 }
