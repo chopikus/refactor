@@ -1,10 +1,8 @@
 import at.unisalzburg.dbresearch.apted.costmodel.CostModel;
 import at.unisalzburg.dbresearch.apted.node.Node;
-import com.github.javaparser.ast.expr.BinaryExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.LiteralExpr;
-import com.github.javaparser.ast.expr.UnaryExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.utils.Pair;
 import flanagan.math.MaximisationFunction;
 
@@ -51,16 +49,37 @@ class Piece
     com.github.javaparser.ast.Node node;
     int hash=0;
     boolean isReplaced = false;
+    boolean dependentOnOtherBlocks = false;
 
     @Override
     public String toString()
     {
-        return node.toString();
+        return dependentOnOtherBlocks ? node.toString()+"(dep)" : node.toString();
     }
 
     Piece(com.github.javaparser.ast.Node node) {
         this.node = node;
         this.hash = hashPiece();
+        node.walk(NameExpr.class, nameExpr -> {
+            try {
+                var res = nameExpr.resolve();
+                boolean okThat = false;
+                if (!res.isVariable() && !res.isParameter() && !res.isEnumConstant()
+                        && !res.isField() && !res.isMethod() && !res.isType())
+                    okThat = true;
+                if (res.isMethod() && res.asMethod().isStatic())
+                    okThat = true;
+                if (res.isField() && res.asField().isStatic())
+                    okThat = true;
+                if (res.isEnumConstant())
+                    okThat = true;
+                if (!okThat)
+                    this.dependentOnOtherBlocks = true;
+            }
+            catch (UnsolvedSymbolException ignored) {
+            }
+            /// TODO not ignoring the exception, showing warning in console
+        });
     }
 
     static boolean checkBranching(com.github.javaparser.ast.Node node)
@@ -120,6 +139,12 @@ class Block
            if (Piece.checkPiece(node))
                this.list.add(new Piece(node));
         });
+    }
+
+    @Override
+    public String toString()
+    {
+        return list.toString();
     }
 
     Node<NodeData> algoGraph(int l, int r) {
@@ -204,13 +229,20 @@ class SimilarityFunction implements MaximisationFunction
 
     @Override
     public double function(double[] doubles) {
-        long x1 = Math.round(doubles[0]);
+        long len = Math.round(doubles[0]);
         graphs.clear();
+        long actualMaxLen = 0;
         for (Pair<Integer, Integer> p : Main.blockPieceIndexesToCompare) {
-            graphs.add(Main.blocks.get(p.a).algoGraph(p.b,
-                    Math.min(Main.blocks.get(p.a).list.size(), Math.toIntExact(p.b + x1))));
+            int bound = Math.min(Main.blocks.get(p.a).list.size(), Math.toIntExact(p.b + len));
+            for (int piece=p.b; piece<bound; piece++)
+                if (Main.badPieces.get(p.a).contains(piece)) {
+                    bound = piece;
+                    break;
+                }
+            graphs.add(Main.blocks.get(p.a).algoGraph(p.b, bound));
+            actualMaxLen = Math.max(actualMaxLen, bound-p.b);    
         }
-        if (graphs.size()<=1)
+        if (graphs.size()<=1 || actualMaxLen<len)
             return 0;
         float res = 0;
         for (int i=1; i<graphs.size(); i++)
@@ -218,7 +250,7 @@ class SimilarityFunction implements MaximisationFunction
             float distance = Main.apted.computeEditDistance(graphs.get(0), graphs.get(i));
             res+=(Main.threshold-distance)/Main.threshold;
         }
-        res*=x1;
+        res*=len;
         return res;
     }
 }

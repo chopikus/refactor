@@ -2,7 +2,6 @@ import com.github.javaparser.utils.Pair;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
 
 public class Utils {
 
@@ -11,10 +10,10 @@ public class Utils {
     {
         @Override
         public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
-            Integer nearestReplacePiece1 = Main.piecesToReplace.get(o1.a).ceiling(o1.b);
+            Integer nearestReplacePiece1 = Main.badPieces.get(o1.a).ceiling(o1.b);
             if (nearestReplacePiece1==null)
                 nearestReplacePiece1 = Main.blocks.get(o1.a).list.size();
-            Integer nearestReplacePiece2 = Main.piecesToReplace.get(o1.a).ceiling(o1.b);
+            Integer nearestReplacePiece2 = Main.badPieces.get(o1.a).ceiling(o1.b);
             if (nearestReplacePiece2==null)
                 nearestReplacePiece2 = Main.blocks.get(o1.a).list.size();
             return Integer.compare(nearestReplacePiece1-o1.b, nearestReplacePiece2-o2.b);

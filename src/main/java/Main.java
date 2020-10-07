@@ -21,9 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 public class Main {
-    enum Bullshit{
-        ONE, TWO, THREE
-    }
 
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
     };
@@ -39,7 +36,7 @@ public class Main {
     public static boolean hashLiteralTypes = true;
     public static float threshold = 3f;
     public static Integer minimumSegmentPieceCount = 7;
-    public static List<NavigableSet<Integer>> piecesToReplace = new ArrayList<>();
+    public static List<NavigableSet<Integer>> badPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
     public static List<List<List<Pair<Integer, Integer>>>> duplicatedSegments = new ArrayList<>();
@@ -110,7 +107,12 @@ public class Main {
         Maximisation maximize = new Maximisation();
         SimilarityFunction function = new SimilarityFunction();
         //some bollocks for Nelder Mead algo
-        for (int i = 0; i < blocks.size(); i++) piecesToReplace.add(new TreeSet<>());
+        badPieces.clear();
+        for (int i = 0; i < blocks.size(); i++) badPieces.add(new TreeSet<>());
+        for (int i=0; i<blocks.size(); i++)
+            for (int j=0; j<blocks.get(i).list.size(); j++)
+                if (blocks.get(i).list.get(j).dependentOnOtherBlocks)
+                    badPieces.get(i).add(j);
         Map<Integer, List<Pair<Integer, Integer>>> piecesByHash = new TreeMap<>();
         int blockIndex = 0;
         for (Block block : blocks) {
@@ -125,8 +127,6 @@ public class Main {
         }
         List<List<Pair<Integer, Integer>>> piecesByHashList = new ArrayList<>(piecesByHash.values());
         piecesByHashList.sort(new Utils.ListBlockIndexComparator());
-        int replacedPieces = 0;
-        int func = 0;
         for (List<Pair<Integer, Integer>> blockPieceList : piecesByHashList) {
             blockPieceList.sort(new Utils.PotentialLengthComparator());
             Set<Integer> blockSet = new TreeSet<>();
@@ -134,7 +134,7 @@ public class Main {
             for (Pair<Integer, Integer> blockPieceIndexes : blockPieceList) {
                 int pairBlockIndex = blockPieceIndexes.a;
                 int pairPieceIndex = blockPieceIndexes.b;
-                if (piecesToReplace.get(pairBlockIndex).contains(pairPieceIndex))
+                if (badPieces.get(pairBlockIndex).contains(pairPieceIndex))
                     continue;
                 if (!blockSet.contains(pairBlockIndex)) {
                     blockSet.add(pairBlockIndex);
@@ -143,7 +143,7 @@ public class Main {
             }
             int funcMaxConstraint = Integer.MIN_VALUE;
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
-                Integer nearestReplacePiece = piecesToReplace.get(blockPiece.a).ceiling(blockPiece.b);
+                Integer nearestReplacePiece = badPieces.get(blockPiece.a).ceiling(blockPiece.b);
                 if (nearestReplacePiece == null)
                     nearestReplacePiece = blocks.get(blockPiece.a).list.size();
                 funcMaxConstraint = Math.max(funcMaxConstraint, nearestReplacePiece - blockPiece.b);
@@ -153,13 +153,13 @@ public class Main {
             maximize.removeConstraints();
             maximize.addConstraint(0, -1, minimumSegmentPieceCount);
             maximize.addConstraint(0, 1, funcMaxConstraint);
+            System.out.println(funcMaxConstraint);
             maximize.nelderMead(function, start, step, ftol, maxIterations);
             double argWithMaxRes = maximize.getParamValues()[0];
             long lenMaxRes = Math.round(argWithMaxRes);
             Set<Integer> blocksToReplacePieces = function.getBlocksToReplacePieces(lenMaxRes);
             if (blocksToReplacePieces.size() <= 1)
                 continue;
-            func++;
             duplicatedSegments.add(new ArrayList<>());
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
                 if (blocksToReplacePieces.contains(blockPiece.a)) {
@@ -167,15 +167,11 @@ public class Main {
                     for (Integer piece = blockPiece.b; piece < Math.min(blocks.get(blockPiece.a).list.size(),
                             blockPiece.b + lenMaxRes); piece++) {
                         Utils.getLast(Utils.getLast(duplicatedSegments)).add(new Pair<>(blockPiece.a, piece));
-                        piecesToReplace.get(blockPiece.a).add(piece);
-                        replacedPieces++;
+                        badPieces.get(blockPiece.a).add(piece);
                     }
                 }
             }
         }
-        int all = 0;
-        for (int i = 0; i < blocks.size(); i++)
-            all += blocks.get(i).list.size();
     }
 
     public static void main(String[] args) {
@@ -189,6 +185,7 @@ public class Main {
         }
         findCopiedPieces();
         Uniter.makeMethod(duplicatedSegments);
+        System.out.println(blocks);
         countMemoryAndTime();
     }
 }

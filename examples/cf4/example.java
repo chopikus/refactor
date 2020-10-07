@@ -14,8 +14,8 @@ class Main
 			else if (xx==123.0f)
 				xx++;
 		}
-		x++;
-		y++;
+		xx*=2;
+		yy*=2;
 	}
 	void func2(double a, double b, double angle)
 	{
@@ -27,8 +27,8 @@ class Main
 			else if (xx==143.0f)
 				xx++;
 		}
-		a++;
-		b++;
+		aa*=2;
+		bb*=2;
 	}
 	void func5(double x, double y, double angle)
 	{
