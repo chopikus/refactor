@@ -10,29 +10,22 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class Cost implements CostModel<NodeData> {
-    private float delCost = 0.5f;
-    private float insCost = 0.5f;
-    private float renCost = 1f;
 
     public float del(Node<NodeData> n) {
-        //if (n.getNodeData().isStmt())
-        //    return 3*delCost;
-        return delCost;
+        return 0.5f;
     }
     public float ins(Node<NodeData> n) {
-        //if (n.getNodeData().isStmt())
-        //    return 3*insCost;
-        return insCost;
+        return 0.5f;
     }
     public float ren(Node<NodeData> n1, Node<NodeData> n2) {
-        return (n1.getNodeData().getLabel().equals(n2.getNodeData().getLabel())) ? 0.0f : renCost;
+        return (n1.getNodeData().getLabel().equals(n2.getNodeData().getLabel())) ? 0.0f : 1f;
     }
 }
 
 
 class NodeData
 {
-    private Integer label=0;
+    private Integer label;
     public NodeData(Integer label)
     {
         this.label = label;
@@ -47,7 +40,7 @@ class NodeData
 class Piece
 {
     com.github.javaparser.ast.Node node;
-    int hash=0;
+    int hash;
     boolean isReplaced = false;
     boolean dependentOnOtherBlocks = false;
 
@@ -191,7 +184,7 @@ class Block
             Node<NodeData> q1 = algoQ.poll();
             for (Integer q2 : edges.getOrDefault(q1.getNodeData().getLabel(), new ArrayList<>()))
             {
-                Node<NodeData> nd = new Node<NodeData>(new NodeData(q2));
+                Node<NodeData> nd = new Node<>(new NodeData(q2));
                 q1.addChild(nd);
                 algoQ.add(nd);
             }

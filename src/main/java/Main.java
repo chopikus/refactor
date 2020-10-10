@@ -153,7 +153,6 @@ public class Main {
             maximize.removeConstraints();
             maximize.addConstraint(0, -1, minimumSegmentPieceCount);
             maximize.addConstraint(0, 1, funcMaxConstraint);
-            System.out.println(funcMaxConstraint);
             maximize.nelderMead(function, start, step, ftol, maxIterations);
             double argWithMaxRes = maximize.getParamValues()[0];
             long lenMaxRes = Math.round(argWithMaxRes);
@@ -185,7 +184,6 @@ public class Main {
         }
         findCopiedPieces();
         Uniter.makeMethod(duplicatedSegments);
-        System.out.println(blocks);
         countMemoryAndTime();
     }
 }
