@@ -1,3 +1,7 @@
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.LiteralExpr;
+import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.utils.Pair;
 
 import java.util.Comparator;
@@ -39,5 +43,20 @@ public class Utils {
     static <T> T getLast(List<T> l)
     {
         return l.get(l.size()-1);
+    }
+
+    static int hashNode(Node node)
+    {
+        final String[] s = {""};
+        node.walk(com.github.javaparser.ast.Node.TreeTraversal.PREORDER, node1 -> {
+            s[0]+=node1.getMetaModel().getTypeNameGenerified();
+            if (node1 instanceof BinaryExpr)
+                s[0]+=((BinaryExpr) node1).getOperator();
+            if (node1 instanceof UnaryExpr)
+                s[0]+=((UnaryExpr) node1).getOperator();
+            if (node1 instanceof LiteralExpr)
+                s[0]+=((LiteralExpr) node1).calculateResolvedType();
+        });
+        return s[0].hashCode();
     }
 }

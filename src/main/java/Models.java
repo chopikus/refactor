@@ -52,7 +52,7 @@ class Piece
 
     Piece(com.github.javaparser.ast.Node node) {
         this.node = node;
-        this.hash = hashPiece();
+        this.hash = Utils.hashNode(node);
         node.walk(NameExpr.class, nameExpr -> {
             try {
                 var res = nameExpr.resolve();
@@ -69,7 +69,7 @@ class Piece
                 if (!okThat)
                     this.dependentOnOtherBlocks = true;
             }
-            catch (UnsolvedSymbolException ignored) {
+            catch (Exception ignored) {
             }
             /// TODO not ignoring the exception, showing warning in console
         });
@@ -104,20 +104,6 @@ class Piece
         return hash;
     }
 
-    private int hashPiece()
-    {
-        final String[] s = {""};
-        node.walk(com.github.javaparser.ast.Node.TreeTraversal.PREORDER, node1 -> {
-            s[0]+=node1.getMetaModel().getTypeNameGenerified();
-            if (node1 instanceof BinaryExpr)
-                s[0]+=((BinaryExpr) node1).getOperator();
-            if (node1 instanceof UnaryExpr)
-                s[0]+=((UnaryExpr) node1).getOperator();
-            if (node1 instanceof LiteralExpr)
-                s[0]+=((LiteralExpr) node1).calculateResolvedType();
-        });
-        return s[0].hashCode();
-    }
 }
 
 class Block
