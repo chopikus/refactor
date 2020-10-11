@@ -1,5 +1,9 @@
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -7,6 +11,8 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.utils.Pair;
 
 import java.util.*;
@@ -37,7 +43,7 @@ public class Uniter {
                 segmentsInNodes.add(segmentInNodes);
             }
             replaceAllStatics(segmentsInNodes);
-            makeMethodBody(segmentsInNodes);
+            actuallyMakeMethod(segmentsInNodes);
         }
     }
 
@@ -90,13 +96,35 @@ public class Uniter {
             }
         }
     }
-    static void makeMethodBody(List<List<Node>> segmentList)
+    static String makeMethodName(List<List<Node>> segmentList)
+    {
+        StringBuilder methodNameBuilder = new StringBuilder();
+        for (int segment=0; segment<segmentList.size(); segment++)
+        {
+            Node node = segmentList.get(segment).get(0);
+            node.walk(Node.TreeTraversal.PARENTS, node1 -> {
+                if (node1 instanceof MethodDeclaration)
+                {
+                    String funcName = ((MethodDeclaration) node1).getNameAsString();
+                    if (methodNameBuilder.length()!=0) {
+                        methodNameBuilder.append("And");
+                        funcName = funcName.substring(0, 1).toUpperCase()+funcName.substring(1);
+                    }
+                    methodNameBuilder.append(funcName);
+                }
+            });
+        }
+        return methodNameBuilder.toString();
+    }
+
+    static MethodDeclaration actuallyMakeMethod(List<List<Node>> segmentList)
     {
         if (segmentList.size()<2)
-            return;
+            return null;
         List<Integer> lastCommonNodeInSegment = new ArrayList<>();
         List<List<Boolean>> isSimilarToEveryone = new ArrayList<>();
         Map<String, Integer> wasParameterNameUsed = new HashMap<>();
+        List<String> parameterNames = new ArrayList<>();
         for (int i=0; i<segmentList.size(); i++) {
             lastCommonNodeInSegment.add(-1);
             isSimilarToEveryone.add(new ArrayList<>());
@@ -158,25 +186,50 @@ public class Uniter {
             for (Map.Entry<Integer, Node> hashNode : hashNodeMap.entrySet())
             {
                 BlockStmt thenStmt = new BlockStmt();
-                String booleanParameterName = "do"+hashNode.getValue().toString().replaceAll("[.;]", "").
-                        split("[()]")[0];
+                String booleanParameterName = "do"+Utils.makeNameFromNode(hashNode.getValue());
                 if (wasParameterNameUsed.getOrDefault(booleanParameterName, 0).equals(0))
                     wasParameterNameUsed.put(booleanParameterName, 1);
                 else {
                     wasParameterNameUsed.put(booleanParameterName, wasParameterNameUsed.get(booleanParameterName) + 1);
                     booleanParameterName+="_"+wasParameterNameUsed.get(booleanParameterName);
                 }
+                parameterNames.add(booleanParameterName);
                 if (hashNode.getValue() instanceof Expression) {
                     Expression expr = (Expression) hashNode.getValue();
-                    thenStmt.addStatement(expr);
+                    thenStmt.addStatement(expr.clone());
                 }
                 if (hashNode.getValue() instanceof Statement) {
                     Statement stmt = (Statement) hashNode.getValue();
-                    thenStmt.addStatement(stmt);
+                    thenStmt.addStatement(stmt.clone());
                 }
                 methodCommands.add(new IfStmt().setThenStmt(thenStmt).setCondition(new NameExpr(booleanParameterName)));
             }
         }
-        System.out.println(methodCommands);
+        return makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList));
     }
+    static MethodDeclaration makeDeclarationFromParamsAndCommands(List<String> parameterNames,
+                                                                  List<Node> methodCommands,
+                                                                  String methodName)
+    {
+        MethodDeclaration declaration = new MethodDeclaration();
+        declaration.setStatic(true);
+        NodeList<Parameter> parameterNodes = new NodeList<Parameter>();
+        BlockStmt body = new BlockStmt();
+        for (var parameterName : parameterNames)
+            parameterNodes.add(new Parameter().setName(parameterName).setType(PrimitiveType.booleanType()));
+        for (var command : methodCommands)
+        {
+            if (command instanceof Statement)
+                body.addStatement((Statement) command);
+            else
+                body.addStatement((Expression) command);
+        }
+        declaration.setParameters(parameterNodes);
+        declaration.setBody(body);
+        declaration.setType(new VoidType());
+        declaration.setName(methodName);
+        System.out.println(declaration);
+        return declaration;
+    }
+
 }

@@ -59,4 +59,10 @@ public class Utils {
         });
         return s[0].hashCode();
     }
+
+    static String makeNameFromNode(Node node)
+    {
+        return node.toString().replaceAll("[.;]", "").
+                split("[()]")[0];
+    }
 }
