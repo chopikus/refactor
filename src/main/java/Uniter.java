@@ -4,10 +4,7 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
@@ -161,15 +158,40 @@ public class Uniter {
         List<Node> methodCommands = new ArrayList<>();
         for (int i=0; i<=similarCommands.size(); i++)
             notSimilarToEveryoneCommands.add(new ArrayList<>());
-        for (int segment=0; segment<segmentList.size(); segment++) {
+        for (int segmentIndex=0; segmentIndex<segmentList.size(); segmentIndex++) {
             int cnt=0;
-            for (int nodeIndex=0; nodeIndex<segmentList.get(segment).size(); nodeIndex++) {
-                if (!isSimilarToEveryone.get(segment).get(nodeIndex)) {
-                    notSimilarToEveryoneCommands.get(cnt).add(segmentList.get(segment).get(nodeIndex));
+            for (int nodeIndex=0; nodeIndex<segmentList.get(segmentIndex).size(); nodeIndex++) {
+                if (!isSimilarToEveryone.get(segmentIndex).get(nodeIndex)) {
+                    notSimilarToEveryoneCommands.get(cnt).add(segmentList.get(segmentIndex).get(nodeIndex));
                 }
                 else
                     cnt++;
             }
+        }
+
+        for (int pos=0; pos<similarCommands.size(); pos++)
+        {
+            List<List<LiteralExpr>> literalExprs = new ArrayList<>();
+            for (int commandIndex=0; commandIndex<similarCommands.get(pos).size(); commandIndex++)
+            {
+                Pair<Integer, Integer> nodeIndices = similarCommands.get(pos).get(commandIndex);
+                Node node = segmentList.get(nodeIndices.a).get(nodeIndices.b);
+                literalExprs.add(new ArrayList<>());
+                node.walk(LiteralExpr.class, literalExprs.get(literalExprs.size()-1)::add);
+            }
+            int minLiteralSize = Integer.MAX_VALUE;
+            for (int commandIndex=0; commandIndex<similarCommands.get(pos).size(); commandIndex++)
+                minLiteralSize = Math.min(minLiteralSize, literalExprs.get(commandIndex).size());
+            for (int literalIndex=0; literalIndex<minLiteralSize; literalIndex++) {
+                Set<String> values = new HashSet<>();
+                for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++)
+                    values.add(literalExprs.get(commandIndex).get(literalIndex).toString());
+                if (values.size()!=1)
+                    for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++)
+                        literalExprs.get(commandIndex).get(literalIndex).replace(new NameExpr("khui")); /// TODO give it a proper name
+            }
+
+
         }
         for (int pos=0; pos<=similarCommands.size(); pos++)
         {
