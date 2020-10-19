@@ -62,6 +62,8 @@ public class Utils {
 
     static String makeNameFromNode(Node node)
     {
+        System.out.println(node);
+        System.out.println("===");
         return node.toString().replaceAll("[.;]", "").
                 split("[()]")[0];
     }

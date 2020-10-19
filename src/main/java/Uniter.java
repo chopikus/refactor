@@ -1,4 +1,4 @@
-import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -9,13 +9,15 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.utils.Pair;
 
 import java.util.*;
 
 public class Uniter {
-
+    static Map<String, Integer> wasParameterUsed = new HashMap<>();
+    static List<Pair<String, Type>> parameterNames = new ArrayList<>();
     static void makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
         Set<Integer> usedNodeIDs = new TreeSet<>();
         for (var segmList : duplicatedSegments) {
@@ -66,8 +68,8 @@ public class Uniter {
                                                 setName(methodCallExpr.getScope().get().toString())
                                 );
                         }
-                    }
-                    catch (Exception ignored) {} ///TODO not ignore the exception
+                    } catch (Exception ignored) {
+                    } ///TODO not ignore the exception
                 });
                 node.walk(FieldAccessExpr.class, fieldAccessExpr -> {
                     try {
@@ -79,8 +81,8 @@ public class Uniter {
                                             setScope(new NameExpr(className[0])).
                                             setName(fieldAccessExpr.getScope().toString())
                             );
-                    }
-                    catch (Exception ignored) {} ///TODO not ignore the exception
+                    } catch (Exception ignored) {
+                    } ///TODO not ignore the exception
                 });
                 node.walk(NameExpr.class, nameExpr -> {
                     try {
@@ -88,55 +90,81 @@ public class Uniter {
                             nameExpr.replace(new FieldAccessExpr().setScope(new NameExpr(className[0])).
                                     setName(nameExpr.getName()));
                         }
-                    } catch (Exception ignored) {} ///TODO not ignore the exception
+                    } catch (Exception ignored) {
+                    } ///TODO not ignore the exception
                 });
             }
         }
     }
-    static String makeMethodName(List<List<Node>> segmentList)
-    {
+
+    static String makeMethodName(List<List<Node>> segmentList) {
         StringBuilder methodNameBuilder = new StringBuilder();
-        for (int segment=0; segment<segmentList.size(); segment++)
-        {
+        final int[] cnt = {1};
+        for (int segment = 0; segment < segmentList.size(); segment++) {
             Node node = segmentList.get(segment).get(0);
             node.walk(Node.TreeTraversal.PARENTS, node1 -> {
-                if (node1 instanceof MethodDeclaration)
-                {
-                    String funcName = ((MethodDeclaration) node1).getNameAsString();
-                    if (methodNameBuilder.length()!=0) {
-                        methodNameBuilder.append("And");
-                        funcName = funcName.substring(0, 1).toUpperCase()+funcName.substring(1);
+                if (node1 instanceof MethodDeclaration) {
+                    if (cnt[0]<=2) {
+                        String funcName = ((MethodDeclaration) node1).getNameAsString();
+                        if (methodNameBuilder.length() != 0) {
+                            methodNameBuilder.append("And");
+                            funcName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1);
+                        }
+                        methodNameBuilder.append(funcName);
                     }
-                    methodNameBuilder.append(funcName);
+                    cnt[0]++;
                 }
             });
         }
         return methodNameBuilder.toString();
     }
 
-    static MethodDeclaration actuallyMakeMethod(List<List<Node>> segmentList)
-    {
-        if (segmentList.size()<2)
-            return null;
-        List<Integer> lastCommonNodeInSegment = new ArrayList<>();
-        List<List<Boolean>> isSimilarToEveryone = new ArrayList<>();
-        Map<String, Integer> wasParameterNameUsed = new HashMap<>();
-        List<String> parameterNames = new ArrayList<>();
-        for (int i=0; i<segmentList.size(); i++) {
-            lastCommonNodeInSegment.add(-1);
-            isSimilarToEveryone.add(new ArrayList<>());
-            for (int j=0; j<segmentList.get(i).size(); j++)
-                isSimilarToEveryone.get(isSimilarToEveryone.size()-1).add(false);
+    static void checkAndChangeLiteralExprs(List<List<Pair<Integer, Integer>>> similarCommands, List<List<Node>> segmentList) {
+        for (int pos = 0; pos < similarCommands.size(); pos++) {
+            List<List<LiteralExpr>> literalExprs = new ArrayList<>();
+            for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
+                Pair<Integer, Integer> nodeIndices = similarCommands.get(pos).get(commandIndex);
+                Node node = segmentList.get(nodeIndices.a).get(nodeIndices.b);
+                literalExprs.add(new ArrayList<>());
+                node.walk(LiteralExpr.class, literalExprs.get(literalExprs.size() - 1)::add);
+            }
+            int minLiteralSize = Integer.MAX_VALUE;
+            for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++)
+                minLiteralSize = Math.min(minLiteralSize, literalExprs.get(commandIndex).size());
+            for (int literalIndex = 0; literalIndex < minLiteralSize; literalIndex++) {
+                Set<String> values = new HashSet<>();
+                Type type = null;
+                for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
+                    values.add(literalExprs.get(commandIndex).get(literalIndex).toString());
+                    String typeInString = literalExprs.get(commandIndex).get(literalIndex).calculateResolvedType().describe();
+                    if (!typeInString.equals("null"))
+                        type = StaticJavaParser.parseType(typeInString);
+                }
+                if (values.size() != 1) {
+                    String name = "khui"; /// TODO find name
+                    name = checkAndChangeParameter(name);
+                    parameterNames.add(new Pair<>(name, type));
+                    for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
+                        literalExprs.get(commandIndex).get(literalIndex).replace(new NameExpr(name));
+                    }
+                }
+            }
         }
+    }
+
+    static List<List<Pair<Integer, Integer>>> findSimilarCommands(List<List<Node>> segmentList) {
+        List<Integer> lastCommonNodeInSegment = new ArrayList<>();
+        for (int i = 0; i < segmentList.size(); i++)
+            lastCommonNodeInSegment.add(-1);
         List<List<Pair<Integer, Integer>>> similarCommands = new ArrayList<>();
-        for (int nodeIndex = 0; nodeIndex<segmentList.get(0).size(); nodeIndex++) {
-            List<Pair<Integer, Integer> > similarCommand = new ArrayList<>();
-            for (int segment=1; segment<segmentList.size(); segment++) {
-                for (int k=Math.max(lastCommonNodeInSegment.get(segment)+1, nodeIndex-3);
-                     k<Math.min(nodeIndex+4, segmentList.get(segment).size()); k++) {
-                    if (Utils.hashNode(segmentList.get(segment).get(k))==
+        for (int nodeIndex = 0; nodeIndex < segmentList.get(0).size(); nodeIndex++) {
+            List<Pair<Integer, Integer>> similarCommand = new ArrayList<>();
+            for (int segment = 1; segment < segmentList.size(); segment++) {
+                for (int k = Math.max(lastCommonNodeInSegment.get(segment) + 1, nodeIndex - 3);
+                     k < Math.min(nodeIndex + 4, segmentList.get(segment).size()); k++) {
+                    if (Utils.hashNode(segmentList.get(segment).get(k)) ==
                             Utils.hashNode(segmentList.get(0).get(nodeIndex))) {
-                        if (similarCommand.size()==0)
+                        if (similarCommand.size() == 0)
                             similarCommand.add(new Pair<>(0, nodeIndex));
                         similarCommand.add(new Pair<>(segment, k));
                         lastCommonNodeInSegment.set(segment, k);
@@ -144,78 +172,66 @@ public class Uniter {
                     }
                 }
             }
-            if (similarCommand.size()!=0)
+            if (similarCommand.size() == segmentList.size())
                 similarCommands.add(similarCommand);
         }
-        for (var similarCommand : similarCommands) {
-            if (similarCommand.size()==segmentList.size()) {
-                for (var segmentNodeIndex : similarCommand) {
-                    isSimilarToEveryone.get(segmentNodeIndex.a).set(segmentNodeIndex.b, true);
-                }
-            }
+        return similarCommands;
+    }
+
+    static String checkAndChangeParameter(String parameterName) {
+        if (wasParameterUsed.getOrDefault(parameterName, 0).equals(0))
+            wasParameterUsed.put(parameterName, 1);
+        else {
+            wasParameterUsed.put(parameterName, wasParameterUsed.get(parameterName) + 1);
+            parameterName += "_" + wasParameterUsed.get(parameterName);
         }
+        return parameterName;
+    }
+
+    static MethodDeclaration actuallyMakeMethod(List<List<Node>> segmentList) {
+        if (segmentList.size() < 2)
+            return null;
+        wasParameterUsed.clear();
+        parameterNames.clear();
+        boolean[][] isSimilarToEveryone = new boolean[segmentList.size()][];
         List<List<Node>> notSimilarToEveryoneCommands = new ArrayList<>();
+        List<Set<Integer>> howManyNotSimilarCommands = new ArrayList<>();
         List<Node> methodCommands = new ArrayList<>();
-        for (int i=0; i<=similarCommands.size(); i++)
+        for (int segment = 0; segment < segmentList.size(); segment++)
+            isSimilarToEveryone[segment] = new boolean[segmentList.get(segment).size()];
+        List<List<Pair<Integer, Integer>>> similarCommands = findSimilarCommands(segmentList);
+        checkAndChangeLiteralExprs(similarCommands, segmentList);
+        for (var similarCommand : similarCommands)
+            for (var segmentNodeIndex : similarCommand)
+                isSimilarToEveryone[segmentNodeIndex.a][segmentNodeIndex.b] = true;
+        for (int i = 0; i <= similarCommands.size(); i++) {
             notSimilarToEveryoneCommands.add(new ArrayList<>());
-        for (int segmentIndex=0; segmentIndex<segmentList.size(); segmentIndex++) {
-            int cnt=0;
-            for (int nodeIndex=0; nodeIndex<segmentList.get(segmentIndex).size(); nodeIndex++) {
-                if (!isSimilarToEveryone.get(segmentIndex).get(nodeIndex)) {
+            howManyNotSimilarCommands.add(new TreeSet<>());
+        }
+        for (int segmentIndex = 0; segmentIndex < segmentList.size(); segmentIndex++) {
+            int cnt = 0;
+            for (int nodeIndex = 0; nodeIndex < segmentList.get(segmentIndex).size(); nodeIndex++) {
+                if (!isSimilarToEveryone[segmentIndex][nodeIndex]) {
                     notSimilarToEveryoneCommands.get(cnt).add(segmentList.get(segmentIndex).get(nodeIndex));
-                }
+                    howManyNotSimilarCommands.get(cnt).add(segmentIndex); }
                 else
                     cnt++;
             }
         }
-
-        for (int pos=0; pos<similarCommands.size(); pos++)
-        {
-            List<List<LiteralExpr>> literalExprs = new ArrayList<>();
-            for (int commandIndex=0; commandIndex<similarCommands.get(pos).size(); commandIndex++)
-            {
-                Pair<Integer, Integer> nodeIndices = similarCommands.get(pos).get(commandIndex);
-                Node node = segmentList.get(nodeIndices.a).get(nodeIndices.b);
-                literalExprs.add(new ArrayList<>());
-                node.walk(LiteralExpr.class, literalExprs.get(literalExprs.size()-1)::add);
-            }
-            int minLiteralSize = Integer.MAX_VALUE;
-            for (int commandIndex=0; commandIndex<similarCommands.get(pos).size(); commandIndex++)
-                minLiteralSize = Math.min(minLiteralSize, literalExprs.get(commandIndex).size());
-            for (int literalIndex=0; literalIndex<minLiteralSize; literalIndex++) {
-                Set<String> values = new HashSet<>();
-                for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++)
-                    values.add(literalExprs.get(commandIndex).get(literalIndex).toString());
-                if (values.size()!=1)
-                    for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++)
-                        literalExprs.get(commandIndex).get(literalIndex).replace(new NameExpr("khui")); /// TODO give it a proper name
-            }
-
-
-        }
-        for (int pos=0; pos<=similarCommands.size(); pos++)
-        {
-            if (pos!=similarCommands.size()){
+        for (int pos = 0; pos <= similarCommands.size(); pos++) {
+            if (pos != similarCommands.size()) {
                 Pair<Integer, Integer> commandIndexes = similarCommands.get(pos).get(0);
                 methodCommands.add(segmentList.get(commandIndexes.a).get(commandIndexes.b));
             }
             Map<Integer, Node> hashNodeMap = new TreeMap<>();
-            for (int command=0; command<notSimilarToEveryoneCommands.get(pos).size(); command++)
-            {
+            for (int command = 0; command < notSimilarToEveryoneCommands.get(pos).size(); command++) {
                 Node node = notSimilarToEveryoneCommands.get(pos).get(command);
                 hashNodeMap.put(Utils.hashNode(node), node);
             }
-            for (Map.Entry<Integer, Node> hashNode : hashNodeMap.entrySet())
-            {
+            for (Map.Entry<Integer, Node> hashNode : hashNodeMap.entrySet()) {
                 BlockStmt thenStmt = new BlockStmt();
-                String booleanParameterName = "do"+Utils.makeNameFromNode(hashNode.getValue());
-                if (wasParameterNameUsed.getOrDefault(booleanParameterName, 0).equals(0))
-                    wasParameterNameUsed.put(booleanParameterName, 1);
-                else {
-                    wasParameterNameUsed.put(booleanParameterName, wasParameterNameUsed.get(booleanParameterName) + 1);
-                    booleanParameterName+="_"+wasParameterNameUsed.get(booleanParameterName);
-                }
-                parameterNames.add(booleanParameterName);
+                String booleanParameterName = checkAndChangeParameter("do" + Utils.makeNameFromNode(hashNode.getValue()));
+                parameterNames.add(new Pair<>(booleanParameterName, PrimitiveType.booleanType()));
                 if (hashNode.getValue() instanceof Expression) {
                     Expression expr = (Expression) hashNode.getValue();
                     thenStmt.addStatement(expr.clone());
@@ -229,18 +245,17 @@ public class Uniter {
         }
         return makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList));
     }
-    static MethodDeclaration makeDeclarationFromParamsAndCommands(List<String> parameterNames,
+
+    static MethodDeclaration makeDeclarationFromParamsAndCommands(List<Pair<String, Type>> parameterNames,
                                                                   List<Node> methodCommands,
-                                                                  String methodName)
-    {
+                                                                  String methodName) {
         MethodDeclaration declaration = new MethodDeclaration();
         declaration.setStatic(true);
         NodeList<Parameter> parameterNodes = new NodeList<Parameter>();
         BlockStmt body = new BlockStmt();
         for (var parameterName : parameterNames)
-            parameterNodes.add(new Parameter().setName(parameterName).setType(PrimitiveType.booleanType()));
-        for (var command : methodCommands)
-        {
+            parameterNodes.add(new Parameter().setName(parameterName.a).setType(parameterName.b));
+        for (var command : methodCommands) {
             if (command instanceof Statement)
                 body.addStatement((Statement) command);
             else
@@ -250,7 +265,6 @@ public class Uniter {
         declaration.setBody(body);
         declaration.setType(new VoidType());
         declaration.setName(methodName);
-        System.out.println(declaration);
         return declaration;
     }
 
