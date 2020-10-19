@@ -28,7 +28,6 @@ public class Main {
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
     public static File execFile;
-    public static int lineCount = 0;
     public static TypeSolver typeSolver = null;
     public static JavaParserFacade facade = null;
     public static List<Block> blocks = new ArrayList<>();
@@ -91,7 +90,6 @@ public class Main {
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
             entry.getValue().walk(node -> node.setData(Main.NODE_ID, nodeIDCounter.getAndSet(nodeIDCounter.get() + 1)));
-            lineCount += entry.getValue().getRange().get().getLineCount();
             symbolSolver.inject(entry.getValue());
         }
         StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);

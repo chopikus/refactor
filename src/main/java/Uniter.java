@@ -7,6 +7,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.LocalClassDeclarationStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
@@ -18,6 +19,7 @@ import java.util.*;
 public class Uniter {
     static Map<String, Integer> wasParameterUsed = new HashMap<>();
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
+
     static void makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
         Set<Integer> usedNodeIDs = new TreeSet<>();
         for (var segmList : duplicatedSegments) {
@@ -100,21 +102,28 @@ public class Uniter {
     static String makeMethodName(List<List<Node>> segmentList) {
         StringBuilder methodNameBuilder = new StringBuilder();
         final int[] cnt = {1};
-        for (int segment = 0; segment < segmentList.size(); segment++) {
-            Node node = segmentList.get(segment).get(0);
-            node.walk(Node.TreeTraversal.PARENTS, node1 -> {
-                if (node1 instanceof MethodDeclaration) {
-                    if (cnt[0]<=2) {
-                        String funcName = ((MethodDeclaration) node1).getNameAsString();
-                        if (methodNameBuilder.length() != 0) {
-                            methodNameBuilder.append("And");
-                            funcName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1);
-                        }
-                        methodNameBuilder.append(funcName);
+        for (List<Node> nodes : segmentList) {
+            Node node = nodes.get(0);
+            List<Node> parentsAndNode = new ArrayList<>();
+            parentsAndNode.add(node);
+            node.walk(Node.TreeTraversal.PARENTS, parentsAndNode::add);
+            for (Node node1 : parentsAndNode) {
+                String funcName = "";
+                if (node1 instanceof MethodDeclaration)
+                    funcName = ((MethodDeclaration) node1).getNameAsString();
+                else if (node1 instanceof ClassOrInterfaceDeclaration)
+                    funcName = ((ClassOrInterfaceDeclaration) node1).getNameAsString();
+                else if (node1 instanceof LocalClassDeclarationStmt)
+                    funcName = ((LocalClassDeclarationStmt) node1).getClassDeclaration().getNameAsString();
+                if (cnt[0] <= 2 && !funcName.equals("")) {
+                    if (methodNameBuilder.length() != 0) {
+                        methodNameBuilder.append("And");
+                        funcName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1);
                     }
+                    methodNameBuilder.append(funcName);
                     cnt[0]++;
                 }
-            });
+            }
         }
         return methodNameBuilder.toString();
     }
@@ -141,7 +150,8 @@ public class Uniter {
                         type = StaticJavaParser.parseType(typeInString);
                 }
                 if (values.size() != 1) {
-                    String name = "khui"; /// TODO find name
+                    String name = Utils.makeNameFromNode(literalExprs.get(0).get(literalIndex).getParentNode().get(), "");
+                    name = "literal"+name.substring(0, 1).toUpperCase()+name.substring(1);
                     name = checkAndChangeParameter(name);
                     parameterNames.add(new Pair<>(name, type));
                     for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
@@ -183,7 +193,7 @@ public class Uniter {
             wasParameterUsed.put(parameterName, 1);
         else {
             wasParameterUsed.put(parameterName, wasParameterUsed.get(parameterName) + 1);
-            parameterName += "_" + wasParameterUsed.get(parameterName);
+            parameterName += wasParameterUsed.get(parameterName);
         }
         return parameterName;
     }
@@ -213,8 +223,8 @@ public class Uniter {
             for (int nodeIndex = 0; nodeIndex < segmentList.get(segmentIndex).size(); nodeIndex++) {
                 if (!isSimilarToEveryone[segmentIndex][nodeIndex]) {
                     notSimilarToEveryoneCommands.get(cnt).add(segmentList.get(segmentIndex).get(nodeIndex));
-                    howManyNotSimilarCommands.get(cnt).add(segmentIndex); }
-                else
+                    howManyNotSimilarCommands.get(cnt).add(segmentIndex);
+                } else
                     cnt++;
             }
         }
@@ -257,14 +267,15 @@ public class Uniter {
             parameterNodes.add(new Parameter().setName(parameterName.a).setType(parameterName.b));
         for (var command : methodCommands) {
             if (command instanceof Statement)
-                body.addStatement((Statement) command);
+                body.addStatement((Statement) command.clone());
             else
-                body.addStatement((Expression) command);
+                body.addStatement((Expression) command.clone());
         }
         declaration.setParameters(parameterNodes);
         declaration.setBody(body);
         declaration.setType(new VoidType());
         declaration.setName(methodName);
+        System.out.println(declaration);
         return declaration;
     }
 
