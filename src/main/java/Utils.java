@@ -2,6 +2,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.LiteralExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.utils.Pair;
 
@@ -50,14 +51,22 @@ public class Utils {
                 max2 = Math.max(p.b, max2);
             return Integer.compare(max1, max2);
         }
-
+    }
+    static class TypicalPairComparator implements Comparator<Pair<Integer, Integer>>
+    {
+        @Override
+        public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
+            if (!o1.a.equals(o2.a))
+                return Integer.compare(o1.a, o2.a);
+            return Integer.compare(o1.b, o2.b);
+        }
     }
 
     static <T> T getLast(List<T> l) {
         return l.get(l.size() - 1);
     }
 
-    static int hashNode(Node node) {
+    static int hashNode(Node node, boolean... hashNames) {
         final String[] s = {""};
         node.walk(com.github.javaparser.ast.Node.TreeTraversal.PREORDER, node1 -> {
             s[0] += node1.getMetaModel().getTypeNameGenerified();
@@ -65,6 +74,8 @@ public class Utils {
                 s[0] += ((BinaryExpr) node1).getOperator();
             if (node1 instanceof UnaryExpr)
                 s[0] += ((UnaryExpr) node1).getOperator();
+            if (hashNames.length>=1 && hashNames[0] && node1 instanceof NameExpr)
+                s[0] += ((NameExpr) node1).getNameAsString();
             if (node1 instanceof LiteralExpr)
                 s[0] += ((LiteralExpr) node1).calculateResolvedType();
         });

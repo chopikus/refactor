@@ -21,6 +21,7 @@ public class Uniter {
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
 
     static void makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
+        System.out.println(duplicatedSegments.size()+" "+duplicatedSegments.get(0).size());
         Set<Integer> usedNodeIDs = new TreeSet<>();
         for (var segmList : duplicatedSegments) {
             List<List<Node>> segmentsInNodes = new ArrayList<>();
@@ -204,8 +205,7 @@ public class Uniter {
         wasParameterUsed.clear();
         parameterNames.clear();
         boolean[][] isSimilarToEveryone = new boolean[segmentList.size()][];
-        List<List<Node>> notSimilarToEveryoneCommands = new ArrayList<>();
-        List<Set<Integer>> howManyNotSimilarCommands = new ArrayList<>();
+        List<List<Pair<Node, Integer>>> notSimilarToEveryoneCommands = new ArrayList<>();
         List<Node> methodCommands = new ArrayList<>();
         for (int segment = 0; segment < segmentList.size(); segment++)
             isSimilarToEveryone[segment] = new boolean[segmentList.get(segment).size()];
@@ -214,18 +214,21 @@ public class Uniter {
         for (var similarCommand : similarCommands)
             for (var segmentNodeIndex : similarCommand)
                 isSimilarToEveryone[segmentNodeIndex.a][segmentNodeIndex.b] = true;
-        for (int i = 0; i <= similarCommands.size(); i++) {
+        for (int i = 0; i <= similarCommands.size(); i++)
             notSimilarToEveryoneCommands.add(new ArrayList<>());
-            howManyNotSimilarCommands.add(new TreeSet<>());
-        }
         for (int segmentIndex = 0; segmentIndex < segmentList.size(); segmentIndex++) {
-            int cnt = 0;
+            int similarBefore = 0;
+            int notSimilarBefore = 0;
             for (int nodeIndex = 0; nodeIndex < segmentList.get(segmentIndex).size(); nodeIndex++) {
                 if (!isSimilarToEveryone[segmentIndex][nodeIndex]) {
-                    notSimilarToEveryoneCommands.get(cnt).add(segmentList.get(segmentIndex).get(nodeIndex));
-                    howManyNotSimilarCommands.get(cnt).add(segmentIndex);
-                } else
-                    cnt++;
+                    notSimilarToEveryoneCommands.get(similarBefore).add(new Pair<>(segmentList.get(segmentIndex).get(nodeIndex),
+                            notSimilarBefore));
+                    notSimilarBefore++;
+                }
+                else {
+                    similarBefore++;
+                    notSimilarBefore=0;
+                }
             }
         }
         for (int pos = 0; pos <= similarCommands.size(); pos++) {
@@ -233,21 +236,23 @@ public class Uniter {
                 Pair<Integer, Integer> commandIndexes = similarCommands.get(pos).get(0);
                 methodCommands.add(segmentList.get(commandIndexes.a).get(commandIndexes.b));
             }
-            Map<Integer, Node> hashNodeMap = new TreeMap<>();
+            /// key -> how many "not similar" before, hash
+            SortedMap<Pair<Integer, Integer>, Node> hashNodeMap = new TreeMap<>(new Utils.TypicalPairComparator());
             for (int command = 0; command < notSimilarToEveryoneCommands.get(pos).size(); command++) {
-                Node node = notSimilarToEveryoneCommands.get(pos).get(command);
-                hashNodeMap.put(Utils.hashNode(node), node);
+                Pair<Node, Integer> nodeNotSimilarBefore = notSimilarToEveryoneCommands.get(pos).get(command);
+                hashNodeMap.put(new Pair<>(nodeNotSimilarBefore.b, Utils.hashNode(nodeNotSimilarBefore.a, true)),
+                        nodeNotSimilarBefore.a);
             }
-            for (Map.Entry<Integer, Node> hashNode : hashNodeMap.entrySet()) {
+            for (Map.Entry<Pair<Integer, Integer>, Node> keyValue : hashNodeMap.entrySet()) {
                 BlockStmt thenStmt = new BlockStmt();
-                String booleanParameterName = checkAndChangeParameter("do" + Utils.makeNameFromNode(hashNode.getValue()));
+                String booleanParameterName = checkAndChangeParameter("do" + Utils.makeNameFromNode(keyValue.getValue()));
                 parameterNames.add(new Pair<>(booleanParameterName, PrimitiveType.booleanType()));
-                if (hashNode.getValue() instanceof Expression) {
-                    Expression expr = (Expression) hashNode.getValue();
+                if (keyValue.getValue() instanceof Expression) {
+                    Expression expr = (Expression) keyValue.getValue();
                     thenStmt.addStatement(expr.clone());
                 }
-                if (hashNode.getValue() instanceof Statement) {
-                    Statement stmt = (Statement) hashNode.getValue();
+                if (keyValue.getValue() instanceof Statement) {
+                    Statement stmt = (Statement) keyValue.getValue();
                     thenStmt.addStatement(stmt.clone());
                 }
                 methodCommands.add(new IfStmt().setThenStmt(thenStmt).setCondition(new NameExpr(booleanParameterName)));
