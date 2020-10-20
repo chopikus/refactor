@@ -21,10 +21,10 @@ public class Uniter {
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
 
     static void makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
-        System.out.println(duplicatedSegments.size()+" "+duplicatedSegments.get(0).size());
         Set<Integer> usedNodeIDs = new TreeSet<>();
         for (var segmList : duplicatedSegments) {
             List<List<Node>> segmentsInNodes = new ArrayList<>();
+            usedNodeIDs.clear();
             for (var segm : segmList) {
                 List<Node> segmentInNodes = new ArrayList<Node>();
                 segm.forEach((blockPiece) -> {
@@ -33,7 +33,8 @@ public class Uniter {
                     final Node[] prevNode = {node};
                     final Node[] nodeToAdd = {null};
                     node.walk(Node.TreeTraversal.PARENTS, (potentialParent) -> {
-                        if (potentialParent.getData(Main.NODE_ID).equals(blockRootId))
+                        if (potentialParent.containsData(Main.NODE_ID) &&
+                                potentialParent.getData(Main.NODE_ID).equals(blockRootId))
                             nodeToAdd[0] = prevNode[0];
                         prevNode[0] = potentialParent;
                     });
