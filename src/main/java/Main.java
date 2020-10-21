@@ -2,6 +2,7 @@ import at.unisalzburg.dbresearch.apted.distance.APTED;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
@@ -13,6 +14,7 @@ import com.github.javaparser.utils.Pair;
 import flanagan.math.Maximisation;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -171,6 +173,21 @@ public class Main {
         }
     }
 
+    static void writeNodeToFile(Node node, File file)
+    {
+        try {
+            File parent = file.getParentFile();
+            if (!parent.exists() && !parent.mkdirs()) {
+                throw new IllegalStateException("Couldn't create dir: " + parent);
+            }
+            FileWriter fw = new FileWriter(file);
+            fw.write(node.toString());
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
         setup(args);
         for (CompilationUnit cu : units.values()) {
@@ -181,7 +198,9 @@ public class Main {
             });
         }
         findCopiedPieces();
-        Uniter.makeMethod(duplicatedSegments);
+        writeNodeToFile(Uniter.makeMethod(duplicatedSegments, true), new File("out/Copied.java"));
+        for (Map.Entry<String, CompilationUnit> pathUnit : units.entrySet())
+            writeNodeToFile(pathUnit.getValue(), new File("out/"+new File(pathUnit.getKey()).getName()));
         countMemoryAndTime();
     }
 }
