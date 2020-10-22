@@ -12,35 +12,37 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.Pair;
 import flanagan.math.Maximisation;
+import picocli.CommandLine;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
-public class Main {
+public class Main implements Runnable{
 
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
     };
     public static List<File> filesToParse = new ArrayList<>();
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
-    public static File execFile;
     public static TypeSolver typeSolver = null;
     public static JavaParserFacade facade = null;
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
     public static boolean hashLiteralTypes = true;
-    public static float threshold = 3f;
     public static Integer minimumSegmentPieceCount = 7;
     public static List<NavigableSet<Integer>> badPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
     public static List<List<List<Pair<Integer, Integer>>>> duplicatedSegments = new ArrayList<>();
+    public static float duplicateLines = 0;
+    public static float allLines = 0;
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
@@ -48,42 +50,35 @@ public class Main {
                 (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576 + " MB");
     }
 
-    static void parseArgsToUnits(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.out.println("You need to specify only path to directory!");
-            System.exit(0);
-        } else {
-            File file = new File(args[0]);
-            execFile = file;
-            CombinedTypeSolver solver = new CombinedTypeSolver();
-            solver.add(new ReflectionTypeSolver());
-            if (file.isDirectory())
-                solver.add(new JavaParserTypeSolver(file));
-            typeSolver = solver;
-            Files.walk(Paths.get(file.getAbsolutePath()))
-                    .filter(Files::isRegularFile)
-                    .filter(path -> {
-                        File pFile = path.toFile();
-                        return pFile.getName().
-                                substring(pFile.getName().
-                                        lastIndexOf('.') + 1).equals("java");
-                    })
-                    .forEach(path -> filesToParse.add(path.toFile()));
-            for (File fileToParse : filesToParse)
-                try {
-                    units.put(fileToParse.getAbsolutePath(), StaticJavaParser.parse(fileToParse));
-                } catch (Exception e) {
-                    System.out.println("Could not parse file: " + fileToParse.getAbsolutePath());
-                    e.printStackTrace();
-                    System.exit(0);
-                }
-        }
+    static void parseArgFile(File file) throws IOException {
+        CombinedTypeSolver solver = new CombinedTypeSolver();
+        solver.add(new ReflectionTypeSolver());
+        if (file.isDirectory())
+            solver.add(new JavaParserTypeSolver(file));
+        typeSolver = solver;
+        Files.walk(Paths.get(file.getAbsolutePath()))
+                .filter(Files::isRegularFile)
+                .filter(path -> {
+                    File pFile = path.toFile();
+                    return pFile.getName().
+                            substring(pFile.getName().
+                                    lastIndexOf('.') + 1).equals("java");
+                })
+                .forEach(path -> filesToParse.add(path.toFile()));
+        for (File fileToParse : filesToParse)
+            try {
+                units.put(fileToParse.getAbsolutePath(), StaticJavaParser.parse(fileToParse));
+            } catch (Exception e) {
+                System.out.println("Could not parse file: " + fileToParse.getAbsolutePath());
+                e.printStackTrace();
+                System.exit(0);
+            }
     }
 
-    private static void setup(String[] args) {
+    private static void setup() {
         timeInMillisStart = System.currentTimeMillis();
         try {
-            parseArgsToUnits(args);
+            parseArgFile(execFile);
         } catch (IOException e) {
             System.out.println("couldn't parse folder/file..\n");
             e.printStackTrace();
@@ -93,6 +88,7 @@ public class Main {
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
             entry.getValue().walk(node -> node.setData(Main.NODE_ID, nodeIDCounter.getAndSet(nodeIDCounter.get() + 1)));
             symbolSolver.inject(entry.getValue());
+            allLines+=entry.getValue().getRange().get().getLineCount();
         }
         StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
         facade = JavaParserFacade.get(typeSolver);
@@ -109,8 +105,8 @@ public class Main {
         //some bollocks for Nelder Mead algo
         badPieces.clear();
         for (int i = 0; i < blocks.size(); i++) badPieces.add(new TreeSet<>());
-        for (int i=0; i<blocks.size(); i++)
-            for (int j=0; j<blocks.get(i).list.size(); j++)
+        for (int i = 0; i < blocks.size(); i++)
+            for (int j = 0; j < blocks.get(i).list.size(); j++)
                 if (blocks.get(i).list.get(j).dependentOnOtherBlocks)
                     badPieces.get(i).add(j);
         Map<Integer, List<Pair<Integer, Integer>>> piecesByHash = new TreeMap<>();
@@ -173,8 +169,7 @@ public class Main {
         }
     }
 
-    static void writeNodeToFile(Node node, File file)
-    {
+    static void writeNodeToFile(Node node, File file) {
         try {
             File parent = file.getParentFile();
             if (!parent.exists() && !parent.mkdirs()) {
@@ -188,8 +183,24 @@ public class Main {
         }
     }
 
+    @CommandLine.Command(name = "refactor", version = "0.1", mixinStandardHelpOptions = true)
     public static void main(String[] args) {
-        setup(args);
+        int exitCode = new CommandLine(new Main()).execute(args);
+        System.exit(exitCode);
+    }
+
+    @CommandLine.Parameters(paramLabel = "<file>", description = "what's the shit i need to parse?")
+    public static File execFile;
+
+    @CommandLine.Option(names = { "-t", "--threshold" }, defaultValue = "3f", description = "Threshold")
+    public static float threshold = 3f;
+
+    @CommandLine.Option(names = { "-p", "--path" }, defaultValue = "out", description = "Where to put the result?")
+    public static String outputFolder = "";
+
+    @Override
+    public void run() {
+        setup();
         for (CompilationUnit cu : units.values()) {
             cu.findAll(BlockStmt.class).forEach(blockStmt -> {
                 if (blockStmt.getParentNode().isPresent() && Piece.checkBranching(blockStmt.getParentNode().get()))
@@ -198,9 +209,24 @@ public class Main {
             });
         }
         findCopiedPieces();
-        writeNodeToFile(Uniter.makeMethod(duplicatedSegments, true), new File("out/Copied.java"));
-        for (Map.Entry<String, CompilationUnit> pathUnit : units.entrySet())
-            writeNodeToFile(pathUnit.getValue(), new File("out/"+new File(pathUnit.getKey()).getName()));
+        try {
+            if (new File(outputFolder).exists() && !Utils.isDirEmpty(Path.of(outputFolder)))
+            {
+                System.out.println("Folder is not empty. Please remove all files from it.");
+                System.exit(0);
+            }
+        } catch (IOException e) {
+            System.out.println("couldn't check whether folder is empty!!!");
+            System.exit(0);
+            e.printStackTrace();
+        }
+        writeNodeToFile(Uniter.makeMethod(duplicatedSegments), new File(outputFolder+File.separator+"/Copied.java"));
+        Path execPath = Paths.get(execFile.getAbsolutePath());
+        for (Map.Entry<String, CompilationUnit> pathUnit : units.entrySet()) {
+            Path filePath = Paths.get(pathUnit.getKey());
+            writeNodeToFile(pathUnit.getValue(), new File(outputFolder + File.separator + execPath.relativize(filePath)));
+        }
         countMemoryAndTime();
+        System.out.printf("%s lines are duplicate. That is about %s%% of all code", duplicateLines, (int)((duplicateLines/allLines)*10000)/100.0f);
     }
 }

@@ -5,7 +5,12 @@ import com.github.javaparser.ast.expr.LiteralExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.utils.Pair;
+import picocli.CommandLine;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -76,8 +81,12 @@ public class Utils {
                 s[0] += ((UnaryExpr) node1).getOperator();
             if (hashNames.length>=1 && hashNames[0] && node1 instanceof NameExpr)
                 s[0] += ((NameExpr) node1).getNameAsString();
-            if (node1 instanceof LiteralExpr)
-                s[0] += ((LiteralExpr) node1).calculateResolvedType();
+            if (node1 instanceof LiteralExpr) {
+                try {
+                    s[0] += ((LiteralExpr) node1).calculateResolvedType();
+                }
+                catch (Exception ignored) {} ///TODO not ignore the exception
+            }
         });
         return s[0].hashCode();
     }
@@ -95,4 +104,11 @@ public class Utils {
         }
         return res;
     }
+
+    public static boolean isDirEmpty(final Path directory) throws IOException {
+        try(DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory)) {
+            return !dirStream.iterator().hasNext();
+        }
+    }
 }
+

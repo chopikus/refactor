@@ -14,6 +14,8 @@ dependencies {
     implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.16.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile group: 'org.javatuples', name: 'javatuples', version: '1.2'
+    compile 'info.picocli:picocli:4.5.2'
+    annotationProcessor 'info.picocli:picocli-codegen:4.5.2'
 }
 
 test {

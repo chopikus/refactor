@@ -19,7 +19,7 @@ public class Uniter {
     static Map<String, Integer> wasParameterUsed = new HashMap<>();
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
 
-    static ClassOrInterfaceDeclaration makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments,  boolean replaceNodes) {
+    static ClassOrInterfaceDeclaration makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
         ClassOrInterfaceDeclaration copyClass = new ClassOrInterfaceDeclaration();
         copyClass.setName("Copied");
         copyClass.setPublic(true);
@@ -47,7 +47,7 @@ public class Uniter {
                 segmentsInNodes.add(segmentInNodes);
             }
             boolean hasBrokenSegment = false;
-            for (int i=0; i<segmentsInNodes.size(); i++)
+            for (int i = 0; i < segmentsInNodes.size(); i++)
                 if (segmentsInNodes.get(i).size() == 0) {
                     hasBrokenSegment = true;
                     break;
@@ -55,9 +55,8 @@ public class Uniter {
             if (!hasBrokenSegment) {
                 replaceAllStatics(segmentsInNodes);
                 var paramsAndMethod = actuallyMakeMethod(segmentsInNodes);
-                assert paramsAndMethod != null;
-                copyClass.addMethod("garbage").replace(paramsAndMethod.b);
-                if (replaceNodes) {
+                if (paramsAndMethod!=null) {
+                    copyClass.addMethod("garbage").replace(paramsAndMethod.b);
                     for (int segment = 0; segment < segmentsInNodes.size(); segment++) {
                         MethodCallExpr methodCallExpr = new MethodCallExpr();
                         methodCallExpr.setName(new SimpleName(paramsAndMethod.b.getName().asString()));
@@ -67,6 +66,8 @@ public class Uniter {
                         /// supposing that segment has same root
                         for (int nodeIndex = 0; nodeIndex < segmentsInNodes.get(segment).size(); nodeIndex++) {
                             Node node = segmentsInNodes.get(segment).get(nodeIndex);
+                            if (node.getRange().isPresent())
+                                Main.duplicateLines += node.getRange().get().getLineCount();
                             if (nodeIndex == 0)
                                 node.replace(new ExpressionStmt().setExpression(methodCallExpr));
                             else
@@ -182,7 +183,10 @@ public class Uniter {
                 }
                 if (values.size() != 1) {
                     String name = Utils.makeNameFromNode(literalExprs.get(0).get(literalIndex).getParentNode().get(), "");
-                    name = "literal"+name.substring(0, 1).toUpperCase()+name.substring(1);
+                    if (name.equals(""))
+                        name = "literal";
+                    else
+                        name = "literal" + name.substring(0, 1).toUpperCase() + name.substring(1);
                     name = checkAndChangeParameter(name);
                     parameterNames.add(new Pair<>(name, type));
                     for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
@@ -261,10 +265,9 @@ public class Uniter {
                     notSimilarToEveryoneCommands.get(similarBefore).add(new Triplet<>(segmentIndex, nodeIndex,
                             notSimilarBefore));
                     notSimilarBefore++;
-                }
-                else {
+                } else {
                     similarBefore++;
-                    notSimilarBefore=0;
+                    notSimilarBefore = 0;
                 }
             }
         }
@@ -299,13 +302,16 @@ public class Uniter {
                 }
                 for (Integer segment : usingSegmentsMap.getOrDefault(keyValue.getKey(), Collections.emptyList()))
                     paramsForEachSegment.get(segment).put(booleanParameterName, new BooleanLiteralExpr().setValue(true));
-                for (int segment=0; segment<segmentList.size(); segment++)
+                for (int segment = 0; segment < segmentList.size(); segment++)
                     paramsForEachSegment.get(segment).put(booleanParameterName, paramsForEachSegment.get(segment)
                             .getOrDefault(booleanParameterName, new BooleanLiteralExpr(false)));
                 methodCommands.add(new IfStmt().setThenStmt(thenStmt).setCondition(new NameExpr(booleanParameterName)));
             }
         }
-        return new Pair<>(paramsForEachSegment, makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList)));
+        MethodDeclaration declaration = makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList));
+        if (declaration==null)
+            return null;
+        return new Pair<>(paramsForEachSegment, declaration);
     }
 
     static MethodDeclaration makeDeclarationFromParamsAndCommands(List<Pair<String, Type>> parameterNames,
@@ -326,6 +332,8 @@ public class Uniter {
         declaration.setParameters(parameterNodes);
         declaration.setBody(body);
         declaration.setType(new VoidType());
+        if (methodName.equals(""))
+            return null;
         declaration.setName(methodName);
         return declaration;
     }
