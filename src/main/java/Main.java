@@ -24,6 +24,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
+@CommandLine.Command(version = "Refactoring tool v.0.1", header = "%nRefactoring tool%n",
+        description = "Helps to remove duplicates from your code.%n", mixinStandardHelpOptions = true)
 public class Main implements Runnable{
 
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
@@ -183,7 +185,6 @@ public class Main implements Runnable{
         }
     }
 
-    @CommandLine.Command(name = "refactor", version = "0.1", mixinStandardHelpOptions = true)
     public static void main(String[] args) {
         int exitCode = new CommandLine(new Main()).execute(args);
         System.exit(exitCode);
