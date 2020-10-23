@@ -173,7 +173,8 @@ public class Main implements Runnable{
 
     static void writeNodeToFile(Node node, File file) {
         try {
-            File parent = file.getParentFile();
+            File parent = file.getAbsoluteFile().getParentFile();
+            System.out.println(file+" "+parent);
             if (!parent.exists() && !parent.mkdirs()) {
                 throw new IllegalStateException("Couldn't create dir: " + parent);
             }
@@ -202,6 +203,9 @@ public class Main implements Runnable{
     @Override
     public void run() {
         setup();
+        System.out.println("Parsed code.");
+        countMemoryAndTime();
+        System.out.println();
         for (CompilationUnit cu : units.values()) {
             cu.findAll(BlockStmt.class).forEach(blockStmt -> {
                 if (blockStmt.getParentNode().isPresent() && Piece.checkBranching(blockStmt.getParentNode().get()))
@@ -210,6 +214,9 @@ public class Main implements Runnable{
             });
         }
         findCopiedPieces();
+        System.out.println("Found copied pieces");
+        countMemoryAndTime();
+        System.out.println();
         try {
             if (new File(outputFolder).exists() && !Utils.isDirEmpty(Path.of(outputFolder)))
             {
@@ -222,10 +229,16 @@ public class Main implements Runnable{
             e.printStackTrace();
         }
         writeNodeToFile(Uniter.makeMethod(duplicatedSegments), new File(outputFolder+File.separator+"/Copied.java"));
+        System.out.println("wrote method to Copied.java");
+        countMemoryAndTime();
+        System.out.println();
         Path execPath = Paths.get(execFile.getAbsolutePath());
         for (Map.Entry<String, CompilationUnit> pathUnit : units.entrySet()) {
             Path filePath = Paths.get(pathUnit.getKey());
-            writeNodeToFile(pathUnit.getValue(), new File(outputFolder + File.separator + execPath.relativize(filePath)));
+            String rel = execPath.relativize(filePath).toString();
+            if (rel.equals(""))
+                rel = filePath.getFileName().toString();
+            writeNodeToFile(pathUnit.getValue(), new File(outputFolder + File.separator + rel));
         }
         countMemoryAndTime();
         System.out.printf("%s lines are duplicate. That is about %s%% of all code", duplicateLines, (int)((duplicateLines/allLines)*10000)/100.0f);
