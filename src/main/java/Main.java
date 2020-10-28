@@ -37,7 +37,6 @@ public class Main implements Runnable{
     public static JavaParserFacade facade = null;
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
-    public static boolean hashLiteralTypes = true;
     public static Integer minimumSegmentPieceCount = 7;
     public static List<NavigableSet<Integer>> badPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());

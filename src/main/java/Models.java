@@ -1,8 +1,10 @@
 import at.unisalzburg.dbresearch.apted.costmodel.CostModel;
 import at.unisalzburg.dbresearch.apted.node.Node;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserSymbolDeclaration;
 import com.github.javaparser.utils.Pair;
 import flanagan.math.MaximisationFunction;
 
@@ -183,14 +185,48 @@ class Block
 class SimilarityFunction implements MaximisationFunction
 {
     List<Node<NodeData>> graphs = new ArrayList<>();
+    boolean okWithUsagesAfterSegment(int a, int b, int bound)
+    {
+        Set<Integer> variableDeclaratorIDs = new TreeSet<>();
+        for (int piece=b; piece<bound; piece++) {
+            com.github.javaparser.ast.Node pieceNode = Main.blocks.get(a).list.get(piece).node;
+            pieceNode.walk(VariableDeclarationExpr.class, (variableDeclarator -> {
+                variableDeclaratorIDs.add(variableDeclarator.getData(Main.NODE_ID));
+            }));
+            pieceNode.walk(VariableDeclarator.class, (variableDeclarator -> {
+                variableDeclaratorIDs.add(variableDeclarator.getData(Main.NODE_ID));
+            }));
+        }
+        AtomicBoolean okAfter = new AtomicBoolean(true);
+        for (int piece=bound; piece<Main.blocks.get(a).list.size(); piece++) {
+            com.github.javaparser.ast.Node pieceNode = Main.blocks.get(a).list.get(piece).node;
+            pieceNode.walk(NameExpr.class, nameExpr -> {
+                try {
+                    ResolvedValueDeclaration declaration = nameExpr.resolve();
+                    if (declaration instanceof JavaParserSymbolDeclaration)
+                    {
+                        com.github.javaparser.ast.Node declNode = ((JavaParserSymbolDeclaration) declaration).getWrappedNode();
+                        if (variableDeclaratorIDs.contains(declNode.getData(Main.NODE_ID)))
+                            okAfter.set(false);
+                    }
+                }
+                catch (Exception ignored){}
+            });
+        }
+        return okAfter.get();
+    }
+
     Set<Integer> getBlocksToReplacePieces(long len)
     {
         graphs.clear();
         List<Integer> graphBlockIndexes = new ArrayList<>();
         for (Pair<Integer, Integer> p : Main.blockPieceIndexesToCompare) {
-            graphs.add(Main.blocks.get(p.a).algoGraph(p.b,
-                    Math.min(Main.blocks.get(p.a).list.size(), Math.toIntExact(p.b + len))));
-            graphBlockIndexes.add(p.a);
+            int bound = Math.min(Main.blocks.get(p.a).list.size(), Math.toIntExact(p.b + len));
+            if (okWithUsagesAfterSegment(p.a, p.b, bound)) {
+                graphs.add(Main.blocks.get(p.a).algoGraph(p.b,
+                        bound));
+                graphBlockIndexes.add(p.a);
+            }
         }
         Set<Integer> res = new TreeSet<>();
         boolean add0=false;
@@ -218,8 +254,11 @@ class SimilarityFunction implements MaximisationFunction
                     bound = piece;
                     break;
                 }
-            graphs.add(Main.blocks.get(p.a).algoGraph(p.b, bound));
-            actualMaxLen = Math.max(actualMaxLen, bound-p.b);    
+            //check whether there are usages of variable, defined in segment, after segment
+            if (okWithUsagesAfterSegment(p.a, p.b, bound)) {
+                graphs.add(Main.blocks.get(p.a).algoGraph(p.b, bound));
+                actualMaxLen = Math.max(actualMaxLen, bound - p.b);
+            }
         }
         if (graphs.size()<=1 || actualMaxLen<len)
             return 0;
