@@ -311,6 +311,8 @@ public class Uniter {
         MethodDeclaration declaration = makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList));
         if (declaration==null)
             return null;
+        if (declaration.getParameters().size()>Main.maxParameterCount)
+            return null;
         return new Pair<>(paramsForEachSegment, declaration);
     }
 

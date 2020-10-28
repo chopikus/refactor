@@ -44,6 +44,19 @@ public class Main implements Runnable{
     public static List<List<List<Pair<Integer, Integer>>>> duplicatedSegments = new ArrayList<>();
     public static float duplicateLines = 0;
     public static float allLines = 0;
+
+    @CommandLine.Parameters(paramLabel = "<file>", description = "what's the shit i need to parse?")
+    public static File execFile;
+
+    @CommandLine.Option(names = { "-t", "--threshold" }, defaultValue = "3f", description = "Threshold")
+    public static float threshold = 3f;
+
+    @CommandLine.Option(names = { "-p", "--path" }, defaultValue = "out", description = "Where to put the result?")
+    public static String outputFolder = "";
+
+    @CommandLine.Option(names = { "--max-parameter-count" }, defaultValue = "5", description = "Maximum parameter count in new functions made by tool")
+    public static int maxParameterCount = 5;
+
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
@@ -189,15 +202,6 @@ public class Main implements Runnable{
         int exitCode = new CommandLine(new Main()).execute(args);
         System.exit(exitCode);
     }
-
-    @CommandLine.Parameters(paramLabel = "<file>", description = "what's the shit i need to parse?")
-    public static File execFile;
-
-    @CommandLine.Option(names = { "-t", "--threshold" }, defaultValue = "3f", description = "Threshold")
-    public static float threshold = 3f;
-
-    @CommandLine.Option(names = { "-p", "--path" }, defaultValue = "out", description = "Where to put the result?")
-    public static String outputFolder = "";
 
     @Override
     public void run() {
