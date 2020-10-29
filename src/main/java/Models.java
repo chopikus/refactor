@@ -80,7 +80,7 @@ class Piece
 
     static boolean checkBranching(com.github.javaparser.ast.Node node)
     {
-        return (node instanceof ForStmt || node instanceof WhileStmt || node instanceof ForEachStmt || node instanceof DoStmt || node instanceof IfStmt || node instanceof TryStmt || node instanceof ClassOrInterfaceDeclaration);
+        return (node instanceof ForStmt || node instanceof WhileStmt || node instanceof ForEachStmt || node instanceof DoStmt || node instanceof IfStmt || node instanceof TryStmt || node instanceof ClassOrInterfaceDeclaration || node instanceof ReturnStmt);
     }
 
     static boolean isMultipleCondition(com.github.javaparser.ast.Node expression)
@@ -188,40 +188,27 @@ class SimilarityFunction implements MaximisationFunction
     List<Node<NodeData>> graphs = new ArrayList<>();
     boolean okWithUsagesAfterSegment(int a, int b, int bound)
     {
-        AtomicBoolean isSomethingToWrite = new AtomicBoolean(false);
         Set<Integer> variableDeclarationIDs = new TreeSet<>();
+        //System.out.println(a+" "+b+" "+bound);
         for (int piece=b; piece<bound; piece++) {
             com.github.javaparser.ast.Node pieceNode = Main.blocks.get(a).list.get(piece).node;
+            //System.out.print(pieceNode+" ");
             pieceNode.walk(VariableDeclarationExpr.class, (variableDeclarator -> {
-                if (variableDeclarator.toString().contains("milis2")) {
-                    System.out.println(variableDeclarator + " " + variableDeclarator.getData(Main.NODE_ID));
-                    isSomethingToWrite.set(true);
-                }
                 variableDeclarationIDs.add(variableDeclarator.getData(Main.NODE_ID));
             }));
             pieceNode.walk(VariableDeclarator.class, (variableDeclarator -> {
-                if (variableDeclarator.toString().contains("milis2")) {
-                    System.out.println(variableDeclarator + " " + variableDeclarator.getData(Main.NODE_ID));
-                    isSomethingToWrite.set(true);
-                }
                 variableDeclarationIDs.add(variableDeclarator.getData(Main.NODE_ID));
             }));
         }
+        //System.out.println("=====");
         AtomicBoolean okAfter = new AtomicBoolean(true);
         for (int piece=bound; piece<Main.blocks.get(a).list.size(); piece++) {
             com.github.javaparser.ast.Node pieceNode = Main.blocks.get(a).list.get(piece).node;
             pieceNode.walk(NameExpr.class, nameExpr -> {
                 try {
                     ResolvedValueDeclaration declaration = nameExpr.resolve();
-                    if (nameExpr.getNameAsString().contains("milis")) {
-                        isSomethingToWrite.set(true);
-                        System.out.println(nameExpr + " " + declaration);
-                    }
-                    if (declaration instanceof JavaParserSymbolDeclaration)
-                    {
+                    if (declaration instanceof JavaParserSymbolDeclaration) {
                         com.github.javaparser.ast.Node declNode = ((JavaParserSymbolDeclaration) declaration).getWrappedNode();
-                        isSomethingToWrite.set(true);
-                        System.out.println(declNode.getMetaModel());
                         if (variableDeclarationIDs.contains(declNode.getData(Main.NODE_ID)))
                             okAfter.set(false);
                     }
@@ -229,8 +216,6 @@ class SimilarityFunction implements MaximisationFunction
                 catch (Exception ignored){}
             });
         }
-        if (isSomethingToWrite.get())
-            System.out.println("================");
         return okAfter.get();
     }
 
