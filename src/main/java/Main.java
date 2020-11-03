@@ -37,7 +37,7 @@ public class Main implements Runnable{
     public static JavaParserFacade facade = null;
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
-    public static Integer minimumSegmentPieceCount = 7;
+    public static Integer minimumSegmentPieceCount = 3;
     public static List<NavigableSet<Integer>> badPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
@@ -54,8 +54,8 @@ public class Main implements Runnable{
     @CommandLine.Option(names = { "-p", "--path" }, defaultValue = "out", description = "Where to put the result?")
     public static String outputFolder = "";
 
-    @CommandLine.Option(names = { "--max-parameter-count" }, defaultValue = "5", description = "Maximum parameter count in new functions made by tool")
-    public static int maxParameterCount = 5;
+    @CommandLine.Option(names = { "--max-do-parameter-count" }, defaultValue = "5", description = "Maximum amount of \"doXXX\" in new functions made by tool")
+    public static int maxDoParametersCount = 5;
 
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
@@ -116,7 +116,9 @@ public class Main implements Runnable{
         int maxIterations = 5000;
         Maximisation maximize = new Maximisation();
         SimilarityFunction function = new SimilarityFunction();
-        //some bollocks for Nelder Mead algo
+        for (int blockIndex=0; blockIndex<Main.blocks.size(); blockIndex++)
+            function.preProcessUsagesAfterPossibleSegment(blockIndex);
+        // above some bollocks for Nelder Mead algo
         badPieces.clear();
         for (int i = 0; i < blocks.size(); i++) badPieces.add(new TreeSet<>());
         for (int i = 0; i < blocks.size(); i++)
@@ -213,7 +215,9 @@ public class Main implements Runnable{
             cu.findAll(BlockStmt.class).forEach(blockStmt -> {
                 if (blockStmt.getParentNode().isPresent() && Piece.checkBranching(blockStmt.getParentNode().get()))
                     return;
-                blocks.add(new Block(blockStmt));
+                Block block = new Block(blockStmt);
+                if (block.list.size()!=0)
+                    blocks.add(block);
             });
         }
         findCopiedPieces();

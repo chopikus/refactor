@@ -1,11 +1,9 @@
-import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.LiteralExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.utils.Pair;
-import picocli.CommandLine;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -110,5 +108,46 @@ public class Utils {
             return !dirStream.iterator().hasNext();
         }
     }
+
+    public static class SegmentTree {
+        public static class STNode {
+            int leftIndex;
+            int rightIndex;
+            int max;
+            STNode leftNode;
+            STNode rightNode;
+        }
+
+        static STNode constructSegmentTree(int[] A, int l, int r) {
+            if (l == r) {
+                STNode node = new STNode();
+                node.leftIndex = l;
+                node.rightIndex = r;
+                node.max = A[l];
+                return node;
+            }
+            int mid = (l + r) / 2;
+            STNode leftNode = constructSegmentTree(A, l, mid);
+            STNode rightNode = constructSegmentTree(A, mid+1, r);
+            STNode root = new STNode();
+            root.leftIndex = leftNode.leftIndex;
+            root.rightIndex = rightNode.rightIndex;
+            root.max = Math.max(leftNode.max, rightNode.max);
+            root.leftNode = leftNode;
+            root.rightNode = rightNode;
+            return root;
+        }
+
+        static int getMax(STNode root, int l, int r) {
+            if (root.leftIndex >= l && root.rightIndex <= r) {
+                return root.max;
+            }
+            if (root.rightIndex < l || root.leftIndex > r) {
+                return Integer.MIN_VALUE;
+            }
+            return Math.max(getMax(root.leftNode, l, r), getMax(root.rightNode, l, r));
+        }
+    }
+
 }
 

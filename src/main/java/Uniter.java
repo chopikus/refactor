@@ -10,7 +10,6 @@ import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.utils.Pair;
-import org.checkerframework.checker.units.qual.C;
 import org.javatuples.Triplet;
 
 import java.util.*;
@@ -18,7 +17,6 @@ import java.util.*;
 public class Uniter {
     static Map<String, Integer> wasParameterUsed = new HashMap<>();
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
-
     static ClassOrInterfaceDeclaration makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
         ClassOrInterfaceDeclaration copyClass = new ClassOrInterfaceDeclaration();
         copyClass.setName("Copied");
@@ -120,7 +118,7 @@ public class Uniter {
                 });
                 node.walk(NameExpr.class, nameExpr -> {
                     try {
-                        if (nameExpr.resolve().isField()) {
+                        if (nameExpr.resolve().isField() && !className[0].equals("")) {
                             nameExpr.replace(new FieldAccessExpr().setScope(new NameExpr(className[0])).
                                     setName(nameExpr.getName()));
                         }
@@ -177,7 +175,8 @@ public class Uniter {
                 Type type = null;
                 for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
                     values.add(literalExprs.get(commandIndex).get(literalIndex).toString());
-                    String typeInString = literalExprs.get(commandIndex).get(literalIndex).calculateResolvedType().describe();
+                    String typeInString = literalExprs.get(commandIndex).get(literalIndex).getMetaModel().getTypeNameGenerified();
+                    typeInString = typeInString.replace("LiteralExpr", "");
                     if (!typeInString.equals("null"))
                         type = StaticJavaParser.parseType(typeInString);
                 }
@@ -238,6 +237,10 @@ public class Uniter {
     static Pair<List<Map<String, LiteralExpr>>, MethodDeclaration> actuallyMakeMethod(List<List<Node>> segmentList) {
         if (segmentList.size() < 2)
             return null;
+        int summaryNodesCountInBeginning = 0;
+        int summaryNodesCountInEnd = 0;
+        for (List<Node> l : segmentList)
+            summaryNodesCountInBeginning+=l.size();
         wasParameterUsed.clear();
         parameterNames.clear();
         boolean[][] isSimilarToEveryone = new boolean[segmentList.size()][];
@@ -271,10 +274,12 @@ public class Uniter {
                 }
             }
         }
+        int doParameters = 0;
         for (int pos = 0; pos <= similarCommands.size(); pos++) {
             if (pos != similarCommands.size()) {
                 Pair<Integer, Integer> commandIndexes = similarCommands.get(pos).get(0);
                 methodCommands.add(segmentList.get(commandIndexes.a).get(commandIndexes.b));
+                summaryNodesCountInEnd++;
             }
             /// key -> how many "not similar" before, hash
             SortedMap<Pair<Integer, Integer>, Node> hashNodeMap = new TreeMap<>(new Utils.TypicalPairComparator());
@@ -289,9 +294,12 @@ public class Uniter {
                 hashNodeMap.put(key, node);
             }
             for (Map.Entry<Pair<Integer, Integer>, Node> keyValue : hashNodeMap.entrySet()) {
-                BlockStmt thenStmt = new BlockStmt();
                 String booleanParameterName = checkAndChangeParameter("do" + Utils.makeNameFromNode(keyValue.getValue()));
                 parameterNames.add(new Pair<>(booleanParameterName, PrimitiveType.booleanType()));
+                doParameters++;
+                if (doParameters>Main.maxDoParametersCount)
+                    return null;
+                BlockStmt thenStmt = new BlockStmt();
                 if (keyValue.getValue() instanceof Expression) {
                     Expression expr = (Expression) keyValue.getValue();
                     thenStmt.addStatement(expr.clone());
@@ -306,12 +314,13 @@ public class Uniter {
                     paramsForEachSegment.get(segment).put(booleanParameterName, paramsForEachSegment.get(segment)
                             .getOrDefault(booleanParameterName, new BooleanLiteralExpr(false)));
                 methodCommands.add(new IfStmt().setThenStmt(thenStmt).setCondition(new NameExpr(booleanParameterName)));
+                summaryNodesCountInEnd+=2;
             }
         }
+        if (summaryNodesCountInEnd>=summaryNodesCountInBeginning)
+            return null;
         MethodDeclaration declaration = makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList));
         if (declaration==null)
-            return null;
-        if (declaration.getParameters().size()>Main.maxParameterCount)
             return null;
         return new Pair<>(paramsForEachSegment, declaration);
     }

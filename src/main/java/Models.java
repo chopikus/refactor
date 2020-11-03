@@ -186,37 +186,50 @@ class Block
 class SimilarityFunction implements MaximisationFunction
 {
     List<Node<NodeData>> graphs = new ArrayList<>();
-    boolean okWithUsagesAfterSegment(int a, int b, int bound)
+    Map<Integer, Integer> pieceIndexOfVarDecl = new TreeMap<>();
+    int[][] minEndPieceWithDeclsFromHere = new int[Main.blocks.size()][];
+    Utils.SegmentTree.STNode[] minEndPieceSegmentTree = new Utils.SegmentTree.STNode[Main.blocks.size()];
+    void preProcessUsagesAfterPossibleSegment(int blockIndex)
     {
-        Set<Integer> variableDeclarationIDs = new TreeSet<>();
-        //System.out.println(a+" "+b+" "+bound);
-        for (int piece=b; piece<bound; piece++) {
-            com.github.javaparser.ast.Node pieceNode = Main.blocks.get(a).list.get(piece).node;
-            //System.out.print(pieceNode+" ");
+        if (minEndPieceWithDeclsFromHere[blockIndex]!=null) /// SAFETY BLOCK
+            return;
+        minEndPieceWithDeclsFromHere[blockIndex] = new int[Main.blocks.get(blockIndex).list.size()];
+        for (int piece=0; piece<Main.blocks.get(blockIndex).list.size(); piece++)
+            minEndPieceWithDeclsFromHere[blockIndex][piece] = piece;
+        for (int piece=0; piece<Main.blocks.get(blockIndex).list.size(); piece++) {
+            com.github.javaparser.ast.Node pieceNode = Main.blocks.get(blockIndex).list.get(piece).node;
+            int finalPiece = piece;
             pieceNode.walk(VariableDeclarationExpr.class, (variableDeclarator -> {
-                variableDeclarationIDs.add(variableDeclarator.getData(Main.NODE_ID));
+                pieceIndexOfVarDecl.put(variableDeclarator.getData(Main.NODE_ID), finalPiece);
             }));
             pieceNode.walk(VariableDeclarator.class, (variableDeclarator -> {
-                variableDeclarationIDs.add(variableDeclarator.getData(Main.NODE_ID));
+                pieceIndexOfVarDecl.put(variableDeclarator.getData(Main.NODE_ID), finalPiece);
             }));
         }
-        //System.out.println("=====");
-        AtomicBoolean okAfter = new AtomicBoolean(true);
-        for (int piece=bound; piece<Main.blocks.get(a).list.size(); piece++) {
-            com.github.javaparser.ast.Node pieceNode = Main.blocks.get(a).list.get(piece).node;
+        for (int piece=0; piece<Main.blocks.get(blockIndex).list.size(); piece++) {
+            com.github.javaparser.ast.Node pieceNode = Main.blocks.get(blockIndex).list.get(piece).node;
+            int finalPiece = piece;
             pieceNode.walk(NameExpr.class, nameExpr -> {
                 try {
                     ResolvedValueDeclaration declaration = nameExpr.resolve();
                     if (declaration instanceof JavaParserSymbolDeclaration) {
                         com.github.javaparser.ast.Node declNode = ((JavaParserSymbolDeclaration) declaration).getWrappedNode();
-                        if (variableDeclarationIDs.contains(declNode.getData(Main.NODE_ID)))
-                            okAfter.set(false);
+                        int declNodeId = declNode.getData(Main.NODE_ID);
+                        int minEndPos = minEndPieceWithDeclsFromHere[blockIndex][pieceIndexOfVarDecl.getOrDefault(declNodeId, -1)];
+                        minEndPieceWithDeclsFromHere[blockIndex][pieceIndexOfVarDecl.getOrDefault(declNodeId, -1)]
+                                = Math.max(minEndPos, finalPiece);
                     }
                 }
                 catch (Exception ignored){}
             });
         }
-        return okAfter.get();
+        minEndPieceSegmentTree[blockIndex] = Utils.SegmentTree.constructSegmentTree(minEndPieceWithDeclsFromHere[blockIndex],
+                0, minEndPieceWithDeclsFromHere[blockIndex].length-1);
+    }
+
+    boolean okWithUsagesAfterSegment(int blockIndex, int pieceIndex, int bound)
+    {
+        return Utils.SegmentTree.getMax(minEndPieceSegmentTree[blockIndex], pieceIndex, bound - 1) < bound;
     }
 
     Set<Integer> getBlocksToReplacePieces(long len)
