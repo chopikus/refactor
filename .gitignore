@@ -147,3 +147,11 @@ gradle-app.setting
 temp/
 # End of https://www.toptal.com/developers/gitignore/api/intellij,java,gradle
 !libs/
+paper/*.pyg
+paper/*.toc
+paper/*.bbl
+paper/*.aux
+paper/*.bcf
+paper/*.blg
+paper/*.xml
+*.swp

@@ -1,7 +1,10 @@
 \documentclass[a4paper, 14pt]{article}
-\usepackage{fontspec, extsizes, geometry, setspace, titlesec, fancyhdr, graphicx, float, setspace, caption}
+\usepackage{fontspec, extsizes, geometry, setspace, titlesec, fancyhdr, graphicx, float, setspace, caption, csquotes, color, listings}
 \usepackage[russian, english, ukrainian]{babel}
 \usepackage[dotinlabels]{titletoc}
+\bibliographystyle{gost-numeric}
+\usepackage[backend=biber, bibstyle=gost-numeric]{biblatex}
+\addbibresource{paper.bib}
 \setmainfont[Ligatures=TeX]{Times New Roman}
 \geometry{a4paper,total={170mm,257mm},left=2cm,top=2cm,bottom=2cm,right=2cm}
 \def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}\let\endchangemargin=\endlist % удобная команда
@@ -20,7 +23,11 @@
 \titlecontents{subsection}[0pt]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
 \titlecontents{subsubsection}[2.25em]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
 \newcommand{\RNum}[1]{\uppercase\expandafter{\romannumeral #1\relax}}
-
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{frame=tb, language=Java,  aboveskip=3mm,  belowskip=3mm,  showstringspaces=false,  columns=flexible,  basicstyle={\small\ttfamily},  numbers=none,  numberstyle=\tiny\color{gray},  keywordstyle=\color{blue},  commentstyle=\color{dkgreen},  stringstyle=\color{mauve},  breaklines=true,  breakatwhitespace=true, tabsize=2
+}
 \begin{document}
 % Титулка
 \thispagestyle{empty}
@@ -74,14 +81,144 @@
 \newpage %ну и дальше Ваш ман
 \section{Характеристика існуючих методів знаходження дублікатів у коді}
 \subsection{Визначення основних видів повторюваних частин}
-Як зазначено у роботах [CH79.pdf],[SUB153536.pdf],[astclones-wcre06.pdf], виділяється 4 головних типи повторюваних частин. 
+Як зазначено у роботах \cite{Gautam16}, \cite{Dang15} та \cite{Thummalapenta10}, виділяється 4 головних типи повторюваних частин. 
 \begin{itemize}
 \item \RNum{1} тип -- повна копія без модифікацій, окрім пробілів та коментарів;
+\begin{figure}[!htb]
+\centering
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+double xx = Math.cos(angle);
+double yy = Math.sin(angle);
+xx*=2;
+yy*=2;	
+if (xx>PI)
+	xx = 2*PI-xx;
+if (yy>PI)
+	yy = 2*PI-yy;
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+double xx = Math.cos(angle);
+// of course using math package!!
+double yy = Math.sin(angle);
+xx *= 2;
+yy *= 2;	
+if ( xx > PI)
+//That is VERY important statement!
+	xx = 2 * PI - xx; 
+if (yy > PI)
+	yy = 2 * PI - yy;
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад копії \RNum{1} типу на мові Java}
+\end{figure}
 \item \RNum{2} тип -- синтаксично однакова копія, змінюються лише назви змінних, назв функцій, тощо;
+\begin{figure}[!htb]
+\centering
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+void func(double angle) {
+	double xx = Math.cos(angle);
+	double yy = Math.sin(angle);
+	xx*=2;
+	yy*=2;	
+	if (xx>PI)
+		xx = 2*PI-xx;
+	if (yy>PI)
+		yy = 2*PI-yy;
+	write(xx);
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+void veryImportantFunc(double ang){
+	double aa = Math.cos(ang);
+	double bb = Math.sin(ang);
+	aa*=2;
+	bb*=2;	
+	if (xx>PI_CONST)
+		aa = 2*PI_CONST-aa;
+	if (yy>PI_CONST)
+		bb = 2*PI_CONST-bb;
+	writeToFile(aa);
+}
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад копії \RNum{2} типу}
+\end{figure}
 \item \RNum{3} тип -- копія з подальшими змінами; доданими, зміненими або видаленими інструкціями;
-\item \RNum{4} тип -- частина, що робить ідентичні обчислювання; синтаксично імплементована інакше, ніж інша частина.
+\begin{figure}
+\centering
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+void func(double angle) {
+	double xx = Math.cos(angle);
+	double yy = Math.sin(angle);
+	double PI = Math.acos(-1);
+	xx*=2;
+	yy*=2;	
+	if (xx>PI)
+		xx = 2*PI-xx;
+	if (yy>PI)
+		yy = 2*PI-yy;
+	write(xx);
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+void doCalc(double ang){
+	double bb = Math.sin(ang);
+	double aa = Math.cos(ang);
+	print("before"+aa);
+	aa*=2;
+	if (xx>PI_CONST)
+		aa = 2*PI_CONST-aa;
+	bb*=2;	
+	if (yy>PI_CONST)
+		bb = 2*PI_CONST-bb;
+	print(aa);
+}
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад копії \RNum{3} типу}
+\end{figure}
+\item \RNum{4} тип -- частина, що робить ідентичні обчислювання, але синтаксично імплементована інакше.
+\begin{figure}
+\centering
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+int fibonacci(int n) {
+	int sum1=0, sum2=1;
+	for (int i=2; i<=n; i++){
+		int sum3 = sum3+sum2;
+		sum1 = sum2;
+		sum2 = sum3;
+	}
+	return sum2;
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=none]
+int[] mem = new int[...];
+int fib(int n) {
+	if (mem[n]!=0)
+		return mem[n];
+	if (n<2)
+		return 1;
+	mem[n] = fib(n-1)+fib(n-2);
+	return mem[n];
+}
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад копії \RNum{4} типу}
+\end{figure}
+%TODO приклад
 \end{itemize}
-%TODO приклади кода
 \subsection{Основні методи пошуку повторюваних частин}
 Існує багато прийомів, що використовуються для пошуку повторюваних частин у початковому коді програмного забезпечення.
 
@@ -129,21 +266,36 @@ reallySoLongNameThatYouCouldNotStandIt2.
 \subsubsection{Метод порівняння функцій}
 За допомогою парсера мови програмування знаходять усі функції у початковому коді. Далі усі ці функції порівнюються між собою або за допомогою спеціально обраної "поганої" геш-функції, або за допомогою обчислення коефіцієнту схожості (наприклад, коеф. Жаккара).
 Метод гарно знаходить збіги між різними функціями, розпізнаються копії \RNum{1}-\RNum{3} типу, проте він не може знайти повторювани частини всередині коду.
-Прикладом використання є [https://ieeexplore.ieee.org/document/8377669].
+Прикладом використання є \cite{Yang18}.
 \subsubsection{Застосування графа програмних залежностей}
-Згідно з [The\_Program\_Dependence\_Graph..pdf] Граф програмних залежностей (далі просто граф) -- представлення програми як графа, у якому кожна вершина - інструкція у програмі, а також зв'язані з цією інструкцією оператори та операнди; ребрами у такому графі є дані, від яких залежить виконання цієї інструкції та умови, за яких ця інструкція виконається.
+Згідно з \cite{Ferrante87}, граф програмних залежностей (далі просто граф) -- представлення програми як графа, у якому кожна вершина - інструкція у програмі, а також зв'язані з цією інструкцією оператори та операнди; ребрами у такому графі є дані, від яких залежить виконання цієї інструкції та умови, за яких ця інструкція виконається.
 Дві частини програми вважаються ідентичними, якщо їх графи ізоморфні.
 Головною перевагою є те, що цей граф не залежить від переставлення інструкції програми; зміни назв функцій, змінних, тощо; не залежить від аспектів реалізації.
 Недоліки методу:
 \begin{itemize}
 \item Дуже довгий час роботи, оскільки завдання пошуку ізоморфних підграфів є NP-повною, і може бути вирішена за поліноміальний час тільки для планарних графів, що не обов'язково виконається для графа програмних залежностей;
 \item Такий метод не зможе знайти дублікати у коді, який не виконується у загальному випадку, оскільки у граф додаються лише виконані інструкції.
-Приклад використання: [kdd06\_gplag.pdf].
+Приклад використання: \cite{Liu06}.
 \end{itemize}
+%TODO приклад PDG
 \subsubsection{Метод порівняння дерев}
-
-\section{Запропонований метод}
-\addcontentsline{toc}{section}{СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ} 
-\section*{список використаних джерел}
-Ваш список источников
+У цьому методі використовуються абстрактні синтаксичні дерева (АСД). Згідно з \cite{wiki:ast}, абстрактне синтаксичне дерево -- позначене і орієнтоване дерево, в якому внутрішні вершини співставлені з відповідними операторами мови програмування, а листя з відповідними операндами.
+%TODO приклад AST
+Щоб визначити, чи є частина коду копією іншої частини, знаходять відповідні їм піддерева, а далі ці піддерева порівнюються між собою. \\
+Підходів порівяння піддерев досить багато. Так, наприклад, у роботі \cite{Sager06} усі піддерева, що відповідають класам у початковому коді, порівнюються кожен з кожним за допомогою обчислення відстані між деревами. Автор відмічає, що цей метод є найточнішим порівняно з іншими, але має дуже довгий час роботи. Наприклад, код плагінів \verb|org.eclipse.compare-plug-in|, що складався зі 114 класів перевірявся на копії більше ніж годину. \\
+У роботі \cite{Baxter98} теж стверджується, що алгоритм знахождення між деревами має занадто велику складність обчислення, тому автором було запропоновано інший підхід. Усі піддерева гешуються за допомогою вибраної "поганої" геш-функції та розподіляються у $B$ бакетів, де $B \approx N/10$. 
+Далі кожне піддерево порівнюється лише з піддеревами з цього ж бакету за формулою: $$\textup{Схожість} = \frac{2*S}{2*S+L+R}.$$ $S$ -- кількість однакових вершин у обох піддеревах, $L$ -- кількість вершин, що присутні лише у першому піддереві, $R$ -- кількість вершин, що є тільки у другому піддереві. \\
+Отже, головними перешкодами до використання цього методу є:
+\begin{itemize} 
+\item Великі час роботи та алгоритмічна складність; \cite{Ain19}
+\item Досить низький відсоток знайдених копій через використання додаткових евристик. \cite{Dang15}
+\end{itemize}
+Далі буде запропоновано новий підхід, що значно зменшить час роботи, необхідний для знаходження копій, та, у той же час, збільшить ефективність знаходження копій.
+\section{Новий алгоритм}
+...
+\section{Порівняння з іншими методами}
+...
+\section{Висновки}
+...
+\printbibliography[title={список використаних джерел}]
 \end{document}

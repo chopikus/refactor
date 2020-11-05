@@ -12,14 +12,12 @@ class Main
 	{
 		double xx = Math.cos(PI/2)-Math.sin(PI/2);
 		double yy = Math.sin(PI/2)+Math.cos(PI/2);
-		if (xx==456.0f || xx==123.0f){
-			if (xx==456.0f)
-				xx++;
-			else if (xx==123.0f)
-				xx++;
-		}
 		xx*=2;
-		yy*=2;
+		yy*=2;	
+		if (xx>PI)
+			xx = 2*PI-xx;
+		if (yy>PI)
+			yy = 2*PI-yy;
 	}
 	static void func2(double a, double b, double angle)
 	{
