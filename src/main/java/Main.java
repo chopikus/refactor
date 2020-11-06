@@ -220,6 +220,7 @@ public class Main implements Runnable{
                     blocks.add(block);
             });
         }
+        System.out.println(blocks);
         findCopiedPieces();
         System.out.println("Found copied pieces");
         countMemoryAndTime();
