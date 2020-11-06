@@ -279,12 +279,14 @@ class SimilarityFunction implements MaximisationFunction
         if (graphs.size()<=1 || actualMaxLen<len)
             return 0;
         float res = 0;
+        int goodGraphs=1;
         for (int i=1; i<graphs.size(); i++)
         {
             float distance = Main.apted.computeEditDistance(graphs.get(0), graphs.get(i));
-            res+=(Main.threshold-distance)/Main.threshold;
+            if (distance<Main.threshold)
+                goodGraphs++;
         }
-        res*=len;
+        res = len*goodGraphs-goodGraphs-3-Main.threshold*goodGraphs-(len+Main.threshold*goodGraphs);
         return res;
     }
 }

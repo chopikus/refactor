@@ -140,7 +140,6 @@ public class Main implements Runnable{
         List<List<Pair<Integer, Integer>>> piecesByHashList = new ArrayList<>(piecesByHash.values());
         piecesByHashList.sort(new Utils.ListBlockIndexComparator());
         for (List<Pair<Integer, Integer>> blockPieceList : piecesByHashList) {
-            blockPieceList.sort(new Utils.PotentialLengthComparator());
             Set<Integer> blockSet = new TreeSet<>();
             blockPieceIndexesToCompare.clear();
             for (Pair<Integer, Integer> blockPieceIndexes : blockPieceList) {
@@ -169,7 +168,7 @@ public class Main implements Runnable{
             double argWithMaxRes = maximize.getParamValues()[0];
             long lenMaxRes = Math.round(argWithMaxRes);
             Set<Integer> blocksToReplacePieces = function.getBlocksToReplacePieces(lenMaxRes);
-            if (blocksToReplacePieces.size() <= 1)
+            if (blocksToReplacePieces.size() <= 1 && maximize.getMaximum()>0)
                 continue;
             duplicatedSegments.add(new ArrayList<>());
             for (Pair<Integer, Integer> blockPiece : blockPieceIndexesToCompare) {
