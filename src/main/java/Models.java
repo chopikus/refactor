@@ -1,5 +1,6 @@
 import at.unisalzburg.dbresearch.apted.costmodel.CostModel;
 import at.unisalzburg.dbresearch.apted.node.Node;
+import at.unisalzburg.dbresearch.apted.node.StringNodeData;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
@@ -38,6 +39,10 @@ class NodeData
         return label;
     }
     public void setLabel(Integer a){this.label = a;}
+    public String toString()
+    {
+        return label.toString();
+    }
 }
 
 class Piece
@@ -128,7 +133,18 @@ class Block
     {
         return list.toString();
     }
+    public String makeString(Node<NodeData> node)
+    {
+        String res = "{" + (node.getNodeData()).getLabel();
 
+        Node child;
+        for(Iterator var2 = node.getChildren().iterator(); var2.hasNext(); res = res + makeString(child)) {
+            child = (Node)var2.next();
+        }
+
+        res = res + "}";
+        return res;
+    }
     Node<NodeData> algoGraph(int l, int r) {
         // [l, r)
         assert(l>=0 && l<list.size() && r>=l && r<=list.size());
@@ -139,7 +155,7 @@ class Block
             if (i>=list.size())
                 break;
             com.github.javaparser.ast.Node pieceNode = list.get(i).node;
-            Integer hash = list.get(i).hash;
+            Integer hash = list.get(i).node.getMetaModel().getTypeNameGenerified().hashCode();
             queue.add(new Pair<>(pieceNode, hash));
         }
         Map<Integer, List<Integer>> edges = new TreeMap<>();
@@ -179,6 +195,7 @@ class Block
             }
             q1.getNodeData().setLabel(hashByNodeId.getOrDefault(q1.getNodeData().getLabel(), -1));
         }
+        System.out.println(makeString(algoNode));
         return algoNode;
     }
 }

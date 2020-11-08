@@ -1,0 +1,12 @@
+digraph computing_function_graph_example{
+	graph [ dpi = 300 ]; 
+	root [label="Segment"]
+	A [label="ExpressionStmt"]
+	B [label="ExpressionStmt"]
+	C [label="IfStmt"]
+	D [label="BinaryExpr"]
+	root->A;
+	root->B;
+	root->C;
+	C->D;
+}
