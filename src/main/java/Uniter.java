@@ -10,6 +10,7 @@ import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.utils.Pair;
+import org.javatuples.Quartet;
 import org.javatuples.Triplet;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public class Uniter {
         Set<Integer> usedNodeIDs = new TreeSet<>();
         boolean notWriteCommaInBeginning = true;
         for (var segmList : duplicatedSegments) {
-            boolean wrote = false;
+            List<Quartet<String, String, Integer, Integer>> clonesList = new ArrayList<>();
             for (var segm : segmList) {
                 final int[] startLine = {Integer.MAX_VALUE};
                 final int[] endLine = {Integer.MIN_VALUE};
@@ -55,22 +56,31 @@ public class Uniter {
                     }
                 });
                 if (startLine[0]!=Integer.MAX_VALUE && startLine[0]!=endLine[0]) {
-                    if (!notWriteCommaInBeginning)
-                        s.append(",");
-                    notWriteCommaInBeginning = false;
-                    s.append(subDirectory[0]);
-                    s.append(",");
-                    s.append(fileName[0]);
-                    s.append(",");
-                    s.append(startLine[0]);
-                    s.append(",");
-                    s.append(endLine[0]);
-                    wrote = true;
+                    clonesList.add(new Quartet<>(subDirectory[0], fileName[0], startLine[0], endLine[0]));
                 }
             }
-            notWriteCommaInBeginning = true;
-            if (wrote)
-            s.append("\n");
+            for (int i=0; i<clonesList.size(); i++)
+            {
+                for (int j=i+1; j<clonesList.size(); j++)
+                {
+                    s.append(clonesList.get(i).getValue0());
+                    s.append(",");
+                    s.append(clonesList.get(i).getValue1());
+                    s.append(",");
+                    s.append(clonesList.get(i).getValue2());
+                    s.append(",");
+                    s.append(clonesList.get(i).getValue3());
+                    s.append(",");
+                    s.append(clonesList.get(j).getValue0());
+                    s.append(",");
+                    s.append(clonesList.get(j).getValue1());
+                    s.append(",");
+                    s.append(clonesList.get(j).getValue2());
+                    s.append(",");
+                    s.append(clonesList.get(j).getValue3());
+                    s.append("\n");
+                }
+            }
         }
         Utils.writeToFile(s.toString(), file);
     }
