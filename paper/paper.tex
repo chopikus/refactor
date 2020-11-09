@@ -457,7 +457,128 @@ $F(len)$ повинно бути більше ніж 0, бо у інакшому
 \end{enumerate}
 }
 \end{itemize}
-\subsection{Перетворення на фрагменти у коді}
+\subsection{Перетворення на послідовність фрагментів у коді}
+Попереднім кроком були знайдені усі вирази-клони, але їх ще потрібно перетворити у послідовність фрагментів, бо самі по собі вирази показують лише уривки з початкового коду.   
+\begin{figure}[h!]
+\centering
+\begin{minipage}{.5\textwidth}
+\begin{lstlisting}[frame=none]
+[xx == 466.0f,xx == 143.0f,xx == 466.0f,xx++;,xx == 143.0f,xx++;]
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{.4\textwidth}
+\begin{lstlisting}[frame=none]
+if (xx==466.0f || xx==143.0f) {
+  if (xx==466.0f)
+		xx++;
+	else if (xx==143.0f)
+		xx++;
+}	
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад послідовності виразів-клонів та відповідна їм частина коду}
+\end{figure} \\
+Зробимо перетворення наступним чином: оберемо усі вершини у абстрактному синтаксичному дереві (АСД), для яких
+$$\exists V, LCA(son, V_{ast}) = son,$$
+де:
+\begin{itemize}
+\item $son$ -- син закріпленої за блоком вершини у АСД, 
+\item $V$ -- вираз, 
+\item $V_{ast}$ -- відповідна виразу вершина у АСД.
+\end{itemize}.
+Таким чином, для послідовності виразів-клонів закріплені вершини у абстрактному синтаксичному дереві.
+У подальшому називатимемо ці вершини інструкціями.
+\subsection{Використання алгоритму для видалення клонів}
+Для видалення списка повторюваних частин коду об'єднаємо їх у функцію. \\
+Зробимо це наступним алгоритмом: 
+\begin{enumerate}
+\item Кожна повторювана частина коду являє собою список інструкцій. \\
+Тілом функції буде найбільша спільна підпослідовність цих списків.
+\item Виконання кожної іншої інструкції, що не війшла до найбільшої спільної підпослідовності, обернемо у оператор \verb|if|.
+Умовою цього оператору стане параметр функції типу \verb|boolean|.
+\item Додати до усіх використаних змінних, полів, викликів функцій з іншої частини коду назву класу.
+\item Усі буквальні вирази, що є у найбільшій спільній підпослідовності, та не є однаковими для усіх відповідних інструкцій, замінимо на параметр функції. Тип параметру може бути визначений за допомогою бібліотеки \verb|JavaParser|.
+\item Для кожної повторюваної частини замінити першу інструкцію у списку на виклик нової функції, інші інструкції видалити.
+\item Нову функцію записати у файл \verb|Copied.java|.
+\end{enumerate}
+\begin{figure}[h!]
+\centering
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=none]
+static final double PI = 3.1415;
+static void veryImportantFunction()
+{
+	double xx = Math.cos(PI/2)-Math.sin(PI/2);
+	double yy = Math.sin(PI/2)+Math.cos(PI/2);
+	if (xx==456.0f || xx==123.0f){
+		if (xx==456.0f)
+			xx++;
+		else if (xx==123.0f)
+			xx++;
+	}
+	xx*=2;
+	yy*=2;
+	System.out.println(xx+" "+yy);
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=none]
+static final double PI = 3.1415;
+static void superComputing()
+{
+	double aa = Math.cos(PI/2)-Math.sin(PI/2);
+	double bb = Math.sin(PI/2)+Math.cos(PI/2);
+	if (aa==345.0f || aa==0f){
+		if (aa==345.0f)
+			aa++;
+		else if (aa==0.0f)
+			aa++;
+	}
+	aa*=2;
+	bb*=2;
+	System.out.println(aa+" "+bb);
+}
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад коду до виконання алгоритмів}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\begin{minipage}{.4\textwidth}
+\begin{lstlisting}[frame=none]
+static final double PI = 3.1415;
+static void veryImportantFunction() {
+  Copied.
+    veryImportantFunction(456.0f, 123.0f, 456.0f, 123.0f);
+}
+static void superComputing() {
+  Copied.
+    veryImportantFunction(345.0f, 0f, 345.0f, 0.0f);
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{.55\textwidth}
+\begin{lstlisting}[frame=none]
+static final double PI = 3.1415;
+static void veryImportantFunction(Double literalXx, Double literalXx2, Double literalXx3, Double literalXx4) {
+  double xx = Math.cos(Main.PI / 2) - Math.sin(Main.PI / 2);
+  double yy = Math.sin(Main.PI / 2) + Math.cos(Main.PI / 2);
+  if (xx == literalXx || xx == literalXx2) {
+    if (xx == literalXx3)
+      xx++;
+    else if (xx == literalXx4)
+      xx++;
+  }
+  xx *= 2;
+  yy *= 2;
+	System.out.println(xx+" "+yy);
+}
+\end{lstlisting}
+\end{minipage}
+\caption*{Приклад роботи обох алгоритмів: знаходження та видалення клонів}
+\end{figure} \\
 \section{Порівняння з іншими методами}
 ...
 \section{Висновки}

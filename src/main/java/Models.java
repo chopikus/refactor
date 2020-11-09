@@ -133,18 +133,7 @@ class Block
     {
         return list.toString();
     }
-    public String makeString(Node<NodeData> node)
-    {
-        String res = "{" + (node.getNodeData()).getLabel();
 
-        Node child;
-        for(Iterator var2 = node.getChildren().iterator(); var2.hasNext(); res = res + makeString(child)) {
-            child = (Node)var2.next();
-        }
-
-        res = res + "}";
-        return res;
-    }
     Node<NodeData> algoGraph(int l, int r) {
         // [l, r)
         assert(l>=0 && l<list.size() && r>=l && r<=list.size());
@@ -195,7 +184,6 @@ class Block
             }
             q1.getNodeData().setLabel(hashByNodeId.getOrDefault(q1.getNodeData().getLabel(), -1));
         }
-        System.out.println(makeString(algoNode));
         return algoNode;
     }
 }
