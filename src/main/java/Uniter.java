@@ -12,11 +12,69 @@ import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.utils.Pair;
 import org.javatuples.Triplet;
 
+import java.io.File;
 import java.util.*;
 
 public class Uniter {
     static Map<String, Integer> wasParameterUsed = new HashMap<>();
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
+
+    static void exportBigEval(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments, File file)
+    {
+        StringBuilder s= new StringBuilder();
+        Set<Integer> usedNodeIDs = new TreeSet<>();
+        boolean notWriteCommaInBeginning = true;
+        for (var segmList : duplicatedSegments) {
+            boolean wrote = false;
+            for (var segm : segmList) {
+                final int[] startLine = {Integer.MAX_VALUE};
+                final int[] endLine = {Integer.MIN_VALUE};
+                final String[] subDirectory = {null};
+                final String[] fileName = {null};
+                segm.forEach((blockPiece) -> {
+                    int blockRootId = Main.blocks.get(blockPiece.a).root.getData(Main.NODE_ID);
+                    Node node = Main.blocks.get(blockPiece.a).list.get(blockPiece.b).node;
+                    final Node[] prevNode = {node};
+                    final Node[] nodeToAdd = {null};
+                    node.walk(Node.TreeTraversal.PARENTS, (potentialParent) -> {
+                        if (potentialParent.containsData(Main.NODE_ID) &&
+                                potentialParent.getData(Main.NODE_ID).equals(blockRootId))
+                            nodeToAdd[0] = prevNode[0];
+                        prevNode[0] = potentialParent;
+                    });
+                    if (nodeToAdd[0] != null && !usedNodeIDs.contains(nodeToAdd[0].getData(Main.NODE_ID))) {
+                        if (nodeToAdd[0].getRange().isPresent()) {
+                            startLine[0] = Math.min(startLine[0], nodeToAdd[0].getRange().get().begin.line);
+                            endLine[0] = Math.max(endLine[0], nodeToAdd[0].getRange().get().end.line);
+                        }
+                        if (subDirectory[0] == null)
+                            subDirectory[0] = nodeToAdd[0].getData(Main.SUBDIRECTORY);
+                        if (fileName[0] == null)
+                            fileName[0] = nodeToAdd[0].getData(Main.FILE_NAME);
+                        usedNodeIDs.add(nodeToAdd[0].getData(Main.NODE_ID));
+                    }
+                });
+                if (startLine[0]!=Integer.MAX_VALUE && startLine[0]!=endLine[0]) {
+                    if (!notWriteCommaInBeginning)
+                        s.append(",");
+                    notWriteCommaInBeginning = false;
+                    s.append(subDirectory[0]);
+                    s.append(",");
+                    s.append(fileName[0]);
+                    s.append(",");
+                    s.append(startLine[0]);
+                    s.append(",");
+                    s.append(endLine[0]);
+                    wrote = true;
+                }
+            }
+            notWriteCommaInBeginning = true;
+            if (wrote)
+            s.append("\n");
+        }
+        Utils.writeToFile(s.toString(), file);
+    }
+
     static ClassOrInterfaceDeclaration makeMethod(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments) {
         ClassOrInterfaceDeclaration copyClass = new ClassOrInterfaceDeclaration();
         copyClass.setName("Copied");
@@ -53,7 +111,7 @@ public class Uniter {
             if (!hasBrokenSegment) {
                 replaceAllStatics(segmentsInNodes);
                 var paramsAndMethod = actuallyMakeMethod(segmentsInNodes);
-                if (paramsAndMethod!=null) {
+                if (paramsAndMethod != null) {
                     copyClass.addMethod("garbage").replace(paramsAndMethod.b);
                     for (int segment = 0; segment < segmentsInNodes.size(); segment++) {
                         MethodCallExpr methodCallExpr = new MethodCallExpr();
@@ -240,7 +298,7 @@ public class Uniter {
         int summaryNodesCountInBeginning = 0;
         int summaryNodesCountInEnd = 0;
         for (List<Node> l : segmentList)
-            summaryNodesCountInBeginning+=l.size();
+            summaryNodesCountInBeginning += l.size();
         wasParameterUsed.clear();
         parameterNames.clear();
         boolean[][] isSimilarToEveryone = new boolean[segmentList.size()][];
@@ -297,7 +355,7 @@ public class Uniter {
                 String booleanParameterName = checkAndChangeParameter("do" + Utils.makeNameFromNode(keyValue.getValue()));
                 parameterNames.add(new Pair<>(booleanParameterName, PrimitiveType.booleanType()));
                 doParameters++;
-                if (doParameters>Main.maxDoParametersCount)
+                if (doParameters > Main.maxDoParametersCount)
                     return null;
                 BlockStmt thenStmt = new BlockStmt();
                 if (keyValue.getValue() instanceof Expression) {
@@ -314,13 +372,13 @@ public class Uniter {
                     paramsForEachSegment.get(segment).put(booleanParameterName, paramsForEachSegment.get(segment)
                             .getOrDefault(booleanParameterName, new BooleanLiteralExpr(false)));
                 methodCommands.add(new IfStmt().setThenStmt(thenStmt).setCondition(new NameExpr(booleanParameterName)));
-                summaryNodesCountInEnd+=2;
+                summaryNodesCountInEnd += 2;
             }
         }
-        if (summaryNodesCountInEnd>=summaryNodesCountInBeginning)
+        if (summaryNodesCountInEnd >= summaryNodesCountInBeginning)
             return null;
         MethodDeclaration declaration = makeDeclarationFromParamsAndCommands(parameterNames, methodCommands, makeMethodName(segmentList));
-        if (declaration==null)
+        if (declaration == null)
             return null;
         return new Pair<>(paramsForEachSegment, declaration);
     }

@@ -5,6 +5,8 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.utils.Pair;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -148,6 +150,18 @@ public class Utils {
             return Math.max(getMax(root.leftNode, l, r), getMax(root.rightNode, l, r));
         }
     }
-
+    static void writeToFile(String s, File file) {
+        try {
+            File parent = file.getAbsoluteFile().getParentFile();
+            if (!parent.exists() && !parent.mkdirs()) {
+                throw new IllegalStateException("Couldn't create dir: " + parent);
+            }
+            FileWriter fw = new FileWriter(file);
+            fw.write(s);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 

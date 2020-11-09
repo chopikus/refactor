@@ -30,6 +30,10 @@ public class Main implements Runnable{
 
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
     };
+    public static final DataKey<String> SUBDIRECTORY = new DataKey<>() {
+    };
+    public static final DataKey<String> FILE_NAME = new DataKey<>() {
+    };
     public static List<File> filesToParse = new ArrayList<>();
     public static Map<String, CompilationUnit> units = new HashMap<>();
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
@@ -57,6 +61,8 @@ public class Main implements Runnable{
     @CommandLine.Option(names = { "--max-do-parameter-count" }, defaultValue = "5", description = "Maximum amount of \"doXXX\" in new functions made by tool")
     public static int maxDoParametersCount = 5;
 
+    @CommandLine.Option(names = { "--big-clone-eval"}, defaultValue = "false", description = "Print data to csv in \"BigCloneEval\" format")
+    public static boolean bigCloneEval = false;
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");
@@ -100,7 +106,14 @@ public class Main implements Runnable{
         }
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
         for (Map.Entry<String, CompilationUnit> entry : units.entrySet()) {
-            entry.getValue().walk(node -> node.setData(Main.NODE_ID, nodeIDCounter.getAndSet(nodeIDCounter.get() + 1)));
+            File file = new File(entry.getKey());
+            String subDirectory = Paths.get(execFile.getAbsolutePath()).relativize(Paths.get(file.getParentFile().getAbsolutePath())).toString();
+            String name = file.getName();
+            entry.getValue().walk(node -> {
+                node.setData(Main.NODE_ID, nodeIDCounter.getAndSet(nodeIDCounter.get() + 1));
+                node.setData(Main.SUBDIRECTORY, subDirectory);
+                node.setData(Main.FILE_NAME, name);
+            });
             symbolSolver.inject(entry.getValue());
             allLines+=entry.getValue().getRange().get().getLineCount();
         }
@@ -184,20 +197,7 @@ public class Main implements Runnable{
         }
     }
 
-    static void writeNodeToFile(Node node, File file) {
-        try {
-            File parent = file.getAbsoluteFile().getParentFile();
-            System.out.println(file+" "+parent);
-            if (!parent.exists() && !parent.mkdirs()) {
-                throw new IllegalStateException("Couldn't create dir: " + parent);
-            }
-            FileWriter fw = new FileWriter(file);
-            fw.write(node.toString());
-            fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new Main()).execute(args);
@@ -219,7 +219,6 @@ public class Main implements Runnable{
                     blocks.add(block);
             });
         }
-        System.out.println(blocks);
         findCopiedPieces();
         System.out.println("Found copied pieces");
         countMemoryAndTime();
@@ -235,7 +234,13 @@ public class Main implements Runnable{
             System.exit(0);
             e.printStackTrace();
         }
-        writeNodeToFile(Uniter.makeMethod(duplicatedSegments), new File(outputFolder+File.separator+"/Copied.java"));
+        if (!bigCloneEval)
+            Utils.writeToFile(Uniter.makeMethod(duplicatedSegments).toString(), new File(outputFolder+File.separator+"/Copied.java"));
+        else {
+            Uniter.exportBigEval(duplicatedSegments, new File(outputFolder + File.separator + "/out.csv"));
+            countMemoryAndTime();
+            return;
+        }
         System.out.println("wrote method to Copied.java");
         countMemoryAndTime();
         System.out.println();
@@ -245,7 +250,7 @@ public class Main implements Runnable{
             String rel = execPath.relativize(filePath).toString();
             if (rel.equals(""))
                 rel = filePath.getFileName().toString();
-            writeNodeToFile(pathUnit.getValue(), new File(outputFolder + File.separator + rel));
+            Utils.writeToFile(pathUnit.getValue().toString(), new File(outputFolder + File.separator + rel));
         }
         countMemoryAndTime();
         System.out.printf("%s lines are duplicate. That is about %s%% of all code", duplicateLines, (int)((duplicateLines/allLines)*10000)/100.0f);
