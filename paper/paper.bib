@@ -151,3 +151,43 @@ author = "Mateusz Pawlik and Nikolaus Augsten",
 keywords = "Tree edit distance, Similarity search, Approximate matching",
 abstract = "Hierarchical data are often modelled as trees. An interesting query identifies pairs of similar trees. The standard approach to tree similarity is the tree edit distance, which has successfully been applied in a wide range of applications. In terms of runtime, the state-of-the-art algorithm for the tree edit distance is RTED, which is guaranteed to be fast independent of the tree shape. Unfortunately, this algorithm requires up to twice the memory of its competitors. The memory is quadratic in the tree size and is a bottleneck for the tree edit distance computation. In this paper we present a new, memory efficient algorithm for the tree edit distance, AP-TED (All Path Tree Edit Distance). Our algorithm runs at least as fast as RTED without trading in memory efficiency. This is achieved by releasing memory early during the first step of the algorithm, which computes a decomposition strategy for the actual distance computation. We show the correctness of our approach and prove an upper bound for the memory usage. The strategy computed by AP-TED is optimal in the class of all-path strategies, which subsumes the class of LRH strategies used in RTED. We further present the AP-TED+ algorithm, which requires less computational effort for very small subtrees and improves the runtime of the distance computation. Our experimental evaluation confirms the low memory requirements and the runtime efficiency of our approach."
 }
+@article{Bellon07,
+author = {Bellon, Stefan and Koschke, Rainer and Antoniol, Giuliano and Krinke, Jens and Merlo, Ettore},
+year = {2007},
+month = {07},
+pages = {577-591},
+title = {Comparison and Evaluation of Clone Detection Tools},
+volume = {33},
+journal = {IEEE Transactions on Software Engineering},
+doi = {10.1109/TSE.2007.70725}
+}
+@inproceedings{Krutz14,
+author = {Krutz, Daniel E. and Le, Wei},
+title = {A Code Clone Oracle},
+year = {2014},
+isbn = {9781450328630},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2597073.2597127},
+doi = {10.1145/2597073.2597127},
+abstract = { Code clones are functionally equivalent code segments. De- tecting code clones is important for determining bugs, fixes and software reuse. Code clone detection is also essential for developing fast and precise code search algorithms. How- ever, the challenge of such research is to evaluate that the clones detected are indeed functionally equivalent, consider- ing the majority of clones are not textual or even syntacti- cally identical. The goal of this work is to generate a set of method level code clones with a high confidence to help to evaluate future code clone detection and code search tools to evaluate their techniques. We selected three open source programs, Apache, Python and PostgreSQL, and randomly sampled a total of 1536 function pairs. To confirm whether or not these function pairs indicate a clone and what types of clones they belong to, we recruited three experts who have experience in code clone research and four students who have experience in programming for manual inspection. For confi- dence of the data, the experts consulted multiple code clone detection tools to make the consensus. To assist manual inspection, we built a tool to automatically load function pairs of interest and record the manual inspection results. We found that none of the 66 pairs are textual identical type- 1 clones, and 9 pairs are type-4 clones. Our data is available at: http://phd.gccis.rit.edu/weile/data/cloneoracle/. },
+booktitle = {Proceedings of the 11th Working Conference on Mining Software Repositories},
+pages = {388–391},
+numpages = {4},
+keywords = {Software Engineering, Clone Oracle, Code Clone Detection},
+location = {Hyderabad, India},
+series = {MSR 2014}
+}
+@article{Svajlenko14,
+  title={Evaluating Modern Clone Detection Tools},
+  author={Jeffrey Svajlenko and C. Roy},
+  journal={2014 IEEE International Conference on Software Maintenance and Evolution},
+  year={2014},
+  pages={321-330}
+}
+@inproceedings{Vislavski18,
+  title={Code Clone Benchmarks Overview},
+  author={Tijana Vislavski and Gordana Rakic},
+  booktitle={SQAMIA},
+  year={2018}
+}
