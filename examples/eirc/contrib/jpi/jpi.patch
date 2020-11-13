@@ -1,0 +1,292 @@
+diff -urN eirc/src/main/com/ms/CVS/Entries eirc-jpi/src/main/com/ms/CVS/Entries
+--- eirc/src/main/com/ms/CVS/Entries	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/com/ms/CVS/Entries	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-D/security////
+diff -urN eirc/src/main/com/ms/CVS/Repository eirc-jpi/src/main/com/ms/CVS/Repository
+--- eirc/src/main/com/ms/CVS/Repository	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/com/ms/CVS/Repository	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-eirc/src/main/com/ms
+diff -urN eirc/src/main/com/ms/CVS/Root eirc-jpi/src/main/com/ms/CVS/Root
+--- eirc/src/main/com/ms/CVS/Root	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/com/ms/CVS/Root	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-:ext:jkohen@cvs.sourceforge.net:/cvsroot/eirc
+diff -urN eirc/src/main/com/ms/security/CVS/Entries eirc-jpi/src/main/com/ms/security/CVS/Entries
+--- eirc/src/main/com/ms/security/CVS/Entries	2005-04-07 18:43:12.000000000 -0300
++++ eirc-jpi/src/main/com/ms/security/CVS/Entries	1969-12-31 21:00:00.000000000 -0300
+@@ -1,3 +0,0 @@
+-/PermissionID.java/1.1/Thu Apr  7 21:43:12 2005//
+-/PolicyEngine.java/1.1/Thu Apr  7 21:43:12 2005//
+-D
+diff -urN eirc/src/main/com/ms/security/CVS/Repository eirc-jpi/src/main/com/ms/security/CVS/Repository
+--- eirc/src/main/com/ms/security/CVS/Repository	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/com/ms/security/CVS/Repository	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-eirc/src/main/com/ms/security
+diff -urN eirc/src/main/com/ms/security/CVS/Root eirc-jpi/src/main/com/ms/security/CVS/Root
+--- eirc/src/main/com/ms/security/CVS/Root	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/com/ms/security/CVS/Root	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-:ext:jkohen@cvs.sourceforge.net:/cvsroot/eirc
+diff -urN eirc/src/main/com/ms/security/PermissionID.java eirc-jpi/src/main/com/ms/security/PermissionID.java
+--- eirc/src/main/com/ms/security/PermissionID.java	2005-04-07 18:43:12.000000000 -0300
++++ eirc-jpi/src/main/com/ms/security/PermissionID.java	1969-12-31 21:00:00.000000000 -0300
+@@ -1,24 +0,0 @@
+-/*
+- * Empty stubs for Microsoft's security package.
+- * Javier Kohen, 2001.
+- */
+-
+-package com.ms.security;
+-
+-public final class PermissionID {
+-    public final static PermissionID CLIENTSTORE = null;
+-    public final static PermissionID EXEC = null;
+-    public final static PermissionID FILEIO = null;
+-    public final static PermissionID MULTIMEDIA = null;
+-    public final static PermissionID NETIO = null;
+-    public final static PermissionID PRINTING = null;
+-    public final static PermissionID PROPERTY = null;
+-    public final static PermissionID REFLECTION = null;
+-    public final static PermissionID REGISTRY = null;
+-    public final static PermissionID SECURITY = null;
+-    public final static PermissionID SYSSTREAMS = null;
+-    public final static PermissionID SYSTEM = null;
+-    public final static PermissionID THREAD = null;
+-    public final static PermissionID UI = null;
+-    public final static PermissionID USERFILEIO = null;
+-}
+diff -urN eirc/src/main/com/ms/security/PolicyEngine.java eirc-jpi/src/main/com/ms/security/PolicyEngine.java
+--- eirc/src/main/com/ms/security/PolicyEngine.java	2005-04-07 18:43:12.000000000 -0300
++++ eirc-jpi/src/main/com/ms/security/PolicyEngine.java	1969-12-31 21:00:00.000000000 -0300
+@@ -1,15 +0,0 @@
+-/*
+- * Empty stubs for Microsoft's security package.
+- * Javier Kohen, 2001.
+- */
+-
+-package com.ms.security;
+-
+-public class PolicyEngine {
+-    public static void assertPermission(PermissionID pid) {
+-    }
+-
+-    public static void checkPermission(PermissionID pid)
+-	throws SecurityException {
+-    }
+-}
+diff -urN eirc/src/main/EIRC.java eirc-jpi/src/main/EIRC.java
+--- eirc/src/main/EIRC.java	2005-04-07 18:44:07.000000000 -0300
++++ eirc-jpi/src/main/EIRC.java	2005-04-07 18:45:25.000000000 -0300
+@@ -24,12 +24,16 @@
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.net.Socket;
++import java.net.UnknownHostException;
+ import java.net.URL;
+ import java.text.ChoiceFormat;
+ import java.text.Collator;
+ import java.text.MessageFormat;
+ import java.text.ParseException;
+ import java.util.*;
++import java.security.AccessController;
++import java.security.PrivilegedActionException;
++import java.security.PrivilegedExceptionAction;
+ import ar.com.jkohen.applet.SimpleAppletStub;
+ import ar.com.jkohen.awt.ChatPanel;
+ import ar.com.jkohen.awt.ImageCanvas;
+@@ -69,7 +73,7 @@
+      * Used as part of "About" info.
+      * Should be a String describing in-site's modifications.
+      */
+-    public final static String VERSION_EXTRA = "";
++    public final static String VERSION_EXTRA = "JPI";
+     /**
+      * Author's name.
+      * Used as part of "About" info.
+@@ -292,9 +296,6 @@
+ 
+ 	/* Create main GUI. */
+ 
+-	// Assert permission to create Window instances.
+-	com.ms.security.PolicyEngine.assertPermission(com.ms.security.PermissionID.UI);
+-
+ 	if (null != (t = getParameter("spawn_frame")) && !t.equals("0")) {
+ 	    this.spawned_frame =
+ 		new Frame(makeWindowTitle("Eteria IRC Client"));
+@@ -487,55 +488,42 @@
+ 	    return;
+ 	}
+ 
+-  	try {
+-	    netscape.security.PrivilegeManager.enablePrivilege("UniversalConnect");
+-	    com.ms.security.PolicyEngine.checkPermission(com.ms.security.PermissionID.NETIO);
+-	} catch (Exception ex) {
+-	    // Problem will be catched and reported below.
++	/* Attempt to establish a connection to the server. */
++	Socket s;
++	try {
++		s = (Socket) AccessController.doPrivileged(new PrivilegedExceptionAction() {
++				public Object run() throws IOException {
++					InetAddress [] addresses = InetAddress.getAllByName(server_name);
++					InetAddress server_addr = addresses[(int) Math.floor(Math.random() * addresses.length)];
++
++					return new Socket(server_addr, port);
++				}
++			});
++	} catch (PrivilegedActionException pae) {
++		Exception e = pae.getException();
++		if (e instanceof UnknownHostException) {
++			Object a[] = { server_name };
++			String ptn = lang.getString("eirc.s2");
++			status.printError(MessageFormat.format(ptn, a));
++		} else if (e instanceof IOException) {
++			Object a[] = { server_name, new Integer(port) };
++			String ptn = lang.getString("eirc.s3");
++			status.printError(MessageFormat.format(ptn, a));
++		}
++		return;
++	} catch (SecurityException e) {
++		Object [] a = { "SERVER" };
++		String ptn = lang.getString("eirc.not_in_applet");
++		status.printError(MessageFormat.format(ptn, a));
++		return;
+ 	}
+ 
+-	com.ms.security.PolicyEngine.assertPermission(com.ms.security.PermissionID.NETIO);
+-
+ 	if (connected) {
+ 	    disconnect();
+ 	}
+ 
+ 	this.quit_sent = false;
+ 
+-	/* Resolve server's address. */
+-
+-	InetAddress server_addr = null;
+-	try {
+-  	    InetAddress [] addresses = InetAddress.getAllByName(server_name);
+-  	    server_addr = addresses[(int) Math.floor(Math.random()
+-  						     * addresses.length)];
+-	} catch (IOException ex) {
+-	} catch (SecurityException ex) {
+-	}
+-
+-	if (null == server_addr) {
+-	    Object a[] = { server_name };
+-	    String ptn = lang.getString("eirc.s2");
+-	    status.printError(MessageFormat.format(ptn, a));
+-	    return;
+-	}
+-
+-	/* Establish a connection to the server. */
+-
+-	Socket s = null;
+-	try {
+-	    s = new Socket(server_addr, port);
+-	} catch (IOException e) {
+-	} catch (SecurityException e) {
+-	}
+-
+-	if (null == s) {
+-	    Object a[] = { server_addr.getHostName(), new Integer(port) };
+-	    String ptn = lang.getString("eirc.s3");
+-	    status.printError(MessageFormat.format(ptn, a));
+-	    return;
+-	}
+-
+ 	/* Spawn a new thread to handle the connection. */
+ 
+ 	try {
+@@ -543,7 +531,7 @@
+ 	    this.server = st;
+ 	    st.start();
+ 	} catch (IOException e) {
+-	    Object a[] = { server_addr.getHostName(), new Integer(port) };
++	    Object a[] = { server_name, new Integer(port) };
+ 	    String ptn = lang.getString("eirc.s3");
+ 	    status.printError(MessageFormat.format(ptn, a));
+ 	    return;
+@@ -1682,31 +1670,6 @@
+     }
+ 
+     void cmd_server(Vector params, OutputWindow target) {
+-	/* See if this Applet can connect promiscuously.
+-	 * No Exceptions will be thrown out of Applet context.
+-	 */
+-
+-	boolean is_promisc = false;
+-
+-  	try {
+-	    // See if privilege can be enabled.
+-	    netscape.security.PrivilegeManager.enablePrivilege("UniversalConnect");
+-	    // It was just a check, disable privilege for now.
+-	    netscape.security.PrivilegeManager.revertPrivilege("UniversalConnect");
+-	    com.ms.security.PolicyEngine.checkPermission(com.ms.security.PermissionID.NETIO);
+-	    is_promisc = true;
+-	} catch (Exception e) {
+-  	}
+-	
+-	if (!is_promisc) {
+-	    Object [] a = { "SERVER" };
+-	    String ptn = lang.getString("eirc.not_in_applet");
+-	    target.printError(MessageFormat.format(ptn, a));
+-	    return;
+-	}
+-
+-  	disconnect();
+-
+ 	String server_name = (String) params.elementAt(0);
+ 
+ 	// If user passed a port number.
+diff -urN eirc/src/main/netscape/CVS/Entries eirc-jpi/src/main/netscape/CVS/Entries
+--- eirc/src/main/netscape/CVS/Entries	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/netscape/CVS/Entries	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-D/security////
+diff -urN eirc/src/main/netscape/CVS/Repository eirc-jpi/src/main/netscape/CVS/Repository
+--- eirc/src/main/netscape/CVS/Repository	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/netscape/CVS/Repository	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-eirc/src/main/netscape
+diff -urN eirc/src/main/netscape/CVS/Root eirc-jpi/src/main/netscape/CVS/Root
+--- eirc/src/main/netscape/CVS/Root	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/netscape/CVS/Root	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-:ext:jkohen@cvs.sourceforge.net:/cvsroot/eirc
+diff -urN eirc/src/main/netscape/security/CVS/Entries eirc-jpi/src/main/netscape/security/CVS/Entries
+--- eirc/src/main/netscape/security/CVS/Entries	2005-04-07 18:43:12.000000000 -0300
++++ eirc-jpi/src/main/netscape/security/CVS/Entries	1969-12-31 21:00:00.000000000 -0300
+@@ -1,2 +0,0 @@
+-/PrivilegeManager.java/1.1/Thu Apr  7 21:43:12 2005//
+-D
+diff -urN eirc/src/main/netscape/security/CVS/Repository eirc-jpi/src/main/netscape/security/CVS/Repository
+--- eirc/src/main/netscape/security/CVS/Repository	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/netscape/security/CVS/Repository	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-eirc/src/main/netscape/security
+diff -urN eirc/src/main/netscape/security/CVS/Root eirc-jpi/src/main/netscape/security/CVS/Root
+--- eirc/src/main/netscape/security/CVS/Root	2005-04-07 18:37:15.000000000 -0300
++++ eirc-jpi/src/main/netscape/security/CVS/Root	1969-12-31 21:00:00.000000000 -0300
+@@ -1 +0,0 @@
+-:ext:jkohen@cvs.sourceforge.net:/cvsroot/eirc
+diff -urN eirc/src/main/netscape/security/PrivilegeManager.java eirc-jpi/src/main/netscape/security/PrivilegeManager.java
+--- eirc/src/main/netscape/security/PrivilegeManager.java	2005-04-07 18:43:12.000000000 -0300
++++ eirc-jpi/src/main/netscape/security/PrivilegeManager.java	1969-12-31 21:00:00.000000000 -0300
+@@ -1,14 +0,0 @@
+-/*
+- * Empty stubs for Netscape's security package.
+- * Javier Kohen
+- */
+-
+-package netscape.security;
+-
+-public final
+-class PrivilegeManager {
+-    public static void enablePrivilege(String targetStr) {
+-    }
+-    public static void revertPrivilege(String targetStr) {
+-    }
+-}

@@ -1,0 +1,44 @@
+#!/usr/bin/perl -w
+#
+# Applet2CmdLine Version 1.0.0.
+# Public Domain by Javier Kohen <jkohen@tough.com>, 2001.
+#
+# Tries to parse an HTML file containing an APPLET tag with optional PARAM tags and build a standard command-line UNIX sh script from that.
+# The target Applet has to explicitly support this command-line parameters passing.
+#
+# BUGS:
+# * Attributes' order inside a tag is hardcoded into the RegExp.
+# * Will be confused if used in a file with more than one Applet.
+#
+
+use strict;
+
+my $in_applet = 0;
+my %command;
+my $cmd_line = "java";
+
+while (<>) {
+    if (/<applet.*code\s*=\s*"([^"]+)"(?:.*archive\s*=\s*"([^"]+)")?/i) {
+	$in_applet = 1;
+	if (defined $2) {
+	    my $cp = $2;
+	    $cp =~ y/,/:/;
+	    $cmd_line .= " -cp $cp";
+	}
+	$cmd_line .= " $1";
+    } elsif (/<\/applet/i) {
+	$in_applet = 0;
+    }
+
+    if ($in_applet
+	and /<param.*name\s*=\s*"([^"]+)".*value\s*=\s*"([^"]+)"/i) {
+	$command{$1} = $2;
+    }
+}
+
+foreach my $cmd (keys %command) {
+    $cmd_line .= " --$cmd '$command{$cmd}'";
+}
+
+print "#!/bin/sh\n";
+print $cmd_line . " \$@\n";

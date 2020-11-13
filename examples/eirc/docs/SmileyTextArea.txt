@@ -1,0 +1,83 @@
+How to use SmileyTextArea
+-------------------------
+
+1. Copy the java files of this zip into src/main/com/splendid/awtchat
+
+2. Have a look into SmileyTextArea.java in order to see the user interface:
+
+3. In order to get smileys:
+Add the lines from my Images.properties similar to...
+smiley.winking.image=smileys/sm_winking.gif
+smiley.winking.emoticons=;-)
+...to your version of it and don't forget to copy the .gif's.
+
+4. CONSTRUCTION of SmileyTextArea is simple:
+e.g. I put
+in OutputWindow
+    protected SmileyTextArea text_canvas;
+    // above replaced the following (fbartels@splendid.de):
+    // protected MircHyperlinkTextView text_canvas;
+    // protected ScrollView scroll_text_canvas;
+in constructor of OutputWindow:
+        text_canvas=new SmileyTextArea(this);
+        // above replaced the following (fbartels@splendid.de):
+        //  text_canvas = new MircHyperlinkTextView(true, this);
+        //text_canvas.setForeground(Color.black);
+        //scroll_text_canvas = new ScrollView(text_canvas);
+        //  scroll_text_canvas.setSize(300, 200);
+in constructor of StstusWindow (and PrivateWindow and ChannelWindow):
+        gb.setConstraints(text_canvas, gbc);
+        add(text_canvas);
+        // above replaced the following (fbartels@splendid.de):
+        // gb.setConstraints(scroll_text_canvas, gbc);
+        // add(scroll_text_canvas);
+
+5. OUTPUT of text is simply  text_canvas.append(s);
+So change the append() calls; use the only 1 argument version and use the
+interpreted color attributes (from MircMessage: ATTR_BELL, ATTR_BOLD,
+ATTR_ITALIC, ATTR_UNDERLINE, ATTR_COLOR, ATTR_REVERSE, ATTR_RESET)
+instead the second argument TextStyle.
+in ChatWindow.java
+   PrivateWindow.java
+   ChannelWindow.java
+   OutputWindow.java
+(Use appendNoUrls() for StatusWindow output, if you like to get rid of ###-URLs.)
+
+6. I have no correct copyright notice at top of my java files.
+I don't know what has to be written there. I will ask Marc Packenius, so
+we can later add this before you make it a public version...
+
+7. Small problems:
+(But look for yourself...)
+- I'm not sure if scrolling is fast enough on all machines.
+  We must watch this.
+  Also see SmileyTextArea.setMode() to resolve this problem by
+  configuration if nescessary.
+  I also have the idea of measuring the scrolling performance on construction
+  and react e.g. in enlarging the scrolling steps. I will do it if you like.
+  (so far I only measure computer performance for waiting loops between the
+  small scrolling steps).
+- small funny effects (no errors) on top and bottom when scrolling (after
+  scrolling process it is ok again): I could probably correct
+  them, but it would perhaps get a littlebit slower (I must delete
+  some areas before scrolling)
+- if the window is in background output can be corrupted under some
+  circumstances (especially if overlapped by another window).
+  This gets cleared up when the chat window gets the focus again
+  (does not work so far).
+
+8. Large problem:
+I did not proceed to copy and paste so far.
+
+9. You can test immediately by using entering in mIRC
+(since input of special characters is not possible in EIRC so far):
+(I also sent .jar files so you can have a quick test first)
+
+Copy and paste the following lines into mIRC:
+Color tests (don't blame me if output is a littlebit slow with this horrible example ;-):
+0000110220330440550660770880991010111112121313141415150,010011022033044055066077088099101011111212131314141515
+Italic tests:
+italicunderlineboldnotunderline
+Smileys:
+;-) :-| :o :-P :-) :) :-)) B-) ]-I :-/ :-\ :-( :( :-< :-}
+4,7oh, :-) smile!

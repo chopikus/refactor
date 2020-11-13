@@ -1,0 +1,37 @@
+
+Eteria IRC Client, an RFC 1459 compliant client program written in Java.
+Copyright (C) 2000-2001  Javier Kohen <jkohen at tough.com>
+
+
+Text Attributes
+---------------
+
+
+EIRC supports mIRC text attribute codes, plus some extensions. Users should use the textual representation of the control codes (see below) instead of typing those directly; textual codes are easier to remember, and easier to type. Codes are case sensitive.
+
+%A - Bell
+
+%B - Bold
+
+%Cn,m - Color
+ N and M specify fore and background text colors respectively, valid values range from 0 to 15. Both values are optional, in case neither is provided, color is restored to defaults.
+
+%I - Italic (EIRC extension)
+
+%O - Reset
+ Resets the attributes to regular font and default text colors.
+
+%R - Reverse
+ Reverses fore and background colors.
+
+%U - Underline
+
+Bold, Italic and Underline attributes are toggles.
+
+%% - "%"
+
+Prints a singe % character.
+
+%x - "%x"
+
+Prints the string unmodified, where x is any character not listed above.

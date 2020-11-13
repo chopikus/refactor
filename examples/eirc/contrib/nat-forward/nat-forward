@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [ $# == 2 ]
+then
+    DP=`echo $2 | awk -F: '{print $2}'`
+    iptables -A INPUT   -p tcp --dport $1 -j ACCEPT
+    iptables -A FORWARD -p tcp --dport $DP -j ACCEPT
+    iptables -t nat -A OUTPUT -p tcp --dport $1 -j DNAT --to $2
+    iptables -t nat -A PREROUTING -p tcp --dport $1 -j DNAT --to $2
+    exit 0
+fi
+
+if [ $# == 3 ]
+then
+    DP=`echo $2 | awk -F: '{print $2}'`
+    iptables -A INPUT   -p tcp -i $3 --dport $1 -j ACCEPT
+    iptables -A FORWARD -p tcp -i $3 --dport $DP -j ACCEPT
+    iptables -t nat -A PREROUTING -p tcp --dport $1 -i $3 -j DNAT --to
+$2
+    exit 0
+fi
+
+echo Usage: nat-forward srcport destip:destport [interface]

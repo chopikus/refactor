@@ -1,0 +1,152 @@
+
+Eteria IRC Client, an RFC 1459 compliant client program written in Java.
+Copyright (C) 2000-2001  Javier Kohen <jkohen at tough.com>
+
+
+Install
+-------
+
+Installing EIRC is pretty straightforward, all that's needed for an out-of-the-box installation is the two JAR files (EIRC.jar and EIRC-gfx.jar) and an HTML file that instructs the browser to load the Applet. There's a sample index.html included with EIRC's distribution that loads EIRC embedded in the current window.
+
+Below there's a description of every HTML parameters the Applet understands. It's safe to omit any of them.
+
+ * server
+   The host for the IRC server. Defaults to Applet's base.
+
+ * port
+   The port where the IRC server listens. Defaults to 6667.
+
+ * mainbg
+   Most components background color. Defaults to system settings.
+
+ * mainfg
+   Most components foreground color. Defaults to system settings.
+
+ * textbg
+   Text area and field background color. Defaults to system settings.
+
+ * textfg
+   Text area and field foreground color. Defaults to system settings.
+
+ * selbg
+   Selected text background color. Defaults to system settings.
+
+ * selfg
+   Selected text foreground color. Defaults to system settings.
+
+ * channel
+   A comma-separated list of channel names the client will join automatically when the connection is established.
+
+ * channel_keys
+   A comma-separated list of keys (or passwords) to use when joining the channels specified above.
+
+ * titleExtra
+   This is concatenated to the channel or user's name to form the window's title.
+
+ * username
+   What "user name" -sometimes called userid or ident- will be passed to the server. Defaults to "eirc".
+
+ * realname
+   What "real name" will be passed to the server.
+
+ * nickname
+   What "nick name" will be put in the nick field at start up. If the character '?' is used somewhere in the VALUE field, it will be changed to a random number by the client on load.
+
+ * password
+   Will specify a password to send to the server for authentication. It could be empty, so the user has to enter a password himself. If this param is not present, the Password button isn't shown.
+   I think this is only useful if you authenticate your users from the WWW before giving them access to the password, which appears as plain text in the HTML.
+
+ * servPassword
+   Will specify a password to send to NickServ for nickname registration and indentification.
+
+ * servEmail
+   Will specify an email to send to NickServ for nickname registration.
+
+ * login (requires "nickname")
+   If it's set to anything but "0", it will try to establish a connection to the server on start up.
+
+ * language (requires "country")
+   What language to use for the client. Defaults to system settings (See "Internationalization" below).
+
+ * country (requires "language")
+   What country's derivation of language to use for the client. Defaults to system settings (See "Internationalization" below).
+
+ * spawn_frame
+   Whether to launch the main window on a separated frame, thus reducing the space needed by the Applet on the webpage and allowing the window to be resized dynamically.
+
+ * width
+   Sets the width used by the application. This is mostly useful when used standalone.
+
+ * height
+   Sets the height used by the application. This is mostly useful when used standalone.
+
+ * frame_width
+   Sets the width used by the spawned frame.
+
+ * frame_height
+   Sets the height used by the spawned frame.
+
+There's also an optional config file (configuration.properties) that permits tuning some features. Check it out, even when the default values are -hopefully- sane, it might need a few changes.
+
+You can use your own artwork without modifying the source code (and hence, you don't need a Java compiler), just build your customized EIRC-gfx.jar and edit Image.properties accordingly. You can base your work on the supplied EIRC-gfx.jar.
+
+
+Building
+--------
+
+There are two cases you'll face that will require you to rebuild eirc packages: either you modified a program resource (ie: default configuration, language or image files) or the source code. The automatic building system handles both cases, but you'll need at least a Java Runtime and a Jar tool.
+
+If you intend to modify the source code you'll be better getting a Java compiler suit compatible with Sun's JDK and a couple of Java packages (namely: Apache Jakarta-Ant, and Sun's JAXP). The later packages are bundled into the EIRC-lib package that can be obtained at the same place you got EIRC from.
+
+If you don't have a Java compiler, and you don't intend to modify the source code, but you need to modify program resources, there's a "cheaper" alternative: rebuilding the packages by hand. JAR files can be handled by any Zip tool (JAR files are ZIP files, indeed), therefore you can use your favorite Zip tool to add the modified files into the JARs bundled with EIRC.
+
+
+Login
+-----
+
+The login process follows these steps:
+
+A) Standard RFC login.
+1. Sends the server password, if provided.
+2. Sends the nick name.
+3. Sends the user info. The user name is "eirc" and the real name is an empty string, unless provided.
+
+B) Extra steps.
+1. Requests MOTD, if specified.
+2. Joins the default channel, if one's provided.
+3. Identifies to NickServ, if service's password is provided, regarding of special services setting.
+
+
+Internationalization
+--------------------
+
+The default locale will be selected by the JVM from your environment LC_* variables. To see how to choose a specific locale, read the "Installing" section.
+
+The next diagram ilustrates how the translation is selected, it's been extracted (and slightly simplified) from the Sun's JDK documentation:
+
+The resource bundle lookup searches for classes with various suffixes on the basis of (1) the desired locale and (2) the current default locale as returned by Locale.getDefault(), and (3) the root resource bundle (baseclass), in the following order from lower-level (more specific) to parent-level (less specific):
+
+baseclass + "_" + language1 + "_" + country1 
+baseclass + "_" + language1 
+baseclass + "_" + language2 + "_" + country2 
+baseclass + "_" + language2 
+baseclass 
+
+To see what languages are already available in the package, list src/properties/Resources_*. If you know you won't need a language, you can delete the associated file to make slimer jars; don't forget to repackage the jar after doing so. Also, if one particular language you need is not provided, please take some time to write the translation yourself (read below) and then send it to me.
+
+Writting new translations is straightforward, just copy Resources.properties to Resources.properties_<two-letter-lang> or Resources.properties_<two-letterlang_<two_letter_country>. For instance:
+
+Resources_en.properties is the fallback resource file for all English speakers.
+Resources_en_NZ.properties is the specific resource file for the English speakers at New Zealand.
+
+If you write a translation and specify the country in the file name, make sure that there's a fallback file provided for that language (it could be just a link to or a copy of the one you wrote), ie: if you write Resources_fr_CH.properties, make sure there's a Resources_fr.properties, too.
+
+
+Connecting to External Hosts
+----------------------------
+
+Also, "Why does EIRC throw an Exception when I try to connect to irc.some-external.net?".
+
+To enable this feature, you'll have to sign your code. Currently, the procedure is different for each and every browser, so I've put some simple instructions to get your code signed for the two mainstream browsers in contrib/netscape and contrib/microsoft. I can't provide pre-signed versions of EIRC because a signed archive (be it JAR or CAB) can't be modified (even for simple things like adding a new language file, or changing the default settings).
+
+Check out in contrib/jpi the patch I wrote that enables EIRC to usethe Java Plug-In security model. The build target "sign" will sign the applet for you, but you need to have a signing key in your keystore first. Note that this is only compatible with Java 2 and higher, thus it's not part of the standard EIRC.

@@ -1,0 +1,54 @@
+
+Michael Koehne sent me the following tip to allow the IRC server to
+sit in a different host than the web server. Note that I didn't
+include this in the main documentation because this is Linux specific.
+
+
+Moin Javier Kohen,
+
+>Note that you have to be running an IRC server locally if you want to
+> do something besides watching the applet do -almost- nothing!
+
+  this is not necessary if you have a Linux system, this linux
+  system does not need to be the system running the webserver,
+  so you might even host your applet on a windoof webserver,
+  and have a Linux system next to it.
+
+  lets asume, I'm root on some Linux system in my organisation,
+  where I have some script called nat-forward. I now have a HTTP
+  on 192.168.10.10 and an IRC server on 192.168.20.20.
+
+  # forward only incoming http to the real webserver
+  nat-forward 80 192.168.10.10:80 eth0
+  # forward EVERY irc to real irc server
+  nat-forward 6667 192.168.20.20:6667
+
+echo File /usr/local/bin/nat-forward
+sed '/^X/s///' > /usr/local/bin/nat-forward << '/'
+X#!/bin/sh
+X
+Xif [ $# == 2 ]
+Xthen
+X    DP=`echo $2 | awk -F: '{print $2}'`
+X    iptables -A INPUT   -p tcp --dport $1 -j ACCEPT 
+X    iptables -A FORWARD -p tcp --dport $DP -j ACCEPT 
+X    iptables -t nat -A OUTPUT -p tcp --dport $1 -j DNAT --to $2
+X    iptables -t nat -A PREROUTING -p tcp --dport $1 -j DNAT --to $2
+X    exit 0
+Xfi
+X
+Xif [ $# == 3 ]
+Xthen
+X    DP=`echo $2 | awk -F: '{print $2}'`
+X    iptables -A INPUT   -p tcp -i $3 --dport $1 -j ACCEPT 
+X    iptables -A FORWARD -p tcp -i $3 --dport $DP -j ACCEPT 
+X    iptables -t nat -A PREROUTING -p tcp --dport $1 -i $3 -j DNAT --to
+$2
+X    exit 0
+Xfi
+X
+Xecho Usage: nat-forward srcport destip:destport [interface]
+/
+exit 0
+
+Bye Michael

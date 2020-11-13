@@ -1,0 +1,155 @@
+Binary files EIRC-20000105/EIRC-gfx.jar and EIRC-20000105-Dino/EIRC-gfx.jar differ
+Binary files EIRC-20000105/EIRC.jar and EIRC-20000105-Dino/EIRC.jar differ
+diff -urN EIRC-20000105/README EIRC-20000105-Dino/README
+--- EIRC-20000105/README	Tue Jan  2 16:52:15 2001
++++ EIRC-20000105-Dino/README	Fri Jan  5 15:08:28 2001
+@@ -5,6 +5,8 @@
+ 
+ This is the README file for EIRC, I'd appreciate if you read your way through this file, but if you are eager for some action, just jump to the "Quick Start" section below.
+ 
++This README corresponds to the Dino exclusive version of EIRC.
++
+ 
+ Getting EIRC
+ ------------
+diff -urN EIRC-20000105/docs/ChangeLog EIRC-20000105-Dino/docs/ChangeLog
+--- EIRC-20000105/docs/ChangeLog	Fri Jan  5 13:45:23 2001
++++ EIRC-20000105-Dino/docs/ChangeLog	Fri Jan  5 15:08:28 2001
+@@ -58,6 +58,8 @@
+ 
+ 	* OutputWindow.java, ChannelWindow.java, PrivateWindow.java: added support for clickable hyperlinks.
+ 
++	* EIRC.java, ChannelWindow.java: added a "Profile" option to the popup menu. It sends the user to a predefined URL to get info about the selected user. (Dino specific.)
++
+ 	* ChangeFont.java: cleaned up the code.
+ 
+ 	* EIRC.java, OutputWindow.java, ChatWindow.java: split ChangeFont class into its own file. Cleaned up font handling code.
+diff -urN EIRC-20000105/etc/properties/Resources.properties EIRC-20000105-Dino/etc/properties/Resources.properties
+--- EIRC-20000105/etc/properties/Resources.properties	Fri Jan  5 12:19:29 2001
++++ EIRC-20000105-Dino/etc/properties/Resources.properties	Fri Jan  5 15:08:28 2001
+@@ -95,6 +95,7 @@
+ nicklist.popup.query=Open Private
+ nicklist.popup.ping=Ping!
+ nicklist.popup.whois=Who Is?
++nicklist.popup.profile=Profile
+ nicklist.popup.ignore=Ignore
+ nicklist.popup.unignore=Not Ignore
+ nicklist.popup.operators=Channel Operators
+diff -urN EIRC-20000105/etc/properties/Resources_en.properties EIRC-20000105-Dino/etc/properties/Resources_en.properties
+--- EIRC-20000105/etc/properties/Resources_en.properties	Fri Jan  5 12:19:29 2001
++++ EIRC-20000105-Dino/etc/properties/Resources_en.properties	Fri Jan  5 15:08:28 2001
+@@ -95,6 +95,7 @@
+ nicklist.popup.query=Open Private
+ nicklist.popup.ping=Ping!
+ nicklist.popup.whois=Who Is?
++nicklist.popup.profile=Profile
+ nicklist.popup.ignore=Ignore
+ nicklist.popup.unignore=Not Ignore
+ nicklist.popup.operators=Channel Operators
+diff -urN EIRC-20000105/etc/properties/Resources_en_US.properties EIRC-20000105-Dino/etc/properties/Resources_en_US.properties
+--- EIRC-20000105/etc/properties/Resources_en_US.properties	Fri Jan  5 12:19:29 2001
++++ EIRC-20000105-Dino/etc/properties/Resources_en_US.properties	Fri Jan  5 15:08:28 2001
+@@ -95,6 +95,7 @@
+ nicklist.popup.query=Open Private
+ nicklist.popup.ping=Ping!
+ nicklist.popup.whois=Who Is?
++nicklist.popup.profile=Profile
+ nicklist.popup.ignore=Ignore
+ nicklist.popup.unignore=Not Ignore
+ nicklist.popup.operators=Channel Operators
+diff -urN EIRC-20000105/etc/properties/Resources_es.properties EIRC-20000105-Dino/etc/properties/Resources_es.properties
+--- EIRC-20000105/etc/properties/Resources_es.properties	Fri Jan  5 12:19:58 2001
++++ EIRC-20000105-Dino/etc/properties/Resources_es.properties	Fri Jan  5 15:08:28 2001
+@@ -95,6 +95,7 @@
+ nicklist.popup.query=Abrir Privado
+ nicklist.popup.ping=¡Ping!
+ nicklist.popup.whois=¿Quién Es?
++nicklist.popup.profile=Perfil
+ nicklist.popup.ignore=Ignorar
+ nicklist.popup.unignore=No Ignorar
+ nicklist.popup.operators=Operadores de la Sala
+diff -urN EIRC-20000105/etc/properties/Resources_es_AR.properties EIRC-20000105-Dino/etc/properties/Resources_es_AR.properties
+--- EIRC-20000105/etc/properties/Resources_es_AR.properties	Fri Jan  5 12:19:58 2001
++++ EIRC-20000105-Dino/etc/properties/Resources_es_AR.properties	Fri Jan  5 15:08:28 2001
+@@ -95,6 +95,7 @@
+ nicklist.popup.query=Abrir Privado
+ nicklist.popup.ping=¡Ping!
+ nicklist.popup.whois=¿Quién Es?
++nicklist.popup.profile=Perfil
+ nicklist.popup.ignore=Ignorar
+ nicklist.popup.unignore=No Ignorar
+ nicklist.popup.operators=Operadores de la Sala
+diff -urN EIRC-20000105/etc/properties/configuration.properties EIRC-20000105-Dino/etc/properties/configuration.properties
+--- EIRC-20000105/etc/properties/configuration.properties	Fri Jan  5 11:58:21 2001
++++ EIRC-20000105-Dino/etc/properties/configuration.properties	Fri Jan  5 15:10:20 2001
+@@ -48,5 +48,9 @@
+ window_width=600
+ window_height=400
+ 
++# Profile URL. A nick is concatenated to this URL, and it's open in a browser window.
++# NOT USER CONFIGURABLE.
++profile_url=http://profil.webchat.freenet.de/profil.php?nick=
++
+ # Whether to focus private windows on opening.
+ focus_opening_privates=true
+diff -urN EIRC-20000105/src/ChannelWindow.java EIRC-20000105-Dino/src/ChannelWindow.java
+--- EIRC-20000105/src/ChannelWindow.java	Fri Jan  5 14:52:36 2001
++++ EIRC-20000105-Dino/src/ChannelWindow.java	Fri Jan  5 15:08:28 2001
+@@ -356,6 +356,9 @@
+ 	mi = new MenuItem(sp.getString("nicklist.popup.whois"));
+ 	mi.setActionCommand("whois");
+ 	pm.add(mi);
++	mi = new MenuItem(sp.getString("nicklist.popup.profile"));
++	mi.setActionCommand("*profile");
++	pm.add(mi);
+ 	pm.addSeparator();
+ 	mi = new MenuItem(sp.getString("nicklist.popup.ignore"));
+ 	mi.setActionCommand("ignore");
+@@ -412,7 +415,16 @@
+ 	Object comp = ev.getSource();
+ 
+ 	if (comp instanceof MenuItem) {
+-	    sp.sendCommand(ev.getActionCommand() + " " + item_under_menu.getNick(), this);
++	    String cmd = ev.getActionCommand();
++	    if (cmd.equals("*profile")) {
++		try {
++		    sp.visitURL(new URL(sp.getConfString("profile_url") + item_under_menu.getNick()));
++		} catch (java.net.MalformedURLException e) {
++		    printWarning(sp.getString("eirc.not_an_url"));
++		}
++	    } else {
++		sp.sendCommand(cmd + " " + item_under_menu.getNick(), this);
++	    }
+ 	} else if (comp.equals(topic)) {
+ 	    String p[] = { channel, topic.getText() };
+ 	    sp.sendMessage("topic", p);
+diff -urN EIRC-20000105/src/EIRC.java EIRC-20000105-Dino/src/EIRC.java
+--- EIRC-20000105/src/EIRC.java	Fri Jan  5 14:56:57 2001
++++ EIRC-20000105-Dino/src/EIRC.java	Fri Jan  5 15:12:22 2001
+@@ -31,7 +31,7 @@
+ 
+ public class EIRC extends Applet implements ServerProcess, ControlPanelClient, MouseListener, ActionListener, ChatPanelListener {
+     public final static String PACKAGE = "Eteria IRC Client";
+-    public final static String VERSION = "20000105";
++    public final static String VERSION = "20000105-Dino";
+ 
+     static String PRE_ERROR;
+     static String PRE_ACTION;
+@@ -57,7 +57,8 @@
+     public static final int CONF_WINDOW_WIDTH = 15;
+     public static final int CONF_WINDOW_HEIGHT = 16;
+     public static final int CONF_FOCUS_OPENING_PRIVATES = 17;
+-    public static final int CONF_OPTIONS_COUNT = 18;
++    public static final int CONF_PROFILE_URL = 18;
++    public static final int CONF_OPTIONS_COUNT = 19;
+     // "Name", "default value".
+     final static String[][] default_options = {
+ 	{ "special_services", "false" },
+@@ -77,6 +78,7 @@
+ 	{ "service_bots", "" },
+ 	{ "window_width", "400" },
+ 	{ "window_height", "300" },
++ 	{ "profile_url", "http://profil.webchat.freenet.de/profil.php?nick=" },
+ 	{ "focus_opening_privates", "true" },
+     };
+ 

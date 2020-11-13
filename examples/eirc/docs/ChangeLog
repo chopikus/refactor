@@ -1,0 +1,1013 @@
+2003-10-07  Javier Kohen  <jkohen@users.sourceforge.net>
+
+	* EIRC.java: accept width and height parameters. These are specially useful for command-line users. (Patch submitted by Mark Hale.)
+
+2002-02-09  Javier Kohen  <jkohen@users.sourceforge.net>
+
+	* EIRC.java: replaced a reference to a 1.2 API method by its 1.0+ equivalent. (Patch submitted by Elrond.)
+
+2001-11-03  Javier Kohen  <jkohen@users.sourceforge.net>
+
+	* EIRC.java: a reference to each Channel instance was being kept after leaving the channel. One of the symptoms that produced was that an exception ocurred when the user left all channels and changed her nick. (Reported by Axel Staacke.)
+	When the server sent the list of users in a channel in more than one message, all those after the first one were discarded. (Reported by Axel Staacke.)
+
+2001-08-02  Javier Kohen  <jkohen@kraftmedia.com.ar>
+
+	* VisualTable.java, ChannelTree.java: merged a patch to fix a problem with scrollbars and MSIE in the ChannelTree. (Submitted by Christian Buck.)
+
+	* SmileyTextAreaArea.java: changed WAITCOUNT inexact delay for a simpler and more efective Thread.sleep call.
+
+2001-08-01  Javier Kohen  <jkohen@kraftmedia.com.ar>
+
+	* SmileyTextAreaArea.java: been playing with a profiler, no great deal, but made little optimizations here and there. There haven't been significant changes in the algorithms used. Indentation mania.
+
+	* StatusWindow.java: small fix in printUnmangled method.
+
+2001-07-31  Javier Kohen  <jkohen@kraftmedia.com.ar>
+
+	* SmileyTextArea.java: small class interface correction and made setMode actually usable.
+
+	* ControlPanel.java: the nickserv button isn't disabled on startup, (with login=0). (Reported by Lucas Nussbaum.)
+
+2001-06-14  Javier Kohen  <jkohen@tough.com>
+
+	* SmileyTextAreaArea.java: emoticons kept appearing when a SmileyTextArea was first created. Commented the code that intentionally did that as an "initialization procedure", and nothing seems to have broke, yet; it might be a leftover from an old version. I'm waiting for the author's confirmation, anyway.
+
+	* EIRC.java: Avoid interpreting URLs when displaying user host from a RPL_WHOISUSER message. (Reported by Skold.)
+
+	* MircSmileyTextArea.java, SmileyTextArea.java, OutputWindow.java, ChatWindow.java: Make the interface to append and appendNotUrls straighter by converting the later into append(..., boolean).
+
+	* ChangeFont.java, ChannelTree.java, ChannelWindow.java, ChatPanelContainer.java, ChatWindow.java, Configurator.java, ControlPanel.java, NewChannel.java, NickServCommander.java, OutputWindow.java, PrivateWindow.java, StatusWindow.java, VisualTable.java, EIRC.java: support for forcing a Locale from HTML tags was accidentally removed. Rewrote that feature. (Reported by many.)
+
+2001-05-04  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: tell the user whenever she's been disconnected, no matter the reason of the disconnection. (Suggested by many.)
+
+2001-05-01  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: fixed a Java 1.1 uncompliance.
+
+	* EIRC.java: discovered and fixed a remaining issue with spawn_frame. If the user moved out of the page, EIRC disconnected, but the Frame couldn't be closed. Now it's closed, and re-opened if the user comes back.
+
+	* NickItemSymbol.java: use a different color for op, half-op and voiced items. (Suggested by skold.)
+
+	* SmileyTextAreaArea.java: fixed syntactic compatibility problem with JDK 1.1.x (I have to check, but I think that's only with IBM's). (Reported by Jean-Marc Drouaud.)
+
+	* NickList.java: implemented double-buffer. Now it's flicker-free, again.
+
+	* ChannelWindow.java: replaced nick completion code with a Completer instance. This made easy adding a new feature: when the nick completed is at the beginning of line, ": " is appended to the completion.
+
+	* Completer.java: written a general word completer class. It's now used in ChannelWindow to replace the old & messy state machine used to complete nick names on response to the user pressing the Tab key on the text entry line. The code is very simple, and passed all my tests so far.
+
+2001-04-30  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: fixed an strange bug that could have been around on some IRC clients for years. If there were two queries open to Albert and Charles, Albert left and Charles changed his nick to Albert (and the user didn't close the query to Albert), there would be now two queries to Charles, and that would cause problems, as query windows are keyed by nick name. Now it closes the query to Albert as soon as the message telling Charles is now named Albert arrives.
+
+2001-04-28  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: fixed a problem caused by a difference of meaning in messages 335 sent by Wircd. (Reported by Lucas Nussbaum.)
+
+	* EIRC.java: it's now possible to close the spawned frame when "spawn_frame" option is enabled. (Reported by Lucas Nussbaum and Cedric Perronnet.)
+
+2001-04-26  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: fixed bug in sortItemsAlphabeticallyFavorMode.
+
+	* NickList.java: fixed small Java 1.1 incompatibility.
+
+	* ChannelWindow.java: re-enabled dynamic change of NickItem renderers.
+
+	* NickList.java: finished implementation of ItemSelectable interface.
+
+	* NickItemBullet.java, NickItemSymbol.java: fixed background coloring.
+
+2001-04-22  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: re-enabled the sort of items.
+
+2001-04-18  Javier Kohen  <jkohen@tough.com>
+
+	* Channel.java: method remove was reporting remove events even when the nick passed wasn't part of the channel.
+
+2001-04-16  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: slightly modified to accomodate changes in NickList. Still missing: mouseClicked Event handler.
+
+	* NickList.java: converted into a good behaving AWT Container. Everything is much simpler now. All item operations have been finished, but some features are still missing: most Event's generation, nick sort and nick item renderer switch.
+
+	* Channel.java: adjust to new User interface.
+
+	* User.java: small interface change to make it safer.
+
+	* User.java: corrected isHalfOp and isVoiced methods declaration (those weren't being used) and added isNormal method.
+
+	* EIRC.java: don't report the user when a CTCP ACTION is received.
+
+2001-04-15  Javier Kohen  <jkohen@tough.com>
+
+	* *_fr.properties: translation updates by Lucas Nussbaum.
+
+2001-04-07  Javier Kohen  <jkohen@tough.com>
+
+	* Commands.java: fixed command parsing for commands without parameters.
+
+	* EIRC.java: fixed NullPointerException on receipt of a MODE command that's not targeted to a channel. (Reported by Shane.)
+
+2001-04-04  Javier Kohen  <jkohen@tough.com>
+
+	* htmllayout/*: removed until someone fixes it (could be me), or a better solution appears.
+
+	* ControlPanel.java, EIRC.java: restructured ControlPanel for smoother integration with EIRC, and to allow for -future- ability to choose different ControlPanel's depending on intended user level.
+
+	* EIRC.java: use a custom AppletStub when run out of an Applet context instead of overloading some methods.
+
+	* EIRC.java: added an option to spawn the Applet on a frame, thus reducing the space needed on the webpage and allowing the main window to be resized dynamically.
+
+2001-04-03  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java, PrivateWindow.java: build TextAttributePicker with SmileyTextArea's color palette.
+
+	* TextAttribute.java: removed, wasn't being used.
+
+	* MircMessage.java: removed mIRC colors array.
+
+	* *: enabled smileys in SmileyTextArea.
+
+	* SmileyTextArea.java: remove duplication of Resource.getResource method.
+
+	* Resource.java: if a Class object was passed as target, resources would be loaded with a wrong package base (more exactly, without one).
+
+2001-04-01  Javier Kohen  <jkohen@tough.com>
+
+	* SmileyTextAreaArea.java: fixed COLOR attribute parsing for the case than neither back nor foreground color was supplied.
+
+	* ChannelWindow.java, PrivateWindow.java, StatusWindow.java: fixed bug that allowed empty commands to be passed. It didn't check for not-empty but all white space strings. While working on that, cleaned-up a bit.
+
+	* Commands.java, EIRC.java: fixed long standing bug in the command-line parser that couldn't be triggered up to recently (20010330). While working on that, rearranged the code in such way that part of it could be moved into class Commands.
+
+	* EIRC.java: filter text attributes from topics shown into the topic bar of ChannelWindows, and those passed to ChannelTree.
+
+	* Commands.java, NewChannel.java: added support for using channel keys. (Suggested by Anthony Martin.)
+
+	* Message.java: fix problem introduced on 20010330 related to rejecting messages without parameters. The QUOTE command requires the ability to instantiate non-parametrized Message objects.
+
+	* EIRC.java: closed SourceForge bugs #130086 and #132500 (also reported via e-mail by Mark Johnston). There's a "feature" in some IRCd's that decide not to send RPL_LISTSTART before sending RPL_LIST messages in response for a LIST command.
+
+	* EIRC.java: corrected init/start/stop/destroy methods to be well behaved, that means that two particular problems got solved: no more hanging connections if a user leaves a page that contained EIRC, and the Start/Stop/Restart options in appletviewer work as expected. (Hanging connection problem reported by many.)
+
+	* MircMessage.java: fixed Java 1.1 uncompliance introduced on 20010330.
+
+2001-03-30  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java, PrivateWindow.java: relocated TextAttributePicker.
+
+	* TextAttributePicker.java: dropped "repeat last text attribute" setting because it wasn't totally correct.
+
+	* MircSmileyTextArea.java: extends SmileyTextArea to interpret textual text attributes.
+
+	* MircMessage.java: added support for textual text attributes (%C, %B, etc).
+
+	* Message.java: parts were rewritten to produce simpler code and to replace Vector returns by String arrays.
+
+2001-03-29  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: fixed scrollbar issues by setting the ScrollPane policy to ALWAYS... this is awful, but AS_NEEDED policy can't be gotten to work right.
+
+	* VisualTable.java: update by Christian Buck. Now it uses tiny images instead of ASCII symbols for representing the tree branches.
+
+2001-03-28  Javier Kohen  <jkohen@tough.com>
+
+	* Commands.java: forgot to make commands case insensitive.
+
+	* Commands.java: added all RFC client commands with information regarding how many parameters they accept/require, thus allowing for better passing to the server.
+
+	* EIRC.java: info messages are printed in the proper panels now, instead of being thrown to the status window.
+
+	* INSTALL: reworded some paragraphs to -hopefully- improve clarity.
+
+	* EIRC.java: added capability of outputting to a few special sets of panels:
+	getCurrentPanel - returns the panel currently visible.
+	getUserPanel - returns the private panel to a user, if one exists, otherwise the status window.
+	getUserPanels - returns an array containing all the channels a user is in and the query panel to that user, if one exists.
+
+	* com.splendid.awtchat: update from Frank Bartels.
+
+2001-03-27  Javier Kohen  <jkohen@tough.com>
+
+	* ChatPanelContainer.java: fixed unlikely bug related to the shift buttons being enabled when the tabs width was zero.
+	Method updateShiftButtons is now invoked from setBounds.
+
+2001-03-12  Javier Kohen  <jkohen@tough.com>
+
+	* Resource.java: fixed bug introduced yesterday.
+
+2001-03-11  Javier Kohen  <jkohen@tough.com>
+
+	* ChatTabs.java: implemented a dirty hack that solved the mistery of the unfocused entry line, thus vastly enhancing usability. (Workarounds bug #33.)
+
+	* eirc*.properties: extracted command help messages into their own Help property files.
+
+	* EIRC.java: adapted to previous change in ChatPanelContainer.
+
+	* ChatPanelContainer.java: s/(Chat|Output)Window/ChatPanel/g s/window/panel/g, after all, this is a Container for ChatPanel objects, not Window.
+	Simplified public interface, as now all components are treated as ChatPanel's.
+	PrivateWindow's now are actually closed (bug introduced on 2001-03-09).
+	Popup menu for the status panel gets a disabled "close" item.
+	Added some synchronization blocks.
+	
+	* EIRC.java: help messages in language file are no longer mandatory. On the other hand, you can now place help messages for commands which aren't local to EIRC.
+
+	* Commands.java, EIRC.java: provided convenience method for resolving command aliases. Made use of it in class EIRC.
+
+	* Resource.java: optimized the loop by using a ByteArrayOutputStream. (Idea gotten from a FAQ at http://developer.netscape.com/.)
+
+2001-03-10  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java, Commands.java: reworked the command definition to take the burden out of EIRC, and allow for easier command definitions.
+
+2001-03-09  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: slightly optimized update_channel method using Channel update hints.
+
+	* ServerThread.java: set SO_LINGER in an attempt to prevent the lock-up that occurs when the route to the server is dropped.
+
+	* README: slightly updated and corrected.
+
+	* EIRC.java: enhanced IGNORE command to show list of ignored nick names if no parameters are given.
+
+	* EIRC.java: small internal data structures change.
+
+	* ChannelWindow.java: fixed rare bug on channel closing.
+
+	* EIRC.java: fixed cmd_help to work with new text canvas, which -on purpose- doesn't support embedded line feeds.
+
+	* EIRC.java: replaced one-time MessageFormat's by an equivalent convenience static method part of the same class.
+
+	* *.properties: removed duplicated strings in language files.
+
+	* ChannelWindow.java, ChatPanelWindow.java, EIRC.java: bug fixed related to disposal of ChannelWindow's. ChannelWindow.dispose() was being called twice, sometimes giving a NullPointerException.
+
+2001-03-08  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: adapted to NickList's interface change.
+
+	* NickList.java: tiny interface change.
+
+2001-03-07  Javier Kohen  <jkohen@tough.com>
+
+	* ChatWindow.java, OutputWindow.java: enhanced text format capabilities.
+
+	* ChannelWindow.java, ChatWindow.java, OutputWindow.java, PrivateWindow.java, StatusWindow.java: replaced lyrisoft's text canvas by Splendid's.
+
+	* MircMessage.java: added support for ITALIC text attribute.
+
+	* EIRC.java: fixed bug introduced with ChannelWindow/Channel separation.
+
+	* ChatPanelContainer.java: was sending PART when the popup menu was used to close a private window.
+
+	* ChannelWindow.java, PrivateWindow.java, StatusWindow.java: switched two lines of code so the text written by the user is first displayed and then sent over the network. Fixes a harmless bug with very low network latencies.
+
+	* EIRC.java: enhanced RPL_AWAY displaying.
+
+2001-03-06  Javier Kohen  <jkohen@tough.com>
+
+	* eirc_fr_FR.properties, configurator_fr_FR.properties: updated by Didier Beaufays.
+
+2001-03-05  Javier Kohen  <jkohen@tough.com>
+
+	* ConfigurationProperties.java: corrected Java 1.1 uncompliance. (Contributed by Christian Buck.)
+
+	* Message.java: fixed very rare bug.
+
+	* Channel.java: fixed small bug when adding users.
+
+2001-03-04  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java, NickItemBullet.java: interface changes in NickItemBullet and simple optimizations.
+
+	* Channel.java, ChannelWindow.java, EIRC.java: channel topic is only editable if user is op or channel is not MODE +t. (Suggested by Skold.)
+
+	* Modes.java, User.java: moved some stuff from class Modes to class User.
+
+	* ChannelWindow.java: channel NickList item renderer on the fly.
+
+2001-03-02  Javier Kohen  <jkohen@tough.com>
+
+	* Channel.java, User.java, EIRC.java, ChannelWindow.java: split ChannelWindow class in front and back-ends.
+
+2001-03-01  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java, ChannelWindow.java, ChatPanelContainer.java, ControlPanel.java, PrivateWindow.java: replaced calls to EIRC.getImage by private methods that invoke ar.com.jkohen.util.Resource.createImage(String).
+
+	* Resource.java: added method createImage(String), which creates images from resource names.
+
+2001-02-28  Javier Kohen  <jkohen@tough.com>
+
+	* OutputWindow.java: cosmetic fix to info messages style: don't use bold font for this style.
+
+	* EIRC.java: when a user was kicked, the message to the user was sent to the status window instead of the windows where the user had been kicked from.
+
+	* EIRC.java: don't try to add users to a channel that hasn't been opened. Occurs when the user issues a NAMES command.
+
+2001-02-26  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: add SecurityException to connect's declaration throw clause, as MSIE throws that under some circumstances.
+
+2001-02-23  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java, ChangeFont.java, ChannelWindow.java, ChannelTree.java, ChatPanelContainer.java, ChatWindow.java, Configurator.java, NewChannel.java, NickServCommander.java, OutputWindow.java, PrivateWindow.java, StatusWindow.java, VisualTable.java: replaced calls to EIRC.getString by a class or method scoped ResourceBundle.
+
+2001-02-21  Javier Kohen  <jkohen@tough.com>
+
+	* TextAttribute.java: added new constructor.
+
+	* TextAttributePicker.java: made a couple of fixes.
+
+	* ChatTabs.java: added a call to Graphics.dispose in method cacheImages.
+
+	* Slide.java: now it uses different images for the button depending on whether it's opened or not.
+
+	* RFC1459.java: added '~' as the capital form of '^' to the collation definition as per RFC2812.
+
+2001-02-19  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java, Configurator.java: added option to select sort method of nick names into NickList.
+
+	* EIRC.java, ChangeFont.java, ChannelTree.java, ChannelWindow.java, ChatPanelContainer.java, NewChannel.java, NickServCommander.java, PrivateWindow.java, StatusWindow.java, VisualTable.java: now EIRC's children receive an EIRC object instead of a ServerProcess. This is an intermediate step, my aim is to make children independent of EIRC's methods, and write interfaces for what is strictly needed (ie: sendMessage).
+
+	* ClientThread.java, ClientProcess.java, EIRC.java, ServerProcess.java: ClientProcess and ServerProcess were swapped in functionality. Additionally, removed everything from ClientProcess -which used to be ServerProcess- that wasn't supposed to be part of the interface.
+
+	* OutputWindow.java, ChatWindow.java, PrivateWindow.java, ChannelWindow.java, ClientProcess.java, NickServCommander.java: updated in order to reflect the new configuration scheme.
+
+	* ServerProcess.java, EIRC.java, Configurator.java: moved all configuration related code from ServerProcess/EIRC to Configurator. Simplified a lot adding new configuration options, simply add them to configuration.properties, and if applicable, add the usual GUI configuration code to Configurator.<init> method. During the transition, Configurator was written in a more OOP fashion, making it a lot simpler, easier to read, efficient, and easier to extend. As a bonus, it makes possible to implement features that were difficult to implement using the previous scheme. No external changes are needed.
+
+	* ConfigurationBundle.java: dropped in favor of ConfigurationProperties.
+
+	* ConfigurationProperties.java: comes to replace ConfigurationBundle, being derived from Observable makes it more appropiate for updating configuration values by pushing instead of polling. Also it now uses a Properties object instead of a Hashtable, delegating more work onto it.
+
+2001-02-18  Javier Kohen  <jkohen@tough.com>
+
+	* applet2cmdline: written a Perl script that tries to convert HTML files to command-line, preserving options in the conversion. This is intended to aid users that want to run EIRC from the command-line -for instance, me :)-.
+
+	* PrivateWindow.java: added support for Slide.
+
+2001-02-16  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: added support for Slide.
+
+	* Slide.java: written a retractile container resembling a -very- simplified GNOME panel.
+
+2001-02-15  Javier Kohen  <jkohen@tough.com>
+
+	* TextAttributePicker.java: "regular" (font) button is now "reset" button. It behaves better, mIRC text attributes suck.
+
+	* ChatTabs.java, ChatPanelContainer.java: when a tab is closed, focus goes to the previous in display order; it's more user friendly than the old behavior of reverting to the default channel, or the Status.
+
+	* MircMessage.java: COLOR_TABLE is filled with values retrieved from the colors.propertie file.
+
+2001-02-14  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: mIRC colors palette first two elements now match what the user sees on his screen, that is, they are set to TextForeground and TextBackground properties.
+
+	* NickList.java, NickItemBullet.java: bullets are now images, and they look much better.
+
+	* ImageButton.java: small behavior fix.
+
+	* ChatPanelContainer.java: shift buttons are now disabled if all the tabs fit in the visible area. These buttons are now ImageButton's.
+
+2001-02-13  Javier Kohen  <jkohen@tough.com>
+
+	* configurator*.properties: extracted from corresponding eirc*.properties.
+
+	* *.properties: "sed 's/^Resources/eirc/'" to all file names preparing for better code separation.
+
+	* ChannelWindow.java, PrivateWindow.java: simplified text attribute use, it was too clever to be usable.
+
+2001-02-12  Javier Kohen  <jkohen@tough.com>
+
+	* ChatTabs.java: fixed off by one error. Centered the text with relation to the CENTER image of the tab.
+
+2001-02-11  Javier Kohen  <jkohen@tough.com>
+
+	* ChatTabs.java: finished yesterday's work and optimized rendering.
+
+2001-02-10  Javier Kohen  <jkohen@tough.com>
+
+	* ChatTabs.java: made tabs fixed width (requested by Skold). Moreover, this should improve perfomance.
+
+	* EIRC.java: if user issued a QUIT from the command line, two QUIT messages were sent: one in cmd_quit and the other in disconnect. It wasn't harmful at all, but it's fixed.
+
+	* EIRC.java: fixed bans display by removing some ban string filtering code that wasn't needed anymore.
+
+	* NickList.java: fixed a bug introduced with the switch to using ScrollPane that caused the popup window to popup away from the pointer if the list was scrolled.
+
+	* NickList.java: added code to sort nicks alphabetically but favoring user op/hop/voice status (Contributed by Gustavo Ajzenman, adapted by me.)
+
+2001-02-09  Javier Kohen  <jkohen@tough.com>
+
+	* HyperlinkTextView.java: added support for FTP links.
+
+2001-02-08  Javier Kohen  <jkohen@tough.com>
+
+	* PrivateWindow.java, ChannelWindow.java: integrated TextAttributePicker.
+
+	* TextAttributePicker.java, TextAttribute.java, ColorPicker.java, IndexededColorPicker.java, ColorMemory.java: implemented a mIRC text attributes picker in a flexible way. The resulting widget (TextAttributePicker, which contains an instance of IndexedColorPicker) is small and fits aside an entry line. Additionally, the class TextAttribute provides a method for intelligently getting the differences in the attribute, and thus allowing for character saving.
+
+2001-02-08  Javier Kohen  <jkohen@tough.com>
+
+	* BistateImageButton.java: created a bistate button.
+
+2001-02-05  Javier Kohen  <jkohen@tough.com>
+
+	* CTCPMessage.java: fixed a bug in -up to now- unused constructor and toString method.
+
+	* EIRC.java: now replies received for unmangled CTCP commands are shown. Added CTCP VERSION reply (Suggested by Skold).
+
+	* EIRC.java: fixed bug when someone changed a nick name and you were in a channel she wasn't (very stupid on me).
+
+	* EIRC.java: it now connects to a random address from the set a server returns.
+
+	* IndexedColorPicker.java: implements interface ColorPicker for indexed palettes (like mIRC color codes use). Seems to work flawlessly :)
+
+	* ColorPicker.java: created a simple interface for color pickers.
+
+2001-02-04  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: enabled SERVER command when working in application mode.
+
+	* Resources_e[sn].properties: made changes to eirc.pre.unmangled and eirc.s7 to correct two unclear issues with hyperlinks. (Suggested by Meglio.)
+
+	* EIRC.java: fixed bug where ChannelWindow's remained open (and worked faultily) after a "quote part" or "quote join 0" (part all) command was issued. (Reported by Meglio.)
+
+	* NickList.java: workarounded the case where some server sends a MODE command before NAMES when creating a channel, thus wanting to set modes on an unexisting nick. (Reported by Christian Birkl.)
+
+	* ChatPanelContainer.java: fixed a silly Exception that occurred if a channel was closed and a default channel wasn't specified.
+
+	* EIRC.java: added support to run the client as a standalone application. That is, it doesn't require a browser to be run (but still will run under one).
+
+2001-01-31  Javier Kohen  <jkohen@tough.com>
+
+	* build.xml: split EIRC into two packages. EIRC-lib is supposed to change as less as possible, at this moment it contains only jakarta-ant and Sun's JEXP.
+
+	* ar.com.jkohen.irc.MircMessage: split from Message, derives from it.
+
+	* mIRCHyperlinkTextView.java: fixed a bug that caused the last char from the background text color specification to be shown, and another bug that prevented Hyperlinks from being linked.
+	Reduced a few redundancies, and made some clean up. Implemented beep for a complete multimedia experience :)
+
+	* ChatPanelContainer.java: fixed tabs popup menu "close" command, it wasn't issuing a part command to the server.
+
+	* VisualTable.java, ChannelWindow.java, NickList.java, NickItem.java: enhanced color handling.
+
+	* EIRC.java: "server" and "port" PARAMs are now optional. Default port is 6667 and the server is obtained from the Applet's codebase. Now the applet can run without any PARAM being supplied.
+
+2001-01-30  Javier Kohen  <jkohen@tough.com>
+
+	* *.java: aesthetic code modification to dialogues.
+	A few functional and interface fixes in the channel tree classes.
+
+2001-01-29  Javier Kohen  <jkohen@tough.com>
+
+	* ChatTabs.java: removed hardcoded height, now tabs height is that of the taller image supplied.
+
+	* EIRC.java, Configurator.java: made it possible to select which NickItem style is desired. Note that the style will change the next time a channel is joined (or the NickItem's would have to be re-created for every existing channel).
+	Notify the user on receiving a CTCP DCC command, telling her that it isn't supported. There's an option to notify the peer (with a notice command) about this situation, too.
+
+2001-01-28  Javier Kohen  <jkohen@tough.com>
+
+	* NickItemSymbol.java: extends NickItem to write traditional IRC characters to distinguish user modes.
+
+	* NickItemBullet.java: extends NickItem to draw bullets to distinguish user modes.
+
+	* NickItem.java: splitted from NickInfo.
+
+	* *: dropped makefile support in favor of Apache Ant building system. Now the building process should be fully portable and faster, as it keeps full Java dependencies. A backdraw is that the distribution is twice as bis as before, but the client size is not affected by this.
+
+2001-01-26  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: modified color behavior, it's more sane and flexible now.
+
+	* NickList.java: fixed small painting bug in NickList.
+
+	* EIRC.java: enhanced dialogs (children Frames) handling.
+
+	* *.java: organized classes into packages, where it made sense.
+
+	* GNUmakefile: small corrections.
+
+2001-01-25  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: added the handling of some more replies and enhanced the unmangled replies parser. (Requested by Meglio and Skold.)
+
+	* GNUmakefile: unified all make files into a flat one.
+
+2001-01-24  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: code clean-up and data structures change, it resulted in less memory usage, more speed and established a better separation between back and front end. Simpler code results in less places to have bugs :)
+
+	* ChannelWindow.java: fixed nick completion, seems to work perfectly now :)
+
+2001-01-23  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: fixed a bug in the CTCP messages parsing code. Moved the code to its own class, further simplifying things.
+
+	* ChannelWindow.java: added nick name completion on Tab key.
+
+2001-01-22  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: added CTCP command-line command. (Requested by Meglio.)
+
+	* NickList.java: a big optimization was carried out by removing a lot of list buildings and size calculations.
+	Now it derives from ScrollPane, making the scroll bars behavior nicer, and the code simpler. (Inspired by Skold.)
+	Additionally, the item selection behavior has been changed to somewhat reflect Windows', which is what almost everyone would expect. On left click, one item gets (un)selected; pressing the control key enables multi-selection. (Suggested by Marc Packenius.)
+
+	* com/lyrisoft/awt/mIRCHyperlinkTextView.java: derived from HyperlinkTextView to remove the mIRC colors code from the TextView class. Fixed a stupid color parsing bug in the meanwhile (I don't know how did it slip by during my tests).
+
+2001-01-21  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelList.java, Table.java, Channel.java: got rid of the old channel list.
+
+	* ChatTabs.java: added a "dirty" status variable to fix a bug discovered from a problem reported by Skold, as a side effect we get an small optimization by removing -sometimes unnecessary- calls to calculateTabs, and the synchronized keyword from that and paint methods.
+
+2001-01-05  Javier Kohen  <javier@tough.com>
+
+	* ChatTabs.java, ChatPanelContainer.java: modified so three images are used to build the tabs, the one in the middle behaves as before, and the left and right ones are put as they are (no resizing is performed).
+
+	* com/lyrisoft/awt/Text{Style,Run}.java: finished adding support for mIRC's colors and attributes (underline has been replaced by italic text because of limitations on the text canvas).
+
+	* NickList.java: got rid of the ban list because it's somewhat confusing and the implementation wasn't as good as it should. Something like mIRC's Channel Central could be implemented. (Suggested by Meglio.)
+
+	* EIRC.java, Configurator.java: added a new configuartion option to select whether opening private windows get focus. (Suggested by Marc Packenius.)
+
+	* com/lyrisoft/awt/TextRun.java: fixed a bug that prevented appending to TextView's that hadn't been already shown. (Submitted patch to the original author.)
+
+2001-01-04  Javier Kohen  <javier@tough.com>
+
+	* *.java: some fixes here and there, no new features.
+
+2001-01-03  Javier Kohen  <javier@tough.com>
+
+	* *.java: added code from Christian Bucks to enhance the ChannelList.
+
+2001-01-02  Javier Kohen  <javier@tough.com>
+
+	* PrivateWindow.java: fixed a long standing bug, the class wasn't being noticed on nick changes, so the whois button broke after the other's nick change.
+
+2000-12-27  Javier Kohen  <jkohen@tough.com>
+
+	* com/lyrisoft/awt/TextView.java: added support for rendering mIRC attributes (doesn't support background colors, yet).
+
+	* com/lyrisoft/awt/HyperlinkTextView.java: more fixes here, there was a problem with the original parser.
+
+	* ChannelWindow.java: removed ChanServ URL from the GUI now it's clickable; dropped support for setting it from the GUI, but I'm sure it wasn't of much use, and it occupied valuable screen space.
+
+	* ChatTabs.java: made the paint process use a double-buffer to avoid flickering and a couple of rendering problems that showed without it.
+
+	* ChatPanelContainer.java: added arrow buttons that allow the user to scroll left or right the tabs, if they don't fit the visible area.
+
+2000-12-22  Javier Kohen  <jkohen@tough.com>
+
+	* com/lyrisoft/awt/HyperlinkTextView.java: fixed my previous fix, and also corrected a bug in the original code that changed the style of the text for lines that contained a link. (Submitted patch to the original author.)
+
+2000-12-21  Javier Kohen  <jkohen@tough.com>
+
+	* ChatTabs.java: split channel tabs into two rows, one for channels and the other for privates.
+
+	* ChatPanelContainer.java: when a channel is closed, the default channel is shown, unless it was closed, in which case the status is shown instead.
+
+	* Message.java: fixed a bug in the message parser that was causing the last parameter to be slightly different from what was received under some circumstances. This also closes another bug that made EIRC.processMessage() throw an unhandled Exception when a PRIVMSG or a NOTICE were received which contained only spaces.
+
+2000-12-20  Javier Kohen  <jkohen@tough.com>
+
+	* com/lyrisoft/awt/HyperlinkTextView.java: fixed a bug that made hyperlinks out of strings with an @, but with no text placed previous to that character. (Submitted patch to the original author.)
+
+	* ChatPanelContainer.java, ChatTabs.java, EIRC.java: added a lost feature where the window tabs labels weren't being updated on others' nick changes.
+
+	* *: There have been a lot of changes last week. Remarkably the UI has been made SDI (in contrast to MDI) by popular request. There have been several bug fixes, and HtmlLayout has been almost dropped because it was causing a lot of problems (it was kept in ControlPanel where it did no harm, AFAIK). I'm sorry I haven't kept a list of changes, but it's been a busy development week.
+
+2000-12-06  Javier Kohen  <jkohen@tough.com>
+
+	* OutputWindow.java, ChannelWindow.java, PrivateWindow.java: added support for clickable hyperlinks.
+
+	* ChangeFont.java: cleaned up the code.
+
+	* EIRC.java, OutputWindow.java, ChatWindow.java: split ChangeFont class into its own file. Cleaned up font handling code.
+
+	* EIRCApplet.java, EIRC.java: fixed a bug that appeared in the code split: if server couldn't be contacted, the applet would get in an unstable state.
+
+2000-11-28  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: fixed a bug that caused EIRC to send a QUIT message on disconnection in the case that the server denied access.
+
+	* EIRC.java: added a missing newline to the end of the help messages that caused staircase effect.
+
+	* {Channel,Private}Window.java: made use of HtmlLayout. Also concatenated these classes' event listeners, resulting in a JAR size shrinkage by 11kB (debug info included).
+
+	* EIRC.java, ControlPanel.java: separated the control panel into its own class. The idea is to be able to use it in more than one window, but after spending lots of time, I couldn't came up with a working solution. This is the first component in EIRC to use the HtmlLayout LayoutManager, it seems to work fine, so I'll add support for it to the rest of the program, thus making it more flexible to modify the windows' layout.
+
+2000-11-23  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: implemented dummy SERVER command, so users that try to invoke it, don't upset the servers logs, and at the same time, get a more significative message. (Suggested by Skold.)
+
+	* EIRC.java: split Applet code into EIRCApplet.java, note that you'll have to change your APPLET or OBJECT tag to reflect this change. This was needed in order to be able to derive EIRC from OutputWindow, now that it isn't an interface anymore.
+
+	* {Channel,Private}Window.java: made both extend ChatWindow, removed redundant code, and modified where necessary.
+
+	* {Output,Chat}Window.java: modified both interfaces to make them more clear, and to make use com.lyrisoft.awt package. Converted both of them to classes; ChatWindow being an extention of OutputWindow. This change brings a better interface, smaller code and more functionality.
+
+	* src/com/lyrisoft/awt/*: copied from NFCChat's codebase. Now EIRC has a colored text canvas :) I made some modifications to get it consistent with JDK 1.1.x AWT event model and deprecations.
+
+2000-11-14  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: fixed a couple of unexpected MSIE behaviors related to painting "infinite" sized rectangles, even though they were clipped to a small visible rectangle.
+
+	* EIRC.java: fixed bug that caused "Connect/Disconnect" button to disappear on failed connection in MSIE.
+
+	* ChannelWindow.java: corrected the PopupMenu behavior, now it doesn't require the user to select a NickItem to be popped up. The old -incorrect- behavior was a remain of the java.awt.List limitations.
+
+	* SimpleNickInfo.java: this class is the simplest implementation of NickInfo. It's used to pass NickInfo data without instancing a NickItem; moreover, it could be used by classes external to NickList, while NickItem can't.
+
+	* NickList.java: modified according to the changes in NickInfo.
+
+	* NickInfo.java: made an interface out of the class. This way the design is better, and for instance, it was needed in order to make possible some enhancements in the PopupMenu in the ChannelWindow.
+
+2000-11-13  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: beautified a little the titles.
+
+	* NickList.java: fixed a couple of bugs related to nick and mode change in methods change and remove.
+
+2000-11-08  Javier Kohen  <jkohen@tough.com>
+
+	* NickInfo.java: moved info stored in NickItem to an external class to optimize and clarify some points.
+
+2000-11-05  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: bugs fixes here and there.
+
+2000-11-04  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: added support for multiple nick selections.
+
+	* NickList.java: completely rewritten to get rid of java.awt.List; it was awfully rigid. The current implementation is a lot more flexible and permits using customized nick list displays. The current implementation of NickItem, even when not complete, is already better looking and more user friendly than the former.
+
+2000-11-02  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: providers can now specify the list of service bot names, instead of relying on them ending with "Serv".
+
+2000-11-01  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java, ChannelWindow.java: added support for showing, setting and visiting channel URLs. As this depends on ChanServ, it's only enabled if special_services option is enabled. (Suggested by Skold.)
+
+	* EIRC.java: fixed a DoS when service bots are enabled and a notice is received from a nick with less than 4 characters. (Initial report by Armando Montiel Caba.)
+
+2000-10-31  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java, ChannelWindow.java: added method addNicks to replace the lousy need to call freezeList, addNick (N times) and then thawList.
+
+	* ChannelWindow.java: "Channel Operators" submenu only shows up if user is opped. (Suggested by Skold.)
+
+	* EIRC.java, ChannelWindow.java: providers can now select whether their servers support half-ops. (Suggested by Skold.)
+
+	* EIRC.java: added support for window icons. Channels and Privates may have different icons. (Suggested by Marc Packenius.)
+
+2000-10-30  Javier Kohen  <jkohen@tough.com>
+
+	* TextWriterThread.java: a few thread niceness improvements.
+
+	* Message.java: very tiny optimization carried out by replacing string concatenations that used the + operator with concat method calls. Probably wasn't worth the effort, 'cos there were only two cases of this :)
+
+	* EIRC.java: many class scoped variables have been made final to reduce memory consumption a bit.
+
+	* EIRC.java: commands help code clean-up. Help for non-internal commands can be written in the language resource files and will be honored.
+
+	* Resources_e[sn].properties: added long help messages provided by Skold. I made the Spanish translation.
+
+	* EIRC.java: now the line prefixes (---, ###, etc.) are stored in the resource file. (Suggested by Skold.)
+
+2000-10-26  Javier Kohen  <jkohen@tough.com>
+
+	* NickServCommander.java: simplified dialog.
+
+	* EIRC.java: now it tries to parse unknown numeric messages if see_everything_from_server is true. The algorithm is very accurate, it's of the family of "show last paramater only" :P (Suggested by Skold.)
+
+	* EIRC.java, {Channel,Private}Window.java: made use of TextWriterThread class.
+
+	* TextWriterThread.java: implemented a new class together with Christian Bucks with the intention of closing BUG #16. This code apparently brings stability to MSIE, but it's only hiding a bug in Microsoft's JVM. See docs/TextWriterThread.txt for more information.
+
+2000-10-23  Javier Kohen  <jkohen@tough.com>
+
+	* Table.java: thanks to jean-marc Drouaud for reporting a Java 1.1 discompliance. Strange that no-one reported this before, as it break joining channels from the list. This passed unnoticed the -manual- compliance tests, even though it sent output to the Java Console.
+
+2000-10-19  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: fixed an off by one error when processing CTCP messages that contained an argument, ie: PING.
+
+2000-10-18  Javier Kohen  <jkohen@tough.com>
+
+	* Resources_fr_FR.properties: added translation contributed by jean-marc Drouaud.
+
+2000-10-15  Javier Kohen  <jkohen@tough.com>
+
+	* Configurator.java: fixed layout problem in "Pre-connect" page.
+
+2000-10-14  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: added kban (Kick & Ban), ignore and unignore commands.
+
+	* EIRC.java: added a number of new server response messages.
+
+	* NickList.java: added new user class, BANNED.
+
+	* ChannelWindow.java: added a context sensitive pop-up menu on the channel list.
+
+	* EIRC.java: hopefully fixed a race condition that sometimes prevented pos_login() from being called.
+
+	* data/pics/*: Skold provided an updated GFX set. These have tiny icons that make them more friendly to the user; and also have transparent backgrounds that make them look fine on different color schemes.
+
+	* Table.java: fixed a bug in table resizing that got introduced when implementing ItemSelectable interface.
+
+	* Message.java: fixed a bug that caused a misparse of messages that had a colon in a parameter that wasn't the last. This change is based on a diff sent by Jean-Marc.
+
+	* EIRC.java: added a hack to guess when the server has changed our nick on login, for example when it's trimmed to 9 chars. The guessing takes place on receiving RPL_ENDOFMOTD or ERR_NOMOTD, before calling pos_login(). It could be better placed earlier, but these are the only message we're -hopefully- guaranteed to receive. This could also be the fix to bug #20.
+
+	* EIRC.java: added configure option to send all traffic to stderr for debuging purposes. This helps to get reports from users that can't access to an sniffer.
+
+2000-10-09  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelList.java: modified to follow the interface change in Table.
+
+	* Table.java: implemented interface ItemSelectable in class Table.
+
+	* {Output,Chat}Window.java: removed method getName from interface OutputWindow and placed it in the new ChatWindow interface under the name getTargetName.
+
+	* {EIRC,NewChannel}.java: class NewChannel split from outer class EIRC.
+
+	* {EIRC,Configurator}.java: class Configurator split from outer class EIRC.
+
+	* TextFieldLabeled.java: removed, it was too rigid and useless.
+
+	* EIRC.java: fixed a compatibility issue with JDK 1.3 in sendCommand method.
+
+	* EIRC.java: SetPass dialog functionality has been moved into the Configuration dialog. Hence SetPass class and the "Password" button are now gone.
+
+	* EIRC.java: added some checks to avoid Sun's JDK 1.3 AppletViewer's brain damage. (See bug #24.)
+
+	* EIRC.java: re-introduced a fix that was accidentally reverted while merging Rick Herbel's patch. It was just a cosmetic issue, though.
+
+2000-10-05  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelList.java: fixed a couple of layout problems. Now it won't be bigger than the screen.
+
+	* Table.java: "s/getMinimun/getMinimum/g"... what a shame :-\
+
+2000-10-04  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: integrated (and slightly modified) a patch from Rick Herbel that makes the identification of the server sent commands hash driven instead of using string comparations. This will increase speed in that area.
+
+2000-10-01  Javier Kohen  <jkohen@tough.com>
+
+	* TextFieldLabeled.java: this class is a combo between a Label and a TextField. At this moment it's used in the configuration dialog.
+
+	* NickServCommander.java, EIRC.java: modified to support NickServ's that require e-mail address for registering new nicks. (Reponted by Skold.)
+
+	* data/pics/*: image updates by Skold, and slightly retouch by me. He's greatly decreased the files size.
+
+	* EIRC.java: added support for filtering mIRC attribs from incoming text.
+
+	* Message.java: added code to optionally strip mIRC attribs from messages.
+
+2000-09-29  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: clarified the channel list presentation of the auto-join channel in the case it was closed.
+
+2000-09-28  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: modified to make use of NickServCommander.
+
+	* NickServCommander.java: new class added that provides a dialog to deal with NickServ services. (Thanks to Marc Packenius and Skold for their support here.)
+
+	* EIRC.java, Table.java: added code to resize ChannelList after a refresh if it were necesary.
+
+	* EIRC.java: corrected a bug that made the channel listed into autojoin to appear as not opened if everybody joined it with another case than expected. (Reported by Marc Packenius.)
+
+	* EIRC.java: very little GUI change to make the look more design neutral.
+
+	* {Channel,Private}Window.java: removed Ping button by popular request. It could be easily used to flood others away, and it didn't make much sense anyway. The command PING is still valid at the command line.
+
+	* data/pics/*: Skold contributed a complete GFX set. I did some modifications with his authorization.
+
+2000-09-27  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: modified to not force an error when an unknown command is requested. The user is informed to report if the command doesn't do what was expected. (Suggested by Skold.)
+
+	* EIRC.java, {Channel,Private}Window.java: modified to support new features in ResourceImage. An extra goodie is that the new code is simpler.
+
+	* ResourceImage.java: added coded to support soft-coded image names. Each image has now a property-name, which is looked upon file Images.properties (currently stored in EIRC-gfx.jar, but not mandatory.) As ResourceBundle properties are locale enabled by nature, a side effect is that image sets can be easily localizated now. Read included Images.properties header for more info.
+
+2000-09-26  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: put a workaround to bug with some browsers that trimmed PARAM's, causing the titleExtra to not have a space at the beginning. The bad thing is that that space is always forced to appear (unless titleExtra is not provided.)
+
+	* PrivateWindow.java: very little change to improve slightly the look.
+
+	* ChannelWindow.java: improved Component's layout to fix a few issues that were floating around. (Usefully reported by Skold.)
+
+	* EIRC.java: added a configuration option to select whether to request MOTD after log-in. Some servers don't have one, some send it automatically. (Suggested by Skold.)
+
+	* EIRC.java: made it easier to add command aliases (still hard-coded.)
+
+	* EIRC.java: added two new commands, privmsg (aliased as msg) and eirc. The later shows EIRC's About info to the user.
+
+2000-09-21  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: this widget has been optimized to reduce updates when modificating the list. That means that flicker should now be gone.
+
+2000-09-19  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: the Channel List now gets closed on disconnection. (Suggested by Marc Packenius.)
+
+	* EIRC.java, ChannelList.java, Table.java: added functionality to improve Channel List's behavior. Now an opened list will get updated if the user tries to open it once it was opened, or if she actions the newly added Refresh button. Additionally, a message is printed to the status window when she clicks on the Channel List button to tell her that the list is being retrieved from the server. (Marc Packenius reported on the bad behavior.)
+
+2000-09-13  Javier Kohen  <jkohen@tough.com>
+
+	* index.{php,html}: splited JAR in two archives: one for gfx and the other for classes. This makes it easier to change GFX on a user basis and is more kind to http caches.
+
+	* EIRC.java: fixed a bug that shown in MSIE which made it report "no available time" instead of 0 for very fast ping responses. MSIE still fails to understand correctly ChoiceFormats.
+
+	* EIRC.java, ChannelWindow.java, ChannelList.java: commented out calls to class java.awt.Frame's setState method for MSIE doesn't implement it. According to Sun's docs, it's been there since Java API 1.0, so blame MS.
+
+2000-09-11  Javier Kohen  <jkohen@tough.com>
+
+	* ConfigurationBundle.java, EIRC.java: put up a working in-program run-time configuration support. See configuration.properties for more information.
+
+2000-09-10  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: channel lists are unique, there won't be more than one opened at a time.
+
+	* ChannelList.java: splited from class EIRC.
+
+2000-09-09  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: accomplished first steps towards supporting a flexible run-time configuration. Added code to use a ConfigurationBundle.
+
+	* ConfigurationBundle.java: added class to handle configuration values. It takes default values, and a ResourceBundle's name (corresponding either to a file or to class) from where to load customizations.
+
+2000-09-06  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java, PrivateWindow.java: if you use the GUI to join a channel that's been already joined, the corresponding window pops to the front, *now, even if it was minimized*. (Suggested by Marc Packenius.)
+
+	* {Channel,Private}Window.java: message logs' buffer size has been limited to avoid Out of Memory situations. (Closes bug #21.)
+
+2000-09-05  Javier Kohen  <jkohen@tough.com>
+
+	* TextFieldHistory.java: modified so cursor moves to line's end on accessing history.
+
+	* RFC1459TextField.java: now it doesn't filter VK_ENTER anymore. Fixes nick list not accepting Enter key. (Reported by Marc Packenius.)
+
+2000-08-31  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: addded {freeze,thaw}List methods to stop nick list flickering when joining very concurred channels. This is currently experimental. It seems to work right with Sun's JDK 1.2.2 and NN 4.75 on Linux. It's very funny to watch the components rearrange :P
+
+2000-08-30  Javier Kohen  <jkohen@tough.com>
+
+	* {Channel,Private}Window.java: windows whose text change while they're not focused, get a mark ("[!]") at the beginning of their titles. (Suggested by Marc Packenius.)
+
+	* EIRC.java, {Channel,Private}Window.java: entry fields now get focused on window open. I just wasn't making the window visible before atempting to focus its entry (RTFM.)
+
+	* EIRC.java, {Channel,Private}Window.java: changed to use TextFieldHistory for entry-lines.
+
+	* TextFieldHistory.java: added a widget that's basically a TextField which keeps the recent entries in memory. To move along the entries, use the VK_UP and VK_DOWN keys (which usually are maped to the up and down arrow keys.)
+
+	* EIRC.java: fixed a stupid NullPointerException that occurred when the help command was passed an unknow command as parameter.
+
+	* Table.java: implemented double-buffering in the body of the table, the rendering speed improvement is big.
+
+	* EIRC.java: the channel specified in the "channel" PARAM is always shown in the channel list, and it's placed in the topmost position. (Suggested by Marc Packenius.)
+
+	* ChannelWindow.java: extended the previous feature to private windows, too.
+
+	* EIRC.java: if you use the GUI to join a channel that's been already joined, the corresponding window pops to the front. (Suggested by Marc Packenius.)
+
+	* EIRC.java: double-clicking on the channel list, makes the client join the channel under the mouse pointer. (Requested by Marc Packenius.)
+
+2000-08-29  Javier Kohen  <jkohen@tough.com>
+
+	* RFC1459TextField.java: fixed widget's behavior regarding to invalid keys. It was filtering bad chars the bad way.
+
+	* EIRC.java: beautified slightly windows' layouts by adding insets.
+
+	* Table.java: added a vertical scroll bar to the widget, so large tables don't get large on the display. ChannelList gets directly benfited from this. An horizontal scroll bar should be straight forward to add if needed. Table output was enhanced a little, too. Widget's rendering speed was appearently increased slightly due to internal code reorganization.
+
+2000-08-27  Javier Kohen  <jkohen@tough.com>
+
+	* Resources_it_IT.properties: translation to Italian contributed by Chiuppesi Giorgio.
+
+2000-08-26  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: normalized the behavior of the widget regarding to users appearing under more than one list. It confused people. Also fixed a small bug reported by Mark Johnston.
+
+	* EIRC.java: now EIRC will open a private window if the user receives a notice from *Serv and she's logged in a server that supports *Serv services. This support is specified via the specialServ PARAM. (Suggested by Marc Packenius.)
+
+2000-08-24  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: added "query" command and a corresponding "q" alias. (Requested by Marc Packenius.)
+
+	* EIRC.java: modified the behavior of the "password" PARAM, if it's not specified, the "Password" button isn't shown. This is a short-term solution for those sites that don't require a password; and that such button would confuse the users. (Change requested by Marc Packenius.)
+
+	* EIRC.java, {Channel,Private}Window.java: added support for "prefixOwn" PARAM, which enables prefixing own messages with the user's nick. (Suggested by Skold.)
+
+	* EIRC.java: added more prefixes to messages to quickly distinguish among server, private and action classes. (Suggested by Skold.)
+
+	* NickList.java: added the missing feature. Method isTitle return whether a particular item is a sublist title, so programs can act accordingly. No behavior is impossed, so anything that can be done with normal items can be aplied to titles, but the consecuences are undetermined.
+
+2000-08-23  Javier Kohen  <jkohen@tough.com>
+
+	* NickList.java: fixed a JDK 1.x compatibilty issue. (Reported by Chiuppesi Giorgio.)
+
+2000-08-22  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: added limited support for channel modes, just op, half-op and voice commands recognized.
+
+	* NickList.java: implemented the nick sorting feature. ATM, it's as featured as the previous list. There's left to correct the behavior of the sublist titles, that whouldn't be clickable.
+
+	* EIRC.java: added support for DalNet's response #307 (WHOISREGISTERED).
+
+2000-08-21  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: got simplified as the sorting nick list code was moved to NickList.java.
+
+	* NickList.java: derived NickList from java.awt.List. This class is a specialized RFC1459 compliant nick list. It also features grouping users by mode. The sort of nicks is left for the next programming session :).
+
+	* EIRC.java: added a "hideip" PARAM to avoid scaring newbies. It isn't intended as a security meassure, as that would require server action instead. This was suggested by Marc Packenius.
+
+	* EIRC.java: client will start sending command only after having received RPL_ENDOFMOTD message. (Fixes bug #5.)
+
+2000-08-19  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: NN threw a security exception when a command was given from the command-line. I had to change the processing scheme, but the compromise solution makes the code awful in method invokeCommand. Old code is still there if someone wants to give a better solution.
+
+	* EIRC.java: fixed a bug that prevented newly opened windows from having their font set properly.
+
+	* EIRC.java: fixed a bug that caused stale private windows on applet reload under NN (it probably affected MSIE, too.)
+
+	* EIRC.java: calling method disconnect instead of quit prevented a clean quit when closing a connection using the "disconnect" button.
+
+	* EIRC.java, {Channel,Private}Window.java: some layout fixes done, it seems to work correctly with mainstream browsers.
+
+2000-08-18  Javier Kohen  <jkohen@tough.com>
+
+	* ChannelWindow.java: while working with the latest fix, I discovered the nick list sort routine got broken at some point, I guess at i18n. Now it works correctly again.
+
+	* ChannelWindow.java: fixed a long standing bug that didn't show in my development environment (Sun's JDK 1.2.2 f/Linux). Though, under NN and MSIE the nick list was completely broken. The problem was that (CollatorKey).equals() was broken, I tried using the 0 == (CollatorKey).compareTo() construction instead, and it misteriously -for me- worked. Thanks to those who insisted on this one.
+
+2000-08-17  Javier Kohen  <jkohen@tough.com>
+
+	* EIRC.java: made use of RFC1459TextField and RFC1459.filterString() for validating nick input.
+
+	* RFC1459Collator.java: removed, functionality moved into RFC1459.
+
+	* RFC1459.java: new class to implement misc RFC 1459 related stuff.
+
+	* RFC1459TextField.java: implemented a self validating TextField which only accepts RFC 1459 characters.
+
+	* EIRC.java: overriden Applet's getAppletInfo and getParameterInfo methods.
+
+	* EIRC.java: added password support for accessing server which so require. This is also PARAM configurable.
+
+	* EIRC.java: added PARAM configurable username and nickname (lack of this noticed by Tomaz Borstnar.) Nickname may also be randomized by the client from a PARAM configurable mask. Also added the posibility to make the client automatically establish a connection to the server on start up; this is PARAM configurable (addition also suggested by Tomaz Borstnar.)
+
+2000-08-14  Javier Kohen  <jkohen@tough.com>
+
+	* README: documented the installing procedures, and the new translation options.
+
+2000-08-13  Javier Kohen  <jkohen@tough.com>
+
+	* Resources*.properties: program text is now available both in Spanish and English.
+
+	* EIRC.java: implemented internationalization. Now multi-language support is straightforward.
+
+	* Message.java: fixed a bug in method toStrings that caused commands without parameters to be just ignored, thus preventing "motd" and "quit" -among others- from working.
+
+	* pics/*: new set of images based on the originals, but somewhat enhanced and translated to English provided by Travis.
+
+2000-08-10  Javier Kohen  <jkohen@tough.com>
+
+	* ClientThread.java: modified to acomplish with the previous change.
+
+	* Message.java: add toStrings method to class Message that returns a message splited in 512-bytes segments, for RFC 1459 compliment.
+
+	* EIRC.java: fixed a little bug that kept a private window to self from following nick changes.
+
+	* ChannelWindow.java: used CollationKey's for faster and RFC 1459 collated string sorting.
+
+	* CollatedHashtable.java: written this class to be able to use RFC1459Collator for Hashtable's keys.
+
+	* RFC1459Collator.java: written this Collator derived class to take {}| as lower case equivalents of []\ respectively, and hence comply with RFC 1459.
+
+	* EIRC.java: restructured some code to fix a major bug that caused EIRC to swallow *all* CPU while waiting for the server to ping it back at login. (Bug reported by Tomaz Borstnar.)
+
+	* EIRC.java: Some fixes to avoid "You're not connected" message when loging in fails.
+
+	* EIRC.java: No longer depends on the server PINGing the client after login. That was modern UnderNet behavior, and not stated by the RFC 1459.	
+
+	* Message.java: fixed one bug that caused prefix being null under some circumstances. I've noticed this when I failed connecting to a password enabled server.

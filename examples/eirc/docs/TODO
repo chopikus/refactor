@@ -1,0 +1,38 @@
+4. Thoroughly comment the source using JavaDoc specs.
+18. Support for rc file which would be run instead of method EIRC.pos_login.
+26. Implement {a,de}ttachable windows, ala X-Chat.
+40. Show the channel modes aside the topic TextField.
+48. Add the following message to private windows on NickServ enabled servers:
+if (nickserv.whois == NOTEXISTS) "user has not registered."
+else if (nickserv.whois == REGISTERED) "user has registered and identified."
+else "user has not registered, YET. Danger, Will Robinson!"
+57. Client side of HTTP configuration saving. Provide a simple server-side example. Class Properties implements serialization already, and luckily, we now use this class.
+58. Make the number of scrollback, entry history lines and text indentation user configurable. (Depends on #77).
+61. Automatically identifying the nick when Nickserv requests it, either with the given password, or after requesting one from the user, and offering assistence changing the nick if it is registered by another user. (Suggested by Marc Packenius).
+How does NickServ request the user for identification?
+Skold suggests using:
+identifytext="*you*have*60*seconds*
+identifynick="NickServ"
+identifyto="NickServ@services.network.net"
+The last two are needed to stop people from just noticing them 'you have 60 seconds to comply'. You'd do privmsg NickServ@services.network.net IDENTIFY password.
+67. Move Color schemes from PARAM's to EIRC-gfx.jar. This will need new configuration options for the colors, which in instance would require that set{Selected,Text,}{Fore,Back}ground methods in class EIRC propagate color changes to other windows. Write an interface Colorable including those methods, or something similar.
+69. Make an "Ignore" GUI dialog.
+70. Write a HOW-TO on using EIRC to connect to external servers. Will have to include info on signing the Applet.
+77. NumberField widget (with up and down button arrows).
+78. Convert all hard-coded message parameter specs to MessageFormat objects?
+83. Possibly something like mIRC's channel central (dbl click in the channel window and a dialog with mode control etc is displayed), replacing the listing bans in the nick list (some people may be confused by that). (Suggested by Meglio)
+87. Make use of HtmlLayout in Configurator, but don't let it break anything.
+90. Support Alt-{Left,Right,Up,Down} as a way to switch panel tabs, and as an alternative, support also Alt-[0-9] for switching channel tabs, and Alt-Shift-[0-0] for switching private tabs.
+91. Some kind of /links parser, maybe something similar to the channel list. (Suggested by Meglio.)
+92. Implement EIRC.processMessage, EIRC.invokeCommand and CTCPMessage in an OOP fashion.
+93. Implement DCC (see docs/ctcpspec.html).
+94. Load popup menus from special files (XML?) instead of hard-coding them.
+95. Update protocol implementation to RFC2812 where compatible.
+97. Switch help system to HTML.
+98. Reenable text_attr_memory configuration option (needs work).
+99. Reenable font change, if it's possible to make it work at all.
+100. Support themes with widget positioning.
+101. Write docs on writing/using different ControlPanel's to allow for different user levels.
+102. If there's no sender for NOTICEs, assume the server is the sender when showing the notice to the user (Requested by Lucas Nussbaum.)
+103. Include ChannelList into the MDI?
+104.

@@ -1,0 +1,5 @@
+
+This patches are maintained by Javier Kohen <jkohen@tough.com>, and sponsored by Free.fr.
+These customizations were released under the same license than EIRC with permission from Free.fr. Feel free to use this patches for yourself, changes are documented in the diff files.
+
+To use apply avatars-current.diff file with the patch utility, and copy the avatars directory to the data directory before building.

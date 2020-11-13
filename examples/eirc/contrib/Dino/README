@@ -1,0 +1,7 @@
+
+This patches are maintained by Javier Kohen <jkohen@tough.com>.
+These customizations were released under the same license than EIRC with permission from Dino. Feel free to use this patches for yourself, changes are documented in the diff files.
+
+To use apply Dino-current.diff file with the patch utility before building.
+
+The smileys aren't being used, yet. They might be used for replacing the ASCII smileys when the text canvas supports graphics.

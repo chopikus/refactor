@@ -1,0 +1,1357 @@
+diff -urN eirc-cvs/build.xml eirc-avatars/build.xml
+--- eirc-cvs/build.xml	Fri Apr  6 23:34:14 2001
++++ eirc-avatars/build.xml	Fri Apr  6 23:40:40 2001
+@@ -11,6 +11,7 @@
+  <property name="src.dir" value="src/main" />
+  <property name="src.etc.dir" value="src/etc" />
+  <property name="src.gfx.dir" value="src/gfx" />
++ <property name="src.avatars.dir" value="src/avatars" />
+  <property name="build.dir" value="build" />
+  <property name="build.classes" value="${build.dir}/classes" />
+  <property name="dist.dir" value="dist" />
+@@ -63,6 +64,9 @@
+ 
+   <jar jarfile="${build.dir}/EIRC-gfx.jar"
+        basedir="${src.gfx.dir}" />
++
++  <jar jarfile="${build.dir}/EIRC-avatars.jar"
++       basedir="${src.avatars.dir}/.." />
+ 
+   <copy file="${src.etc.dir}/index.html"
+         todir="${build.dir}" />
+diff -urN eirc-cvs/docs/ChangeLog eirc-avatars/docs/ChangeLog
+--- eirc-cvs/docs/ChangeLog	Wed Apr  4 20:53:14 2001
++++ eirc-avatars/docs/ChangeLog	Sat Apr  7 00:16:41 2001
+@@ -1,3 +1,7 @@
++2001-04-07  Javier Kohen  <jkohen@tough.com>
++
++	* *: updated patch, trivial work, even after two months of changes.
++
+ 2001-04-04  Javier Kohen  <jkohen@tough.com>
+ 
+ 	* htmllayout/*: removed until someone fixes it (could be me), or a better solution appears.
+@@ -449,6 +453,10 @@
+ 
+ 	* ChatPanelContainer.java: added arrow buttons that allow the user to scroll left or right the tabs, if they don't fit the visible area.
+ 
++2000-12-26  Javier Kohen  <jkohen@tough.com>
++
++	* NickList.java: changed the NickInfoCanvas into a NickInfoPopup, which is a mix from a Popup and a Tooltip. While working on this, made the paint methods in this class and its inner classes use double-buffering; no more flickering here. (Free.fr exclusive.)
++
+ 2000-12-22  Javier Kohen  <jkohen@tough.com>
+ 
+ 	* com/lyrisoft/awt/HyperlinkTextView.java: fixed my previous fix, and also corrected a bug in the original code that changed the style of the text for lines that contained a link. (Submitted patch to the original author.)
+@@ -479,6 +487,14 @@
+ 
+ 	* EIRCApplet.java, EIRC.java: fixed a bug that appeared in the code split: if server couldn't be contacted, the applet would get in an unstable state.
+ 
++2000-12-05  Javier Kohen  <jkohen@tough.com>
++
++	* EIRC.java, ChatWindow.java: added support for nick color on the text area depending on sex. (Free.fr exclusive.)
++
++2000-12-04  Javier Kohen  <jkohen@tough.com>
++
++	* *.java: updated a bit here, a bit there to keep up with the large internal changes. (Free.fr exclusive.)
++
+ 2000-11-28  Javier Kohen  <jkohen@tough.com>
+ 
+ 	* EIRC.java: fixed a bug that caused EIRC to send a QUIT message on disconnection in the case that the server denied access.
+@@ -523,17 +539,33 @@
+ 
+ 2000-11-08  Javier Kohen  <jkohen@tough.com>
+ 
++	* ChannelWindow.java, NickList.java: many bugfixes, improvements and optimizations. (Free.fr exclusive.)
++
+ 	* NickInfo.java: moved info stored in NickItem to an external class to optimize and clarify some points.
+ 
++2000-11-07  Javier Kohen  <jkohen@tough.com>
++
++	* ChannelWindow.java, NickList.java: added support for predefined avatars to show in the nick list, along with the nick. (Free.fr exclusive.)
++
+ 2000-11-05  Javier Kohen  <jkohen@tough.com>
+ 
+ 	* NickList.java: bugs fixes here and there.
+ 
++	* NickList.java: added code to show extra users' info. When the mouse passes over a nick, its info is shown in the bottom area of the widget. (Free.fr exclusive.)
++
++	* NickList.java: nick's background depends on the sex declared by the user, if available. (Free.fr exclusive.)
++
++	* EIRC.java, ChannelWindow.java: moved most of the code to support extra users' information from EIRC.processMessage to a dedicated method in ChannelWindow, which is invoked from the former. (Free.fr exclusive.)
++
+ 2000-11-04  Javier Kohen  <jkohen@tough.com>
+ 
+ 	* ChannelWindow.java: added support for multiple nick selections.
+ 
+ 	* NickList.java: completely rewritten to get rid of java.awt.List; it was awfully rigid. The current implementation is a lot more flexible and permits using customized nick list displays. The current implementation of NickItem, even when not complete, is already better looking and more user friendly than the former.
++
++2000-11-03  Javier Kohen  <jkohen@tough.com>
++
++	* EIRC.java: added a dirty hack to support extra users' information. This info (ie: asl) is placed in the real name field. A who command is issued on channel join to collect this info. (Free.fr exclusive.)
+ 
+ 2000-11-02  Javier Kohen  <jkohen@tough.com>
+ 
+diff -urN eirc-cvs/docs/INSTALL eirc-avatars/docs/INSTALL
+--- eirc-cvs/docs/INSTALL	Wed Apr  4 20:49:31 2001
++++ eirc-avatars/docs/INSTALL	Fri Apr  6 23:40:40 2001
+@@ -44,8 +44,11 @@
+    What "user name" -sometimes called userid or ident- will be passed to the server. Defaults to "eirc".
+ 
+  * realname
+-   What "real name" will be passed to the server.
+-
++   What "real name" will be passed to the server. The AVATARS patch makes use of this field to store additional information about the user. The field has to be formated as follows:
++   <Age|2><Sex|1: M|F|?><Avatar code|3><Place>;<Description>
++   Ie: "19M123Ciudad de Buenos Aires;Feeling all right."
++   Additionally, avatar code "DEF" (that's DEF.gif) is reserved for users that don't have a conforming realname.
++ 
+  * nickname
+    What "nick name" will be put in the nick field at start up. If the character '?' is used somewhere in the VALUE field, it will be changed to a random number by the client on load.
+ 
+diff -urN eirc-cvs/src/etc/index.html eirc-avatars/src/etc/index.html
+--- eirc-cvs/src/etc/index.html	Fri Apr  6 01:28:45 2001
++++ eirc-avatars/src/etc/index.html	Fri Apr  6 23:41:13 2001
+@@ -6,8 +6,8 @@
+  </head>
+ 
+  <body>
+-  <applet code="EIRC" archive="EIRC.jar,EIRC-gfx.jar" width="620" height="400">
+-   <param name="cabinets" value="EIRC.cab,EIRC-gfx.cab" />
++  <applet code="EIRC" archive="EIRC.jar,EIRC-gfx.jar,EIRC-avatars.jar" width="620" height="400">
++   <param name="cabinets" value="EIRC.cab,EIRC-gfx.cab,EIRC-avatars.cab" />
+    <!--param name="server" value="localhost" /-->
+    <!--param name="server" value="eu.undernet.org" /-->
+    <!--param name="port" value="6667" /-->
+@@ -21,7 +21,7 @@
+    <param name="channel" value="#eirc" />
+    <param name="titleExtra" value=" - EIRC" />
+    <param name="username" value="eirc" />
+-   <param name="realname" value="Eteria IRC Client - http://eirc.sourceforge.net/" />
++   <param name="realname" value="19M001Ciudad de Buenos Aires;Feeling all right." />
+    <param name="nickname" value="Guest????" />
+    <!--param name="password" value="" /-->
+    <!--param name="servPassword" value="" /-->
+diff -urN eirc-cvs/src/etc/properties/eirc.properties eirc-avatars/src/etc/properties/eirc.properties
+--- eirc-cvs/src/etc/properties/eirc.properties	Thu Apr  5 21:18:47 2001
++++ eirc-avatars/src/etc/properties/eirc.properties	Sat Apr  7 00:09:44 2001
+@@ -17,6 +17,8 @@
+ msg.my_notice=-{0}- %C2{1}
+ msg.privmsg=%B{0}%B> {1}
+ msg.my_privmsg={0}> {1}
++msg.male_privmsg=%B%C2{0}%C%B> {1}
++msg.female_privmsg=%B%C4{0}%C%B> {1}
+ msg.unmangled=--- %I{0}
+ msg.warning=%C4!!! {0}
+ 
+diff -urN eirc-cvs/src/main/ChannelWindowExtended.java eirc-avatars/src/main/ChannelWindowExtended.java
+--- eirc-cvs/src/main/ChannelWindowExtended.java	Wed Dec 31 21:00:00 1969
++++ eirc-avatars/src/main/ChannelWindowExtended.java	Sat Apr  7 00:27:51 2001
+@@ -0,0 +1,131 @@
++/*
++Eteria IRC Client, an RFC 1459 compliant client program written in Java.
++Copyright (C) 2000-2001  Javier Kohen <jkohen at tough.com>
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++import java.awt.*;
++import java.text.MessageFormat;
++import java.util.ResourceBundle;
++import java.util.StringTokenizer;
++import ar.com.jkohen.awt.*;
++import ar.com.jkohen.irc.Channel;
++import ar.com.jkohen.irc.User;
++import ar.com.jkohen.util.Resource;
++
++class ChannelWindowExtended extends ChannelWindow {
++    private static final ResourceBundle lang
++	= ResourceBundle.getBundle("eirc");
++
++    protected static final MessageFormat MALE_PRIVMSG
++	= new MessageFormat(lang.getString("msg.male_privmsg"));
++    protected static final MessageFormat FEMALE_PRIVMSG
++	= new MessageFormat(lang.getString("msg.female_privmsg"));
++
++    public ChannelWindowExtended(EIRC eirc, Channel channel) {
++	super(eirc, channel);
++    }
++
++    public NickInfo getNickInfo(String nick) {
++	return nick_list.getNickInfo(nick);
++    }
++
++    public void setNickInfo(String nick, String info) {
++	// Skip hop count.
++	int beginning = info.indexOf(' ') + 1;
++
++	try {
++	    int age = Integer.parseInt(info.substring(beginning, beginning + 2));
++	    char sex = info.charAt(beginning + 2);
++	    String avatar_basename = info.substring(beginning + 3, beginning + 6);
++
++	    StringTokenizer st = new StringTokenizer(info.substring(beginning + 6), ";");
++	    String loc = st.nextToken();
++	    String desc = st.nextToken("");
++
++	    if (';' == desc.charAt(0)) {
++		desc = desc.substring(1);
++	    }
++
++	    String avatar_file = "avatars/" + avatar_basename + ".gif";
++	    Image avatar = null;
++
++	    try {
++		avatar = Toolkit.getDefaultToolkit()
++		    .createImage(Resource.getResource(avatar_file, this));
++	    } catch (Exception e) {
++		System.out.println("Couldn't load image " + avatar_file + " make sure you have installed the EIRC-avatars JAR.");
++	    }
++
++	    int sex_val;
++	    switch (sex) {
++	    case 'M':
++		sex_val = NickInfoExtended.SEX_MALE;
++		break;
++	    case 'F':
++		sex_val = NickInfoExtended.SEX_FEMALE;
++		break;
++	    default:
++		sex_val = NickInfoExtended.SEX_UNKNOWN;
++		break;
++	    }
++
++	    Channel channel = getChannel();
++	    User user = channel.get(nick);
++	    NickInfo ni = new SimpleNickInfoExtended(nick, age, sex_val, loc,
++						     desc, avatar);
++	    nick_list.setNickInfo(nick, ni);
++	    user.setNickInfo(ni);
++	} catch (Exception e) {
++	    // No need to worry.
++	    // The info couldn't be decoded. Probably, because the other user doesn't use EIRC.
++
++	    String avatar_file = "avatars/DEF.gif";
++	    Image avatar = null;
++
++	    try {
++		avatar = Toolkit.getDefaultToolkit().createImage(Resource.getResource(avatar_file, this));
++	    } catch (Exception e2) {
++		System.out.println("Couldn't load image " + avatar_file + " make sure you have installed the EIRC-avatars JAR.");
++	    }
++
++	    NickInfoExtended ni = new SimpleNickInfoExtended(nick);
++  	    ni.setAvatar(avatar);
++	    nick_list.setNickInfo(nick, ni);
++ 	}
++    }
++ 
++    public void printPrivmsgSex(String s, String whom, int sex) {
++	Object [] o = { whom, s };
++	MessageFormat mf;
++
++	switch (sex) {
++	case NickInfoExtended.SEX_MALE:
++	    mf = MALE_PRIVMSG;
++	    break;
++	case NickInfoExtended.SEX_FEMALE:
++	    mf = FEMALE_PRIVMSG;
++	    break;
++	default:
++	    mf = PRIVMSG;
++	    break;
++	}
++
++	text_canvas.append(mf.format(o));
++
++	postTextEvent();
++    }
++}
+diff -urN eirc-cvs/src/main/EIRC.java eirc-avatars/src/main/EIRC.java
+--- eirc-cvs/src/main/EIRC.java	Fri Apr  6 00:02:18 2001
++++ eirc-avatars/src/main/EIRC.java	Sat Apr  7 00:00:11 2001
+@@ -32,6 +32,8 @@
+ import ar.com.jkohen.applet.SimpleAppletStub;
+ import ar.com.jkohen.awt.ChatPanel;
+ import ar.com.jkohen.awt.ImageCanvas;
++import ar.com.jkohen.awt.NickInfo;
++import ar.com.jkohen.awt.NickInfoExtended;
+ import ar.com.jkohen.awt.RFC1459TextField;
+ import ar.com.jkohen.awt.event.ChatPanelEvent;
+ import ar.com.jkohen.awt.event.ChatPanelListener;
+@@ -66,7 +68,7 @@
+      * Used as part of "About" info.
+      * Should be a String describing in-site's modifications.
+      */
+-    public final static String VERSION_EXTRA = "";
++    public final static String VERSION_EXTRA = "+avatars";
+     /**
+      * Author's name.
+      * Used as part of "About" info.
+@@ -153,6 +155,7 @@
+   	commands.put("311", new Integer(311));
+ 	commands.put("312", new Integer(312));
+   	commands.put("313", new Integer(313));
++	commands.put("315", new Integer(315));
+   	commands.put("317", new Integer(317));
+ 	commands.put("318", new Integer(318)); // No action needed.
+ 	commands.put("319", new Integer(319));
+@@ -167,6 +170,7 @@
+ 	commands.put("332", new Integer(332));
+   	commands.put("333", new Integer(333));
+   	commands.put("335", new Integer(335));
++  	commands.put("352", new Integer(352));
+   	commands.put("353", new Integer(353));
+ 	commands.put("366", new Integer(366));
+ 	commands.put("372", new Integer(372));
+@@ -722,6 +726,10 @@
+ 	    // If it's me, just open the channel window.
+ 	    if (current_nick.equals(prefix)) {
+ 		openChannel(params[0]);
++
++		// Retrieve users' info.
++		String p[] = { params[0] };
++		sendMessage("who", p);
+ 	    } else {
+ 		Channel channel = getChannel(params[0]);
+ 		channel.add(prefix);
+@@ -731,6 +739,10 @@
+ 		    String ptn = lang.getString("eirc.s6");
+ 		    cw.printInfo(MessageFormat.format(ptn, a));
+ 		}
++
++		// Retrieve user's info.
++		String p[] = { prefix };
++		sendMessage("who", p);
+ 	    }
+ 	    break;
+ 	}
+@@ -925,10 +937,25 @@
+ 		}
+ 		}
+ 	    } else {
+-		ChatWindow target = isChannel
+-		    ? (ChatWindow) getChannelWindow(params[0])
+-		    : (ChatWindow) openPrivate(prefix);
+-		target.printPrivmsg(params[1], prefix);
++		if (isChannel) {
++		    ChannelWindowExtended target
++			= (ChannelWindowExtended) getChannelWindow(params[0]);
++		    NickInfo nick_info = target.getNickInfo(prefix);
++
++		    if (!(nick_info instanceof NickInfoExtended)) {
++			target.printPrivmsgSex(params[1], prefix,
++					       NickInfoExtended.SEX_UNKNOWN);
++			break;
++		    }
++
++		    target.printPrivmsgSex(params[1], prefix,
++					   ((NickInfoExtended) nick_info)
++					   .getSex());
++		} else {
++		    PrivateWindow target = openPrivate(prefix);
++		    // We could get the user's sex from the info stored on the channels.
++		    target.printPrivmsg(params[1], prefix);
++		}
+ 	    }
+ 	    break;
+ 	}
+@@ -1043,11 +1070,7 @@
+ 		String ptn = lang.getString("eirc.s13");
+ 		getCurrentPanel().printInfo(MessageFormat.format(ptn, a));
+ 	    }
+-	    {
+-		Object a[] = { params[1], params[5] };
+-		String ptn = lang.getString("eirc.s14");
+-		getCurrentPanel().printInfo(MessageFormat.format(ptn, a));
+-	    }
++	    // Real name is used to pass extra information about the user.
+ 	    break;
+ 	}
+ 	case 312: { // RPL_WHOISSERVER
+@@ -1062,6 +1085,16 @@
+ 	    getCurrentPanel().printInfo(MessageFormat.format(ptn, a));
+ 	    break;
+ 	}
++	case 315: { // RPL_ENDOFWHO
++	    ChannelWindow cw = getChannelWindow(params[1]);
++	    // Show "End of list" message only for channels which we haven't joined.
++	    if (null == cw && Channel.isChannel(params[1])) {
++		Object a[] = { params[1] };
++		String ptn = lang.getString("eirc.315");
++		getCurrentPanel().printInfo(MessageFormat.format(ptn, a));
++	    }
++            break;
++        }
+ 	case 317: { // RPL_WHOISIDLE
+ 	    Object a[] = { params[1], new Integer(params[2]) };
+ 	    MessageFormat mf = new MessageFormat(lang.getString("eirc.s17"));
+@@ -1173,6 +1206,30 @@
+ 	    getCurrentPanel().printInfo(MessageFormat.format(ptn, a));
+ 	    break;
+ 	}
++	case 352: { // RPL_WHOREPLY
++  	    if (!params[1].equals("*")) {
++		ChannelWindowExtended cw
++		    = (ChannelWindowExtended) getChannelWindow(params[1]);
++		if (null != cw) {
++		    String info = params[params.length - 1];
++		    cw.setNickInfo(params[5], info);
++		} else {
++		    Object a[] = { params[1], params[2], params[3], params[4],
++				   params[5], params[6], params[7] };
++		    String ptn = lang.getString("eirc.352");
++		    getCurrentPanel().printInfo(MessageFormat.format(ptn, a));
++		}
++	    } else {
++		for (Enumeration e = channels.elements(); e.hasMoreElements(); ) {
++		    ChannelWindowExtended cw
++			= (ChannelWindowExtended) e.nextElement();
++		    String info = params[params.length - 1];
++		    cw.setNickInfo(params[5], info);
++		    
++		}
++	    }
++            break;
++        }
+ 	case 353: { // RPL_NAMREPLY
+ 	    Channel channel = getChannel(params[2]);
+ 	    if (null == channel // In the case the user issued NAMES for a channel he's not in, just ignore the message.
+@@ -1719,7 +1776,7 @@
+ 	/* Create GUI object.
+ 	 */
+ 
+-	ChannelWindow cw = new ChannelWindow(this, channel);
++	ChannelWindow cw = new ChannelWindowExtended(this, channel);
+ 	properties.addObserver(cw);
+ 	cw.update(properties, null);
+ 
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/NickInfoExtended.java eirc-avatars/src/main/ar/com/jkohen/awt/NickInfoExtended.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/NickInfoExtended.java	Wed Dec 31 21:00:00 1969
++++ eirc-avatars/src/main/ar/com/jkohen/awt/NickInfoExtended.java	Fri Apr  6 23:40:41 2001
+@@ -0,0 +1,40 @@
++/*
++Eteria IRC Client, an RFC 1459 compliant client program written in Java.
++Copyright (C) 2000  Javier Kohen <jkohen at tough.com>
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++package ar.com.jkohen.awt;
++
++import java.awt.Image;
++
++public interface NickInfoExtended extends NickInfo {
++    public static final int SEX_UNKNOWN = 0;
++    public static final int SEX_MALE = 1;
++    public static final int SEX_FEMALE = 2;
++
++    public boolean hasExtended();
++    public int getAge();
++    public void setAge(int  v);
++    public int getSex();
++    public void setSex(int  v);
++    public String getUserLocation();
++    public void setUserLocation(String  v);
++    public String getDescription();
++    public void setDescription(String  v);
++    public Image getAvatar();
++    public void setAvatar(Image  v);
++}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/NickInfoPopup.java eirc-avatars/src/main/ar/com/jkohen/awt/NickInfoPopup.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/NickInfoPopup.java	Wed Dec 31 21:00:00 1969
++++ eirc-avatars/src/main/ar/com/jkohen/awt/NickInfoPopup.java	Fri Apr  6 23:40:41 2001
+@@ -0,0 +1,144 @@
++/*
++Eteria IRC Client, an RFC 1459 compliant client program written in Java.
++Copyright (C) 2000  Javier Kohen <jkohen at tough.com>
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++package ar.com.jkohen.awt;
++
++import java.awt.*;
++
++class NickInfoPopup extends Canvas {
++    private final int H_GAP = 2;
++    private final int V_GAP = 2;
++
++    // Just guessing here.
++    private final int IMAGE_WIDTH = 100;
++    private final int IMAGE_HEIGHT = 75;
++
++    private NickInfoExtended info;
++
++    private Image image;
++    private Graphics img_gfx;
++
++    private Rectangle bounds;
++
++    private boolean rendered;
++
++    public NickInfoPopup() {
++	setBackground(Color.black);
++	this.bounds = new Rectangle(IMAGE_WIDTH, 0);
++    }
++
++    public NickInfoExtended getInfo() {
++	return info;
++    }
++
++    public void clear() {
++	this.info = null;
++    }
++ 
++    public void show(NickInfoExtended info) {
++	// Render the info off-screen.
++	if (null == image) {
++	    this.image = createImage(IMAGE_WIDTH, IMAGE_HEIGHT);
++	    this.img_gfx = image.getGraphics();
++	}
++
++	this.info = info;
++
++	rendered = false;
++    }
++
++    public void render(Graphics g) {
++	FontMetrics fm = g.getFontMetrics();
++	int text_max_height = fm.getLeading() + fm.getMaxAscent()
++	    + fm.getMaxDescent();
++	int text_baseline = text_max_height - fm.getMaxDescent();
++
++	bounds.height = text_max_height * 3 + V_GAP * 2;
++
++	int age_val = info.getAge();
++	String age = 0 != age_val ? String.valueOf(age_val) : "?";
++ 
++	String [] line = { info.getNick(),
++			   info.getUserLocation(),
++			   info.getDescription() };
++ 
++	if (0 != age_val) {
++	    line[0] = line[0].concat(" (").concat(age).concat(")");
++	}
++ 
++	// Clear background.
++	g.setColor(getBackground());
++	g.fillRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
++
++	// Set the parameters to start rendering the foreground.
++	g.setColor(NickList.sexToColor(info.getSex()));
++	g.setClip(H_GAP, V_GAP,
++		  bounds.width - H_GAP * 2, bounds.height - V_GAP * 2);
++
++	// Render the text.
++	for (int i = 0; i < 3; i++) {
++	    g.drawString(line[i], H_GAP,
++			 text_baseline + text_max_height * i + V_GAP);
++	}
++    }
++
++    public void paint(Graphics g) {
++	// Copy the info from the off-line buffer.
++	if (null != info) {
++  	    if (!rendered) {
++		rendered = true;
++		render(img_gfx);
++  	    }
++
++	    Shape old_clip = g.getClip();
++	    Dimension parent_size = getParent().getSize();
++
++	    bounds.x = Math.min(bounds.x,
++				parent_size.width - bounds.width);
++	    bounds.x = Math.max(bounds.x, 0);
++
++	    bounds.y -= bounds.height;
++	    bounds.y = Math.min(bounds.y,
++				parent_size.height - bounds.height);
++	    bounds.y = Math.max(bounds.y, 0);
++
++	    g.setClip(bounds.x, bounds.y, bounds.width, bounds.height);
++	    g.drawImage(image, bounds.x, bounds.y, this);
++
++	    g.setClip(old_clip);
++	}
++    }
++
++    public void setLocation(int x, int y) {
++	bounds.setLocation(x, y);
++    }
++
++    public void setLocation(Point p) {
++	bounds.setLocation(p);
++    }
++ 
++    public Dimension getPreferredSize() {
++	// We don't want to be drawn by the AWT.
++	return new Dimension(0, 0);
++    }
++ 
++    public Dimension getMinimumSize() {
++	return getPreferredSize();
++    }
++}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/NickItemBullet.java eirc-avatars/src/main/ar/com/jkohen/awt/NickItemBullet.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/NickItemBullet.java	Tue Apr  3 14:30:36 2001
++++ eirc-avatars/src/main/ar/com/jkohen/awt/NickItemBullet.java	Wed Dec 31 21:00:00 1969
+@@ -1,140 +0,0 @@
+-/*
+-Eteria IRC Client, an RFC 1459 compliant client program written in Java.
+-Copyright (C) 2000-2001  Javier Kohen <jkohen at tough.com>
+-
+-This program is free software; you can redistribute it and/or modify
+-it under the terms of the GNU General Public License as published by
+-the Free Software Foundation; either version 2 of the License, or
+-(at your option) any later version.
+-
+-This program is distributed in the hope that it will be useful,
+-but WITHOUT ANY WARRANTY; without even the implied warranty of
+-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-GNU General Public License for more details.
+-
+-You should have received a copy of the GNU General Public License
+-along with this program; if not, write to the Free Software
+-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-*/
+-
+-package ar.com.jkohen.awt;
+-
+-import java.awt.*;
+-import java.io.IOException;
+-import ar.com.jkohen.irc.User;
+-import ar.com.jkohen.util.Resource;
+-
+-public class NickItemBullet extends NickItem {
+-    private static final int OP = 0;
+-    private static final int HALFOP = 1;
+-    private static final int VOICE = 2;
+-    private static final int BULLETS = 3;
+-
+-    private static int BULLET_DIAMETER;
+-    private static boolean bullets_loaded;
+-    private static final int BULLET_GAP = 2;
+-
+-    private static Image [] bullets;
+-    private Image current_bullet;
+-
+-    public NickItemBullet(String nick) {
+-	super(nick);
+-
+-	loadBullets();
+-    }
+-
+-    public NickItemBullet(NickInfo info) {
+-	super(info);
+-
+-	loadBullets();
+-    }
+-
+-    public void loadBullets() {
+-	if (bullets_loaded) {
+-	    return;
+-	}
+-
+-	bullets_loaded = true;
+-
+-	bullets = new Image[BULLETS];
+-
+-	Toolkit tk = Toolkit.getDefaultToolkit();
+-
+-	try {
+-	    bullets[OP] = tk.createImage(Resource.getResource("green.gif",
+-  							      this));
+-	    bullets[HALFOP] = tk.createImage(Resource.getResource("red.gif",
+-								  this));
+-	    bullets[VOICE] = tk.createImage(Resource.getResource("yellow.gif",
+-								 this));
+-	} catch (IOException e) {
+-	    System.err.println(e);
+-	}
+-
+-	for (int i = 0; i < BULLETS; i++) {
+-	    int bullet_width;
+-
+-	    while (-1 == (bullet_width = bullets[i].getWidth(this))) {
+-	    }
+-
+-	    BULLET_DIAMETER = Math.max(BULLET_DIAMETER, bullet_width);
+-	}
+-    }
+-
+-    public void setModes(int mask) {
+-	super.setModes(mask);
+-
+-	if (0 != (User.OP_MASK & modes)) {
+-	    this.current_bullet = bullets[OP];
+-	} else if (0 != (User.HALFOP_MASK & modes)) {
+-	    this.current_bullet = bullets[HALFOP];
+-	} else if (0 != (User.VOICE_MASK & modes)) {
+-	    this.current_bullet = bullets[VOICE];
+-	} else {
+-	    this.current_bullet = null;
+-	}
+-    }
+-
+-    public void paint(Graphics g) {
+-	Rectangle clip = g.getClipBounds();
+-	int x = 0;
+-	Color fg = getTextForeground();
+-
+-	if (isSelected()) {
+-	    // Fill background.
+-  	    g.setColor(getSelectedBackground());
+-	    g.fillRect(clip.x, clip.y, clip.width, clip.height);
+-  	    fg = getSelectedForeground();
+-	}
+-
+-	if (null != current_bullet) {
+-	    int y = (clip.height - BULLET_DIAMETER) / 2;
+-
+-	    g.drawImage(current_bullet, BULLET_GAP, y, this);
+-
+-	    x += BULLET_DIAMETER + 2 * BULLET_GAP;
+-	}
+-
+-	g.setColor(fg);
+-
+-	FontMetrics fm = g.getFontMetrics();
+-	int baseline = fm.getLeading() + fm.getMaxAscent();
+-
+-	g.drawString(nick, x, baseline);
+-    }
+-
+-    public Dimension getSize(Graphics g) {
+-	FontMetrics fm = g.getFontMetrics();
+-
+-	Dimension size = new Dimension(fm.stringWidth(nick),
+-				       fm.getLeading() + fm.getMaxAscent()
+-				       + fm.getMaxDescent());
+-
+-	if (0 != ((User.OP_MASK | User.HALFOP_MASK | User.VOICE_MASK)
+-		  & modes)) {
+-	    size.width += BULLET_DIAMETER + 2 * BULLET_GAP;
+-	}
+-
+-	return size;
+-    }
+-}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/NickItemExtended.java eirc-avatars/src/main/ar/com/jkohen/awt/NickItemExtended.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/NickItemExtended.java	Wed Dec 31 21:00:00 1969
++++ eirc-avatars/src/main/ar/com/jkohen/awt/NickItemExtended.java	Fri Apr  6 23:40:44 2001
+@@ -0,0 +1,172 @@
++/*
++Eteria IRC Client, an RFC 1459 compliant client program written in Java.
++Copyright (C) 2000  Javier Kohen <jkohen at tough.com>
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++package ar.com.jkohen.awt;
++
++import java.awt.*;
++
++public class NickItemExtended extends NickItem
++    implements NickInfoExtended {
++
++    private static int AVATAR_GAP = 2;
++
++    private boolean has_extended;
++    private int age;
++    private int sex;
++    private String location;
++    private String description;
++    private Image avatar;
++
++    private Color sex_color;
++    private Dimension avatar_size;
++
++    public NickItemExtended(String nick) {
++	this((NickInfo) new SimpleNickInfo(nick));
++    }
++
++    public NickItemExtended(NickInfoExtended info) {
++	this((NickInfo) info);
++    }
++
++    public NickItemExtended(NickInfo info) {
++	super(info);
++
++	setInfo(info);
++    }
++
++    public boolean hasExtended() {
++	return has_extended;
++    }
++
++    public int getAge() {
++	return age;
++    }
++
++    public void setAge(int  v) {
++	this.age = v;
++	this.has_extended = true;
++    }
++
++    public int getSex() {
++	return sex;
++    }
++
++    public void setSex(int  v) {
++	this.sex = v;
++	this.sex_color = NickList.sexToColor(sex);
++	this.has_extended = true;
++    }
++
++    public String getUserLocation() {
++	return location;
++    }
++
++    public void setUserLocation(String  v) {
++	this.location = v;
++	this.has_extended = true;
++    }
++
++    public String getDescription() {
++	return description;
++    }
++
++    public void setDescription(String  v) {
++	this.description = v;
++	this.has_extended = true;
++    }
++
++    public Image getAvatar() {
++	return avatar;
++    }
++
++    public void setAvatar(Image  v) {
++	this.avatar = v;
++
++	if (null == avatar) {
++	    this.avatar_size = new Dimension(0, 0);
++	} else {
++	    Dimension d = new Dimension();
++
++	    do {
++		d.width = avatar.getWidth(this);
++	    } while (-1 == d.width);
++	    do {
++		d.height = avatar.getHeight(this);
++	    } while (-1 == d.height);
++
++	    avatar_size = d;
++	}
++    }
++
++    public void setInfo(NickInfoExtended info) {
++	super.setInfo(info);
++
++	this.has_extended = info.hasExtended();
++	if (has_extended) {
++	    setAge(info.getAge());
++	    setSex(info.getSex());
++	    setUserLocation(info.getUserLocation());
++	    setDescription(info.getDescription());
++	}
++	setAvatar(info.getAvatar());
++    }
++
++    public void paint(Graphics g) {
++	Rectangle clip = g.getClipBounds();
++	int x = 0;
++	Color fg = sex_color;
++
++	if (isSelected()) {
++	    // Fill background.
++  	    g.setColor(getSelectedBackground());
++	    g.fillRect(clip.x, clip.y, clip.width, clip.height);
++  	    fg = getSelectedForeground();
++	}
++
++	FontMetrics fm = g.getFontMetrics();
++	int baseline = fm.getLeading() + fm.getMaxAscent();
++
++	if (null != avatar && null != avatar_size) {
++	    g.drawImage(avatar, AVATAR_GAP, 0, this);
++
++	    x += avatar_size.width + 2 * AVATAR_GAP;
++	    baseline = (avatar_size.height + baseline - fm.getMaxDescent())
++		/ 2;
++	}
++
++	g.setColor(fg);
++
++	g.drawString(nick, x, baseline);
++    }
++
++    public Dimension getSize(Graphics g) {
++	FontMetrics fm = g.getFontMetrics();
++
++	Dimension size = new Dimension(fm.stringWidth(nick),
++				       fm.getLeading() + fm.getMaxAscent()
++				       + fm.getMaxDescent());
++
++	if (null != avatar && null != avatar_size) {
++	    size.width += avatar_size.width + 2 * AVATAR_GAP;
++	    size.height = Math.max(size.height, avatar_size.height);
++	}
++
++	return size;
++    }
++}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/NickItemSymbol.java eirc-avatars/src/main/ar/com/jkohen/awt/NickItemSymbol.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/NickItemSymbol.java	Wed Feb 21 03:06:24 2001
++++ eirc-avatars/src/main/ar/com/jkohen/awt/NickItemSymbol.java	Wed Dec 31 21:00:00 1969
+@@ -1,64 +0,0 @@
+-/*
+-Eteria IRC Client, an RFC 1459 compliant client program written in Java.
+-Copyright (C) 2000  Javier Kohen <jkohen at tough.com>
+-
+-This program is free software; you can redistribute it and/or modify
+-it under the terms of the GNU General Public License as published by
+-the Free Software Foundation; either version 2 of the License, or
+-(at your option) any later version.
+-
+-This program is distributed in the hope that it will be useful,
+-but WITHOUT ANY WARRANTY; without even the implied warranty of
+-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-GNU General Public License for more details.
+-
+-You should have received a copy of the GNU General Public License
+-along with this program; if not, write to the Free Software
+-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-*/
+-
+-package ar.com.jkohen.awt;
+-
+-import java.awt.*;
+-import ar.com.jkohen.irc.Modes;
+-
+-public class NickItemSymbol extends NickItem {
+-    public NickItemSymbol(String nick) {
+-	super(nick);
+-    }
+-
+-    public NickItemSymbol(NickInfo info) {
+-	super(info);
+-    }
+-
+-    public void paint(Graphics g) {
+-	Rectangle clip = g.getClipBounds();
+-	Color fg = getTextForeground();
+-	String nick = Modes.uncanonicalizeNick(this.nick, modes);
+-
+-	if (isSelected()) {
+-	    // Fill background.
+-  	    g.setColor(getSelectedBackground());
+-	    g.fillRect(clip.x, clip.y, clip.width, clip.height);
+-  	    fg = getSelectedForeground();
+-	}
+-
+-	g.setColor(fg);
+-
+-	FontMetrics fm = g.getFontMetrics();
+-	int baseline = fm.getLeading() + fm.getMaxAscent();
+-
+-	g.drawString(nick, 0, baseline);
+-    }
+-
+-    public Dimension getSize(Graphics g) {
+-	FontMetrics fm = g.getFontMetrics();
+-	String nick = Modes.uncanonicalizeNick(this.nick, modes);
+-
+-	Dimension size = new Dimension(fm.stringWidth(nick),
+-				       fm.getLeading() + fm.getMaxAscent()
+-				       + fm.getMaxDescent());
+-
+-	return size;
+-    }
+-}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/NickList.java eirc-avatars/src/main/ar/com/jkohen/awt/NickList.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/NickList.java	Wed Apr  4 20:32:34 2001
++++ eirc-avatars/src/main/ar/com/jkohen/awt/NickList.java	Sat Apr  7 00:31:46 2001
+@@ -31,7 +31,7 @@
+ import ar.com.jkohen.util.CollatedHashtable;
+ 
+ public class NickList extends ScrollPane
+-    implements MouseListener, ItemSelectable {
++    implements MouseListener, MouseMotionListener, ItemSelectable {
+ 
+     public static final int SYMBOL_RENDERER = 0;
+     public static final int BULLET_RENDERER = 1;
+@@ -39,7 +39,7 @@
+     public static final int SORT_ALPHA = 0;
+     public static final int SORT_ALPHA_FAVOR_MODE = 1;
+ 
+-    private static final int PREF_MIN_WIDTH = 100;
++    private static final int PREF_MIN_WIDTH = 150;
+ 
+     private MouseListener mouseListener;
+     private ActionListener actionListener;
+@@ -47,6 +47,7 @@
+ 
+     protected MyList screen_list;
+     private int item_renderer;
++    private NickInfoPopup nick_info;
+ 
+     private CollatedHashtable items;
+ 
+@@ -79,10 +80,45 @@
+ 	adj = getVAdjustable();
+ 	adj.setUnitIncrement(10);
+ 
++	Panel p = new Panel();
++  	FlowLayout fl = (FlowLayout) p.getLayout();
++  	fl.setHgap(0);
++  	fl.setVgap(0);
++
+ 	this.screen_list = new MyList();
+-	add(screen_list);
++	p.add(screen_list);
++
++	this.nick_info = new NickInfoPopup();
++	nick_info.setFont(new Font("SansSerif", Font.PLAIN, 10));
++  	p.add(nick_info);
++
++	add(p);
+ 
+ 	screen_list.addMouseListener(this);
++	screen_list.addMouseMotionListener(this);
++    }
++ 
++    public static Color sexToColor(int sex) {
++	switch (sex) { // FIXME: there could be a law prohibiting this.
++	case NickInfoExtended.SEX_MALE:
++	    return Color.cyan;
++	case NickInfoExtended.SEX_FEMALE:
++	    return Color.pink;
++	default:
++	    return Color.white;
++	}
++    }
++
++    // FIXME: support I18N.
++    public static char sexToChar(int sex) {
++	switch (sex) { // FIXME: there could be a law prohibiting this.
++	case NickInfoExtended.SEX_MALE:
++	    return 'M';
++	case NickInfoExtended.SEX_FEMALE:
++	    return 'F';
++	default:
++	    return '?';
++	}
+     }
+ 
+     public String [] getNicks() {
+@@ -148,8 +184,14 @@
+      */
+     public void setNickInfo(String nick, NickInfo info) {
+ 	NickItem ni = (NickItem) items.get(nick);
+-	ni.setInfo(info);
++	if (info instanceof NickInfoExtended) {
++	    NickItemExtended nie = (NickItemExtended) ni;
++	    nie.setInfo((NickInfoExtended) info);
++	} else {
++	    ni.setInfo(info);
++	}
+ 
++	screen_list.setDirty();
+ 	screen_list.repaint();
+     }
+ 
+@@ -158,6 +200,11 @@
+ 	items.clear();
+ 	for (int i = 0; i < users.length; i++) {
+ 	    add(users[i].getTag(), users[i].getModes());
++	    // If this user had a NickInfo associated, use it.
++	    NickInfo ni = users[i].getNickInfo();
++	    if (null != ni) {
++		setNickInfo(users[i].getTag(), ni);
++	    }
+ 	}
+ 
+ 	screen_list.setDirty();
+@@ -168,19 +215,7 @@
+      * Adds <code>nick</code> to the list with user mode <code>mode</code>.
+      */
+     public void add(String nick, int mode) {
+-	NickItem ni;
+-
+-	switch (item_renderer) {
+-	case BULLET_RENDERER:
+-	    ni = new NickItemBullet(nick);
+-	    break;
+-	case SYMBOL_RENDERER:
+-	    ni = new NickItemSymbol(nick);
+-	    break;
+-	default:
+-	    throw new IllegalArgumentException("Invalid NickItem renderer selected");
+-	}
+-
++	NickItem ni = new NickItemExtended(nick);
+ 	ni.setForeground(getForeground());
+ 	ni.setBackground(getBackground());
+ 	ni.setTextForeground(textfg);
+@@ -370,7 +405,7 @@
+ 	    itemListener.itemStateChanged(e);
+ 	}
+     }
+-
++ 
+     public void mouseClicked(MouseEvent ev) {
+ 	Object source = ev.getSource();
+ 
+@@ -448,9 +483,47 @@
+ 	    if (mouseListener != null) {
+ 		mouseListener.mouseExited(ev);
+ 	    }
++	} else if (source.equals(screen_list)) {
++	    NickInfoExtended old_info = nick_info.getInfo();
++
++	    nick_info.clear();
++
++	    if (null != old_info) {
++		screen_list.repaint();
++	    }
++	}
++    }
++ 
++    public void mouseMoved(MouseEvent ev) {
++	boolean repaint = true;
++
++	Point mouse_coords = ev.getPoint();
++
++	NickItem ni = getNickItemAt(mouse_coords);
++
++	NickInfo info = null != ni ? ni.getInfo() : null;
++	NickInfo old_info = nick_info.getInfo();
++
++	if (null == info || !(info instanceof NickInfoExtended)
++	    || !((NickInfoExtended) info).hasExtended()) {
++	    if (null != old_info) {
++		nick_info.clear();
++	    } else {
++		repaint = false;
++	    }
++	} else if (!info.equals(old_info)) {
++	    nick_info.show((NickInfoExtended) info);
++	}
++
++	if (repaint) {
++	    nick_info.setLocation(mouse_coords);
++	    screen_list.repaint();
+ 	}
+     }
+ 
++    public void mouseDragged(MouseEvent ev) {
++    }
++
+     protected class MyList extends Canvas implements ComponentListener {
+ 	private Image image;
+ 	private Graphics img_gfx;
+@@ -506,6 +579,8 @@
+ 		Graphics ng = img_gfx.create(r.x, r.y, size.width, r.height);
+ 		items[i].paint(ng);
+ 	    }
++
++	    nick_info.paint(img_gfx);
+ 
+ 	    g.drawImage(image, 0, 0, this);
+ 	}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/awt/SimpleNickInfoExtended.java eirc-avatars/src/main/ar/com/jkohen/awt/SimpleNickInfoExtended.java
+--- eirc-cvs/src/main/ar/com/jkohen/awt/SimpleNickInfoExtended.java	Wed Dec 31 21:00:00 1969
++++ eirc-avatars/src/main/ar/com/jkohen/awt/SimpleNickInfoExtended.java	Fri Apr  6 23:40:44 2001
+@@ -0,0 +1,100 @@
++/*
++Eteria IRC Client, an RFC 1459 compliant client program written in Java.
++Copyright (C) 2000  Javier Kohen <jkohen at tough.com>
++
++This program is free software; you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 2 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, write to the Free Software
++Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++package ar.com.jkohen.awt;
++
++import java.awt.Image;
++
++public class SimpleNickInfoExtended extends SimpleNickInfo
++    implements NickInfoExtended {
++
++    private boolean has_extended;
++    private int age;
++    private int sex;
++    private String location;
++    private String description;
++    private Image avatar;
++ 
++    public SimpleNickInfoExtended(String nick) {
++	super(nick);
++
++	this.avatar = avatar;
++    }
++ 
++    public SimpleNickInfoExtended(String nick,
++				  int age, int sex, String location,
++				  String description, Image avatar) {
++	super(nick);
++
++ 	this.age = age;
++ 	this.sex = sex;
++ 	this.location = location;
++ 	this.description = description;
++ 	this.avatar = avatar;
++	this.has_extended = true;
++    }
++
++    public boolean hasExtended() {
++	return has_extended;
++    }
++
++    public int getAge() {
++ 	return age;
++    }
++
++    public void setAge(int  v) {
++ 	this.age = v;
++	this.has_extended = true;
++    }
++
++    public int getSex() {
++ 	return sex;
++    }
++
++    public void setSex(int  v) {
++ 	this.sex = v;
++	this.has_extended = true;
++    }
++
++    public String getUserLocation() {
++ 	return location;
++    }
++
++    public void setUserLocation(String  v) {
++ 	this.location = v;
++	this.has_extended = true;
++    }
++
++    public String getDescription() {
++ 	return description;
++    }
++
++    public void setDescription(String  v) {
++ 	this.description = v;
++	this.has_extended = true;
++    }
++
++    public Image getAvatar() {
++ 	return avatar;
++    }
++
++    public void setAvatar(Image  v) {
++ 	this.avatar = v;
++    }
++}
+diff -urN eirc-cvs/src/main/ar/com/jkohen/irc/User.java eirc-avatars/src/main/ar/com/jkohen/irc/User.java
+--- eirc-cvs/src/main/ar/com/jkohen/irc/User.java	Sun Mar  4 19:01:34 2001
++++ eirc-avatars/src/main/ar/com/jkohen/irc/User.java	Sat Apr  7 00:30:02 2001
+@@ -19,6 +19,8 @@
+ 
+ package ar.com.jkohen.irc;
+ 
++import ar.com.jkohen.awt.NickInfo;
++
+ public class User {
+     public static final int NORMAL_MASK = 0x01;
+     public static final int OP_MASK     = 0x02;
+@@ -27,6 +29,7 @@
+ 
+     private String tag;
+     private int modes;
++    private NickInfo nick_info;
+ 
+     public User(String tag) {
+ 	this.modes = Modes.symbolicToMask(tag.charAt(0));
+@@ -39,6 +42,9 @@
+ 
+     public void setTag(String tag) {
+ 	this.tag = tag;
++	if (null != nick_info) {
++	    nick_info.setNick(tag);
++	}
+     }
+ 
+     public int getModes() {
+@@ -59,5 +65,13 @@
+ 
+     public boolean isVoiced(String nick) {
+ 	return (0 != (modes & VOICE_MASK));
++    }
++
++    public NickInfo getNickInfo() {
++	return nick_info;
++    }
++
++    public void setNickInfo(NickInfo nick_info) {
++	this.nick_info = nick_info;
+     }
+ }

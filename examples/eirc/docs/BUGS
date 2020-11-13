@@ -1,0 +1,33 @@
+8. Changing font doesn't change fonts in some components of windows. I consider this a MSIE's bug, as Sun's AV 1.2.2 and NN don't show whis problem. Specially because closing and re-opening a windows in MSIE makes the window appear properly fontified. (Needs confirmation.)
+
+18. With Sun's JDK 1.2.2 AppletViewer, a KeyListener won't get KeyEvent's if keys are pressed in a Component that was focused at program start up, and that hasn't lost or has re-gained focus. (Try it on the status window's entry just after EIRC starts.) This doesn't happen either with NN or AV 1.3. (Reported to Sun on 20001021.)
+
+22. Blame Microsoft for not implementing the method setState in class java.awt.Frame. According to Sun's Java API docs, it's been there since Java API 1.0. How does this affect EIRC? Well, it just can't raise minimized windows without that method.
+
+24. Sun's JDK 1.3 AppletViewer (tested on Linux) is braindead. It complains wit an uncertain message on PARAM's with empty or not defined VALUE attributes. The most weird thing is that it says the NAME attrib is missing, when it's there! (Reported to Sun on 20001021.)
+
+26. Sun's JDK 1.3 won't post an ActionEvent when a mouse button is released on -at least- a MenuItem. This is not what one would expect. (Reported to Sun on 20001021.)
+Wokaround: click with the left button on context menus while keeping them open with the right button.
+
+27. MSIE 5.0 won't set the popupTrigger flag on MouseEvent's when appropiated.
+Workaround: check to see if the third button was pressed. It might not work properly for left-hand-configured mouses (please report), and for one or two-button mouses (please report).
+
+29. HtmlLayout is buggy and slow. Support for this package has been dropped from EIRC except from the ControlPanel; it needs a big revamping before we can use it, we need it, or something similar, though.
+
+32. NN 4.7x under XFree86 4.0.x on Linux doesn't reports a 0 valued modifier for MouseEvent's triggered by pressing BUTTON1. (Reported to Netscape on 20010215.)
+
+34. For some strange reason NN 4.76 (and probably other versions, too) behaves strangely under XFree86 4.0.x when the ChannelTree is reopened: the Frame is grown to a very large size, and its GUI stops resonding; the rest of the applet keeps working normally.
+The Frame being sizable seems not to be the cause.
+Workaround: instance a new ChannelTree everytime we need to open that window.
+
+35. Microsoft Internet Explorer 5.5 doesn't work as expected when Resource.getBundle is passed a full qualified class name, it tries to load it from disk while the properties file is contained in a CAB file (which works when using Resource.getResource).
+
+36. Sometimes SmileyTextArea doesn't paint properly a line, making it look like the one above it.
+
+37. SmileyTextArea doesn't set correctly the click area on hyperlinks placed after the top line in multiline outputs, they appear with an horizontal offset.
+
+38. When a SmileyTextArea is being scrolled, hyperlinks don't work at all.
+
+39. SmileyTextArea wont parse #!/bin/sh correctly as a link. The author says it's not trivial to fix it, I'll have to look into it.
+
+40.

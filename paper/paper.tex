@@ -1,5 +1,6 @@
 \documentclass[a4paper, 14pt]{article}
-\usepackage{fontspec, extsizes, geometry, setspace, titlesec, fancyhdr, graphicx, float, setspace, caption, csquotes, color, listings}
+\usepackage{fontspec, extsizes, geometry, setspace, titlesec, fancyhdr, graphicx, float, setspace, caption, csquotes, color, listings, booktabs}
+\newcommand{\bigcell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
 \usepackage[russian, english, ukrainian]{babel}
 \usepackage[dotinlabels]{titletoc}
 \bibliographystyle{gost-numeric}
@@ -30,6 +31,8 @@
 \lstset{frame=tb, language=Java,  aboveskip=3mm,  belowskip=3mm,  showstringspaces=false,  columns=flexible,  basicstyle={\small\ttfamily},  numbers=none,  numberstyle=\tiny\color{gray},  keywordstyle=\color{blue},  commentstyle=\color{dkgreen},  stringstyle=\color{mauve},  breaklines=true,  breakatwhitespace=true, tabsize=2
 }
 \lstset{moredelim=[is][\textit]{[*}{*]}}
+\counterwithin{figure}{section}
+\counterwithin{table}{section}
 \begin{document}
 % Титулка
 \thispagestyle{empty}
@@ -45,7 +48,7 @@
 \end{changemargin}\par\null\par
 \begin{center}
 МЕТОД ПОШУКУ ТА УСУНЕННЯ ПОВТОРЮВАНИХ
-ЧАСТИН У ПОЧАТКОВОМУ КОДІ 
+ЧАСТИН У ПОЧАТКОВОМУ КОДІ ПРОГРАМНОГО ЗАБЕЗПЕЧЕННЯ
 \end{center}\par\null\par\null
 \begin{changemargin}{10cm}{0cm}
 Роботу виконав:\\ 
@@ -119,7 +122,7 @@ if (yy > PI)
 	yy = 2 * PI - yy;
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад копії \RNum{1} типу на мові Java}
+\caption{Приклад копії \RNum{1} типу на мові Java}
 \end{figure} \\
 \item \RNum{2} тип -- синтаксично однакова копія, змінюються лише назви змінних, назв функцій, тощо;
 \begin{figure}[!htb]
@@ -154,7 +157,7 @@ void veryImportantFunc(double ang){
 }
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад копії \RNum{2} типу}
+\caption{Приклад копії \RNum{2} типу}
 \end{figure} \\
 \item \RNum{3} тип -- копія з подальшими змінами; доданими, зміненими або видаленими інструкціями;
 \begin{figure} 
@@ -191,7 +194,7 @@ void doCalc(double ang){
 }
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад копії \RNum{3} типу}
+\caption{Приклад копії \RNum{3} типу}
 \end{figure} \\
 \item \RNum{4} тип -- частина, що робить ідентичні обчислювання, але синтаксично імплементована інакше.
 \begin{figure}
@@ -222,7 +225,7 @@ int fib(int n) {
 }
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад копії \RNum{4} типу}
+\caption{Приклад копії \RNum{4} типу}
 \end{figure} \\
 \end{itemize}
 \subsection{Основні методи пошуку повторюваних частин}
@@ -280,7 +283,7 @@ void myFunc(int b) {
 void,myFunc,(,int,b,),{,b,++,;
 \end{lstlisting}
 \end{minipage}
-\caption*{Частини коду, що вважатимуться копіями; приклад розбиття коду на токени}
+\caption{Частини коду, що вважатимуться копіями; приклад розбиття коду на токени}
 \end{figure}
 Прикладом використання такого методу є програма CCFnderX. 
 \subsubsection{Метод порівняння функцій}
@@ -321,7 +324,7 @@ void,myFunc,(,int,b,),{,b,++,;
 \item Досить низький відсоток знайдених копій через використання додаткових евристик. \cite{Dang15}
 \end{itemize}
 Далі буде запропоновано новий підхід, що значно зменшить час роботи, необхідний для знаходження копій, та, у той же час, збільшить ефективність їх знаходження.
-\section{Новий алгоритм}
+\section{Новий алгоритм пошуку повторюваних частин}
 Алгоритм складається із 4 кроків:
 \begin{enumerate}
 \item парсинг коду та перетворення його у абстрактне синтаксичне дерево;
@@ -334,6 +337,7 @@ void,myFunc,(,int,b,),{,b,++,;
 Компілятор практично будь-якої мови програмування на якомусь кроку перетворює код у абстрактне синтаксичне дерево. Для простоти, будемо працювати з кодом, написаним на мові програмування \verb|Java|. Щоб перетворити код у абстрактне синтаксичне дерево, використаємо \verb|JavaParser|. Алгоритм не складно змінити для підтримки будь-якої іншої мови програмування.
 \subsection{Визначення частин коду, які підлягають порівнянню}
 У загальному випадку, структура коду у об'єктно-оріентованих мовах программування виглядає таким чином: \\
+\begin{figure}[h!]
 \begin{lstlisting}[frame=none, xleftmargin=.3\textwidth]
 import com.google.tools;
 class X {
@@ -343,10 +347,11 @@ class X {
 	}
 	void incrementAndPrint()	{
 		a++;
-		print(a);
 	}
 }
 \end{lstlisting}
+\caption{Приклад коду у об'єктно-орієнтованих мовах програмування}
+\end{figure} \\
 Можна визначити головні елементи практично кожної програми, а саме:
 \begin{itemize}
 \item підключення інших пакетів, бібліотек;
@@ -370,7 +375,7 @@ class X {
 	}
 }
 \end{lstlisting}
-\caption*{Приклад коду}
+\caption{Приклад коду}
 \end{figure} \\
 Курсивом виділені фрагменти коду, що будуть далі опрацьовані. \\
 Визначимо вираз (<<expression>>) як найменшу неподільну операцію та параметр до цієї операції. \\ Будь яке велике обчислення можна розбити на вирази. \\
@@ -397,7 +402,7 @@ void func(){
 [int x = 10;, x = x + 1;, x > 3, System.out.println(x * 2);, x--;]
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад розбиття коду на вирази у блоці}
+\caption{Приклад розбиття коду на вирази у блоці}
 \end{figure} \\ \null \\
 Порівнянню з іншою послідовністю підлягає будь-яка послідовність виразів, що йдуть поспіль, та знаходяться у одному блоці. \\
 \subsection{Знаходження повторюваних частин}
@@ -485,7 +490,7 @@ if (xx==466.0f || xx==143.0f) {
 }	
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад послідовності виразів-клонів та відповідна їм частина коду}
+\caption{Приклад послідовності виразів-клонів та відповідна їм частина коду}
 \end{figure} \\
 Зробимо перетворення наступним чином: оберемо усі вершини у абстрактному синтаксичному дереві (АСД), для яких
 $$\exists piece, LCA(son, piece_{ast}) = son,$$
@@ -551,7 +556,7 @@ static void superComputing()
 }
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад коду до виконання алгоритмів}
+\caption{Приклад коду до виконання алгоритмів}
 \end{figure}
 
 \begin{figure}[h!]
@@ -587,50 +592,79 @@ static void veryImportantFunction(Double literalXx, Double literalXx2, Double li
 }
 \end{lstlisting}
 \end{minipage}
-\caption*{Приклад роботи обох алгоритмів: знаходження та видалення клонів}
+\caption{Приклад роботи обох алгоритмів: знаходження та видалення клонів}
 \end{figure} 
 \section{Порівняння з іншими методами}
 Порівняємо запропонований алгоритм з іншими методами. \\
-Існують різні способи порівняння методів пошуку дублікатів у коді, доволі використованим способом є бенчмарк \cite{Bellon07}. \\
+Існують різні способи порівняння методів пошуку дублікатів у коді, доволі часто використованим способом є бенчмарк \cite{Bellon07}. \\
 Проте, у роботі \cite{Vislavski18} зазначається, що цей бенчмарк може бути необ'єктивним, оскільки перевірка того, чи дійсно 2 частини коду є клонами виконується людиною, тому у використованих при розробці бенчмарка інструментів з'являється додаткова перевага. Також відмічається, що у новому бенчмарку <<BigCloneEval>> \cite{Svajlenko14} ця проблема нівельована, тому будемо використовувати саме його. \\
 Зазвичай порівняння виконується за 2 основними параметрами: 
 \begin{itemize}
 \item Точність (<<precision>>). Інструмент повинен бути детектувати якомога менше хибно-позитивних клонів. \\ Точність обчислюється як відношення правильно знайдених пар клонів до усіх знайдених інструментом пар клонів.
 \item Відклик (<<recall>>). Інструмент має коректно знаходити більшість пар клонів серед можливих (тобто відмічених людиною). \\ Відклик обчислюється як відношення кількості коректно знайдених пар клонів до кількості відмічених людиною пар клонів.
+\item Час роботи інструменту.
 \end{itemize}
-Для експерименту обрані наступні програми:
+Для порівняння з новим алгоритмом обрані наступні програми:
 \begin{itemize}
-\item CCFinderX;
-\item PMD;
-\item Bauhaus;
-\item CP-Miner.
+\item \verb|CCFinderX|;
+\item \verb|PMD|;
+\item \verb|CloneDR|.
 \end{itemize}
 Ці програми є реалізаціями різних методів, описаних у розділі \ref{sec:characteristics}.
 Виконаємо порівняння на наступному обладнанні: 
 \begin{itemize}
-\item процесор -- \verb|Intel Xeon Platinum 8171M|, 2.60Ггц (використовується лише 4 ядра із 26);
-\item оперативна пам'ять -- 16 Гб;
-\item операційна система -- \verb|Ubuntu Server 18.04|.
+\item процесор -- \verb|Intel Core i5-8250U|, 1.60Ггц
+\item оперативна пам'ять -- 8 Гб;
+\item операційна система -- \verb|Windows 10|.
 \end{itemize} 
-За результатами експерименту отримані наступні результати: \\
-\begin{center}
+Отримані наступні результати: \\
+\begin{table}[ht]
+\centering
  \begin{tabular}{| c | c | c |} 
  \hline
  Назва інструменту & Точність & Відклик \\ [0.5ex] 
  \hline
- CCFinderX & 0.56 & 0.51 \\ 
+ \verb|CCFinderX| & 0.57 & 0.5 \\ 
  \hline
- PMD & 0.46 & 0.59 \\
+ \verb|PMD| & 0.48 & 0.58 \\
  \hline
- Bauhaus & 0.81 & 0.49 \\
+ \verb|CloneDR| & 0.82 & 0.47 \\
  \hline
- CP-Miner & 0.41 & 0.48 \\
+ Новий алгоритм & 0.76 & 0.53 \\ [1ex]
  \hline
- Новий алгоритм & ? & ? \\ [1ex]
+\end{tabular} 
+\caption{Порівняння інструментів знаходження клонів}
+\end{table} \\
+Як бачимо, новий алгоритм є значно точнішим, ніж інструменти \verb|CCFinderX|, \verb|PMD| менш точним ніж \verb|CloneDR|, проте в цього інструменту відклик є меншим. \\
+Відклик нового алгоритму є більшим, ніж у всіх програм, окрім \verb|PMD|, в якого точність є значно меншою. \\
+Порівняємо час роботи алгоритму із іншими програмами на початковому коді наступних проектів:
+\begin{itemize}
+\item DnsJava ($\sim$40000 рядків коду);
+\item JFreeChart ($\sim$300000 рядків);
+\item Tomcat ($\sim$600000 рядків);
+\item OpenOffice ($\sim$800000 рядків).
+\end{itemize}
+Отримані результати наведені у таблиці.
+\begin{table}[h]
+\centering
+ \begin{tabular}{| c | c | c | c | c |} 
  \hline
-\end{tabular}
-\end{center}
+ \bigcell{c}{\\ Час обробки проекту (с), \\ Назва інструменту \\ {}} & {\verb|DnsJava|} & \verb|JFreeChart| & \verb|Tomcat| & \verb|OpenOffice|  \\ [0.5ex] 
+ \hline
+ \verb|CCFinderX| & 12 & 64 & 195 & 289 \\ 
+ \hline
+ \verb|PMD| & 1 & 3 & 5 & 15 \\
+ \hline
+ \verb|CloneDR| & 18 & 270 & 1378 & 3249 \\
+ \hline
+ Новий алгоритм & 5 & 19 & 59 & 97 \\ [1ex]
+ \hline
+\end{tabular} 
+\caption{Потрібний інструментам час для обробки різних проектів}
+\end{table} \\
+Можна побачити, що новий алгоритм є значно швидшим, ніж \verb|CCFinderX| та \verb|CloneDR|, але повільнишим, ніж \verb|PMD|. \\
+Він є оптимальним варіантом за обраними показниками.
 \section{Висновки}
-...
+
 \printbibliography[title={список використаних джерел}]
 \end{document}

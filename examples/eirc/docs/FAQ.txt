@@ -1,0 +1,131 @@
+This is version 0.1.1 of the EIRC FAQ.  It applies to EIRC version 1.0.2.
+At the moment it contains the questions Paul L. Allen asked himself when
+he tried to get EIRC working and the answers he eventually dug out.
+
+1) What is EIRC?
+
+Eteria IRC is a java applet which functions as an IRC client.  If the
+web page it is embedded in is on the same server as the IRC server
+then it runs out of the box.  If the web page is on a different server
+you'll need to rebuild it.
+
+2) Why do I need to rebuild it if the web page is on a different server
+to the IRC daemon?
+
+Because the jars aren't signed.
+
+3) Why aren't the jars signed?
+
+Because the out-of-the-box configuration is not particularly well-suited
+to many people's needs.  In particular, it is built with debugging
+turned on (wasteful of bandwidth) and may need tweaks to various class
+files to suit the particular IRC network you wish to connect to.
+
+4) Why isn't the out-of-the-box configuration better suited to what
+people want to do?
+
+Because making EIRC more flexible so that most people can use it without
+having to recompile it will take time and effort.  Give it time.
+
+5) Where do I get EIRC?
+
+From http://eirc.sourceforge.net/.  If you want to build EIRC from source
+you'll need the EIRC-lib package too.
+
+6) How do I build EIRC?
+
+You'll need the EIRC and EIRC-lib packages.  Move the lib directory
+from EIRC-lib into your EIRC directory.  Then execute build.sh (if
+you're on Unix) or build.bat (if you're on Windows).
+
+7) What does it mean when it says BUILD FAILED Cannot use classic
+compiler as it is unavailable?
+
+It means you should do something about the warning you got just before
+the error message and set the environment variable JAVA_HOME to point
+to your java installation directory.
+
+8) How do I build EIRC with debugging disabled so it's smaller and
+therefore a faster download?
+
+Edit the file build.xml.  Search for the word "debug".  Change:
+
+  debug="on"
+  
+to:
+
+  debug="off"
+
+Ideally you'd be able to pass a parameter to build.bat/build.sh to
+turn debugging on or off and it would default to being off because
+that's the most sensible option.  The distributed binary ought to have
+debugging turned off because many are not in a position to rebuild it
+and debugging wastes valuable bandwidth; most who do rebuild it do so
+only because they've changed a few options in the classes; only
+maintainers need debugging and that (with luck) only infrequently.
+
+9) How do I sign EIRC?
+
+It depends whether you're on Unix or Windows and what version JDK you
+have.
+
+10) How do I sign EIRC on Unix with JDK 1.1?
+
+Use javakey to create a certificate and sign the jars.  Detailed
+instructions and examples are available on <URL: http://java.sun.com>.
+
+11) How do I sign EIRC on Unix and Mac OS X with Java 2?
+
+Use keytool to create a certificate and jarsigner to sign the jars.
+
+The following commands will get you selfsigned archives:
+$ keytool -selfcert -alias myalias
+$ jarsigner EIRC.jar myalias
+$ jarsigner EIRC-gfx.jar myalias
+
+[ Thanks to Seva Epsteyn for the example. ]
+
+Detailed instructions and examples are available on <URL:
+http://java.sun.com>.
+
+12) How do I sign EIRC on Windows?
+
+Dunno.  Fortunately, I don't run Windoze.
+
+13) I've signed it but I still can't get it to connect to IRC server Y
+from web server X.  What's the problem?
+
+I wish I knew.
+
+14) I signed it.  I put it on webserver X and told it to use IRC
+server Y.  It sits there for 5 minutes then complains that it can't
+find the server.  What's wrong?
+
+It's asking a nameserver for the IP address and the nameserver isn't
+finding it.  This appears to be a bug in the code.  Maybe it's related
+to the signing issue.  Giving the server's IP address means it
+reports the next problem almost immediately and you can have a
+non-working EIRC in seconds rather than waiting 5 minutes.
+
+15) What does it mean when the build fails with "Blank final variable
+'fixedColors'?
+
+It means there's a problem with the source code that your javac isn't
+happy with.
+
+16) How do I give EIRC a list of servers to connect to?
+
+At this moment, you can't.  Maybe in the next release...
+
+17) How do I get EIRC to understand that Dalnet's nickserv is called
+nickserv@services.dal.net?
+
+You have to edit src/etc/properties/configuration.properties and look
+for the line starting "service_bots=" then change those as appropriate.
+
+Ideally, you should be able to pass these as applet parameters to
+avoid having to recompile for Dalnet.  Even more ideally, there would
+be separate properties files for the main IRC networks and EIRC would
+recognize if you had connected to a known network and act accordingly -
+this would save people having to recompile when dealing with different
+IRC networks.  Maybe in the next release...

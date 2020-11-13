@@ -1,0 +1,183 @@
+<project name="EIRC" default="jar" basedir=".">
+ <taskdef name="obfuscate" classname="com.yworks.yguard.ObfuscatorTask"
+	  classpath="lib/yguard.jar"/>
+
+ <property name="name" value="EIRC" />
+ <property name="version" value="1.0.3" />
+ <property name="lib.version" value="2.1" />
+
+ <property name="obf.error-checking" value="pedantic"/>
+
+ <property name="ant.home" value="."/>
+ <property name="root.dir" value="." />
+ <property name="bin.dir" value="bin" />
+ <property name="docs.dir" value="docs" />
+ <property name="lib.dir" value="lib" />
+ <property name="src.dir" value="src/main" />
+ <property name="src.etc.dir" value="src/etc" />
+ <property name="src.gfx.dir" value="src/gfx" />
+ <property name="build.dir" value="build" />
+ <property name="build.obf.dir" value="${build.dir}/obf" />
+ <property name="build.classes" value="${build.dir}/classes" />
+ <property name="dist.dir" value="dist" />
+ <property name="eirc.dist.dir" value="${dist.dir}/${name}-${version}" />
+
+ <patternset id="chmod.patterns">
+  <include name="**/ant" />
+  <include name="**/antRun" />
+  <include name="**/build.sh" />
+ </patternset>
+
+ <patternset id="run.patterns">
+  <include name="index.html" />
+  <include name="*.jar" />
+ </patternset>
+
+ <target name="prepare">
+  <mkdir dir="${build.dir}" />
+  <tstamp />
+ </target>
+
+ <target name="compile" depends="prepare">
+  <mkdir dir="${build.classes}"/>
+
+  <javac srcdir="${src.dir}"
+         destdir="${build.classes}"
+	 deprecation="off"
+	 debug="on"
+         source="1.3"
+         target="1.1"
+	 encoding="iso-8859-1" />
+
+  <copy todir="${build.classes}"
+        flatten="yes">
+   <fileset dir="${src.etc.dir}">
+    <include name="**/*.properties" />
+   </fileset>
+  </copy>
+
+  <copy todir="${build.classes}">
+   <fileset dir="${src.dir}">
+    <include name="**/*.gif" />
+    <include name="**/*.properties" />
+   </fileset>
+  </copy>
+ </target>
+
+ <target name="jar" depends="compile">
+  <jar jarfile="${build.dir}/EIRC.jar"
+       basedir="${build.classes}" />
+
+  <jar jarfile="${build.dir}/EIRC-gfx.jar"
+       basedir="${src.gfx.dir}" />
+
+  <copy file="${src.etc.dir}/index.html"
+        todir="${build.dir}" />
+ </target>
+
+ <target name="obfuscate" depends="jar">
+   <mkdir dir="${build.obf.dir}" />
+
+   <obfuscate mainclass="EIRC"
+	      replaceclassnamestrings="true">
+     <property name="error-checking" value="${obj.error-checking}"/>
+
+     <inoutpair in="${build.dir}/EIRC.jar" out="${build.obf.dir}/EIRC.jar"/>
+     <inoutpair in="${build.dir}/EIRC-gfx.jar" out="${build.obf.dir}/EIRC-gfx.jar"/>
+
+     <expose>
+       <class name="Commands"/>
+       <method class="Commands" name="Object[][] getContents()"/>
+     </expose>
+   </obfuscate>
+ </target>
+
+ <target name="dist" depends="jar">
+  <mkdir dir="${eirc.dist.dir}" />
+  <mkdir dir="${eirc.dist.dir}/bin" />
+  <mkdir dir="${eirc.dist.dir}/contrib" />
+  <mkdir dir="${eirc.dist.dir}/docs" />
+  <mkdir dir="${eirc.dist.dir}/src" />
+  <mkdir dir="${dist.dir}/lib" />
+
+  <copy todir="${eirc.dist.dir}/bin">
+   <fileset dir="${bin.dir}" />
+  </copy>
+  <copy todir="${eirc.dist.dir}/contrib">
+   <fileset dir="${basedir}/contrib" />
+  </copy>
+  <copy todir="${eirc.dist.dir}/docs">
+   <fileset dir="${docs.dir}" />
+  </copy>
+  <copy todir="${eirc.dist.dir}/src">
+   <fileset dir="${basedir}/src" />
+  </copy>
+  <copy todir="${dist.dir}/lib">
+   <fileset dir="${lib.dir}" />
+  </copy>
+
+  <copy todir="${eirc.dist.dir}">
+   <fileset dir="${build.dir}">
+    <patternset refid="run.patterns"/>
+   </fileset>
+  </copy>
+
+  <copy todir="${eirc.dist.dir}">
+   <fileset dir="${basedir}">
+    <include name="build.*" />
+    <include name="COPYING" />
+    <include name="README" />
+   </fileset>
+  </copy>
+
+  <fixcrlf srcdir="${eirc.dist.dir}/bin" includes="ant,antRun" eol="unix" />
+  <fixcrlf srcdir="${eirc.dist.dir}/bin" includes="*.bat" eol="dos" />
+  <chmod perm="+x">
+   <fileset dir="${eirc.dist.dir}">
+    <patternset refid="chmod.patterns"/>
+   </fileset>
+  </chmod>
+ </target>
+
+ <target name="dist-zip" depends="dist">
+  <zip zipfile="${name}-${version}.zip"
+   basedir="${dist.dir}"
+   includes="${name}-${version}/**" />
+  <zip zipfile="${name}-lib-${lib.version}.zip"
+   basedir="${dist.dir}"
+   includes="lib/**" />
+ </target>
+
+ <target name="dist-tgz" depends="dist">
+  <tar tarfile="${name}-${version}.tar"
+   basedir="${dist.dir}"
+   includes="${name}-${version}/**" />
+  <gzip zipfile="${name}-${version}.tar.gz" src="${name}-${version}.tar" />
+  <tar tarfile="${name}-lib-${lib.version}.tar"
+   basedir="${dist.dir}"
+   includes="lib/**" />
+  <gzip zipfile="${name}-lib-${lib.version}.tar.gz"
+   src="${name}-lib-${lib.version}.tar" />
+ </target>
+
+ <target name="clean">
+  <delete dir="${build.dir}" />
+  <delete dir="${dist.dir}" />
+  <delete>
+   <fileset dir="${basedir}">
+    <patternset refid="run.patterns" />
+   </fileset>
+  </delete>
+ </target>
+
+ <target name="sign">
+   <signjar jar="${build.dir}/EIRC.jar" alias="eirc" storepass="password"/>
+ </target>
+
+ <target name="run" depends="jar">
+  <java classname="index.html"
+        jvm="appletviewer"
+        fork="yes"
+        dir="${build.dir}" />
+ </target>
+</project>
