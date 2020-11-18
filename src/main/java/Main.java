@@ -1,4 +1,6 @@
 import at.unisalzburg.dbresearch.apted.distance.APTED;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.DataKey;
@@ -95,8 +97,11 @@ public class Main implements Runnable{
             }
     }
 
-    private static void setup() {
+    private static void setup()
+    {
         timeInMillisStart = System.currentTimeMillis();
+        StaticJavaParser.getConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.RAW);
+        StaticJavaParser.getConfiguration().setPreprocessUnicodeEscapes(false);
         try {
             parseArgFile(execFile);
         } catch (IOException e) {
