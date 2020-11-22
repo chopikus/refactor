@@ -28,9 +28,16 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+class VersionProvider implements CommandLine.IVersionProvider
+{
+    @Override
+    public String[] getVersion() throws Exception {
+        return new String[]{"version:", Main.class.getPackage().getImplementationVersion()};
+    }
+}
 
-@CommandLine.Command(version = "Refactoring tool v.0.1", header = "%nRefactoring tool%n",
-        description = "Helps to remove duplicates from your code.%n", mixinStandardHelpOptions = true)
+@CommandLine.Command(header = "%nRefactoring tool%n",
+        description = "Helps to remove duplicates from your code.%n", versionProvider = VersionProvider.class, mixinStandardHelpOptions = true)
 public class Main implements Runnable{
 
     public static final DataKey<Integer> NODE_ID = new DataKey<>() {
@@ -57,18 +64,15 @@ public class Main implements Runnable{
 
     @CommandLine.Parameters(paramLabel = "<file>", description = "what's the shit i need to parse?")
     public static File execFile;
-
     @CommandLine.Option(names = { "-t", "--threshold" }, defaultValue = "3f", description = "Threshold")
     public static float threshold = 3f;
-
     @CommandLine.Option(names = { "-p", "--path" }, defaultValue = "out", description = "Where to put the result?")
     public static String outputFolder = "";
-
     @CommandLine.Option(names = { "--max-do-parameter-count" }, defaultValue = "5", description = "Maximum amount of \"doXXX\" in new functions made by tool")
     public static int maxDoParametersCount = 5;
-
     @CommandLine.Option(names = { "--big-clone-eval"}, defaultValue = "false", description = "Print data to csv in \"BigCloneEval\" format")
     public static boolean bigCloneEval = false;
+
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
         System.out.println("Execution time: ~" + (timeInMillisEnd - timeInMillisStart) + "ms");

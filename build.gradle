@@ -1,9 +1,16 @@
 plugins {
     id 'java'
 }
-
 group 'com.chopikus'
-version '1.0-SNAPSHOT'
+def vcode = (int)(((new Date().getTime()/1000) - 1606075022) / 10)
+version '1.1-'+vcode
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart',
+                'Implementation-Version': '1.2-'+vcode
+    }
+}
 
 repositories {
     mavenCentral()
