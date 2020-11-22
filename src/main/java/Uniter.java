@@ -20,11 +20,10 @@ public class Uniter {
     static Map<String, Integer> wasParameterUsed = new HashMap<>();
     static List<Pair<String, Type>> parameterNames = new ArrayList<>();
 
-    static void exportBigEval(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments, File file)
-    {
-        StringBuilder s= new StringBuilder();
+    static void exportBigEval(List<List<List<Pair<Integer, Integer>>>> duplicatedSegments, File file) {
+        StringBuilder s = new StringBuilder();
         Set<Integer> usedNodeIDs = new TreeSet<>();
-        boolean notWriteCommaInBeginning = true;
+
         for (var segmList : duplicatedSegments) {
             List<Quartet<String, String, Integer, Integer>> clonesList = new ArrayList<>();
             for (var segm : segmList) {
@@ -55,30 +54,31 @@ public class Uniter {
                         usedNodeIDs.add(nodeToAdd[0].getData(Main.NODE_ID));
                     }
                 });
-                if (startLine[0]!=Integer.MAX_VALUE && startLine[0]!=endLine[0]) {
+                if (startLine[0] != Integer.MAX_VALUE && startLine[0] != endLine[0]) {
                     clonesList.add(new Quartet<>(subDirectory[0], fileName[0], startLine[0], endLine[0]));
                 }
             }
-            for (int i=0; i<clonesList.size(); i++)
-            {
-                for (int j=i+1; j<clonesList.size(); j++)
-                {
-                    s.append(clonesList.get(i).getValue0());
-                    s.append(",");
-                    s.append(clonesList.get(i).getValue1());
-                    s.append(",");
-                    s.append(clonesList.get(i).getValue2());
-                    s.append(",");
-                    s.append(clonesList.get(i).getValue3());
-                    s.append(",");
-                    s.append(clonesList.get(j).getValue0());
-                    s.append(",");
-                    s.append(clonesList.get(j).getValue1());
-                    s.append(",");
-                    s.append(clonesList.get(j).getValue2());
-                    s.append(",");
-                    s.append(clonesList.get(j).getValue3());
-                    s.append("\n");
+            for (int i = 0; i < clonesList.size(); i++) {
+                Quartet<String, String, Integer, Integer> cloneI = clonesList.get(i);
+                if (cloneI.getValue3()-cloneI.getValue2()<Main.minimumCloneLineAmount)
+                    continue;
+                for (int j = i + 1; j < clonesList.size(); j++) {
+                    Quartet<String, String, Integer, Integer> cloneJ = clonesList.get(j);
+                    if (cloneJ.getValue3()-cloneJ.getValue2()<Main.minimumCloneLineAmount)
+                        continue;
+                    if (!(cloneI.getValue0() + cloneI.getValue1())
+                            .equals(cloneJ.getValue0() + cloneJ.getValue1()) ||
+                            Utils.dontIntersect(cloneI.getValue2(), cloneI.getValue3(),
+                                    cloneJ.getValue2(), cloneJ.getValue3())) {
+                        for (int k=0; k<4; k++) {
+                            s.append(cloneI.getValue(k));
+                            s.append(",");
+                        }
+                        for (int k=0; k<4; k++) {
+                            s.append(cloneJ.getValue(k));
+                            s.append((k!=3) ? "," : "\n");
+                        }
+                    }
                 }
             }
         }
@@ -93,7 +93,7 @@ public class Uniter {
         for (var segmList : duplicatedSegments) {
             List<List<Node>> segmentsInNodes = new ArrayList<>();
             for (var segm : segmList) {
-                List<Node> segmentInNodes = new ArrayList<Node>();
+                List<Node> segmentInNodes = new ArrayList<>();
                 segm.forEach((blockPiece) -> {
                     int blockRootId = Main.blocks.get(blockPiece.a).root.getData(Main.NODE_ID);
                     Node node = Main.blocks.get(blockPiece.a).list.get(blockPiece.b).node;
@@ -113,8 +113,8 @@ public class Uniter {
                 segmentsInNodes.add(segmentInNodes);
             }
             boolean hasBrokenSegment = false;
-            for (int i = 0; i < segmentsInNodes.size(); i++)
-                if (segmentsInNodes.get(i).size() == 0) {
+            for (List<Node> segmentsInNode : segmentsInNodes)
+                if (segmentsInNode.size() == 0) {
                     hasBrokenSegment = true;
                     break;
                 }
@@ -227,21 +227,20 @@ public class Uniter {
     }
 
     static void checkAndChangeLiteralExprs(List<List<Pair<Integer, Integer>>> similarCommands, List<List<Node>> segmentList, List<Map<String, LiteralExpr>> paramsForEachSegment) {
-        for (int pos = 0; pos < similarCommands.size(); pos++) {
+        for (List<Pair<Integer, Integer>> similarCommand : similarCommands) {
             List<List<LiteralExpr>> literalExprs = new ArrayList<>();
-            for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
-                Pair<Integer, Integer> nodeIndices = similarCommands.get(pos).get(commandIndex);
+            for (Pair<Integer, Integer> nodeIndices : similarCommand) {
                 Node node = segmentList.get(nodeIndices.a).get(nodeIndices.b);
                 literalExprs.add(new ArrayList<>());
                 node.walk(LiteralExpr.class, literalExprs.get(literalExprs.size() - 1)::add);
             }
             int minLiteralSize = Integer.MAX_VALUE;
-            for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++)
+            for (int commandIndex = 0; commandIndex < similarCommand.size(); commandIndex++)
                 minLiteralSize = Math.min(minLiteralSize, literalExprs.get(commandIndex).size());
             for (int literalIndex = 0; literalIndex < minLiteralSize; literalIndex++) {
                 Set<String> values = new HashSet<>();
                 Type type = null;
-                for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
+                for (int commandIndex = 0; commandIndex < similarCommand.size(); commandIndex++) {
                     values.add(literalExprs.get(commandIndex).get(literalIndex).toString());
                     String typeInString = literalExprs.get(commandIndex).get(literalIndex).getMetaModel().getTypeNameGenerified();
                     typeInString = typeInString.replace("LiteralExpr", "");
@@ -249,16 +248,18 @@ public class Uniter {
                         type = StaticJavaParser.parseType(typeInString);
                 }
                 if (values.size() != 1) {
-                    String name = Utils.makeNameFromNode(literalExprs.get(0).get(literalIndex).getParentNode().get(), "");
+                    String name = "";
+                    if (literalExprs.get(0).get(literalIndex).getParentNode().isPresent())
+                        name = Utils.makeNameFromNode(literalExprs.get(0).get(literalIndex).getParentNode().get(), "");
                     if (name.equals(""))
                         name = "literal";
                     else
                         name = "literal" + name.substring(0, 1).toUpperCase() + name.substring(1);
                     name = checkAndChangeParameter(name);
                     parameterNames.add(new Pair<>(name, type));
-                    for (int commandIndex = 0; commandIndex < similarCommands.get(pos).size(); commandIndex++) {
+                    for (int commandIndex = 0; commandIndex < similarCommand.size(); commandIndex++) {
                         literalExprs.get(commandIndex).get(literalIndex).replace(new NameExpr(name));
-                        Integer segmentIndex = similarCommands.get(pos).get(commandIndex).a;
+                        Integer segmentIndex = similarCommand.get(commandIndex).a;
                         paramsForEachSegment.get(segmentIndex).put(name, literalExprs.get(commandIndex).get(literalIndex));
                     }
                 }
@@ -398,7 +399,7 @@ public class Uniter {
                                                                   String methodName) {
         MethodDeclaration declaration = new MethodDeclaration();
         declaration.setStatic(true);
-        NodeList<Parameter> parameterNodes = new NodeList<Parameter>();
+        NodeList<Parameter> parameterNodes = new NodeList<>();
         BlockStmt body = new BlockStmt();
         for (var parameterName : parameterNames)
             parameterNodes.add(new Parameter().setName(parameterName.a).setType(parameterName.b));

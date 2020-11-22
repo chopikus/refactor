@@ -1,5 +1,6 @@
 import at.unisalzburg.dbresearch.apted.distance.APTED;
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -13,6 +14,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.Pair;
+import com.github.javaparser.utils.SourceRoot;
 import flanagan.math.Maximisation;
 import picocli.CommandLine;
 
@@ -23,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -37,13 +40,14 @@ public class Main implements Runnable{
     public static final DataKey<String> FILE_NAME = new DataKey<>() {
     };
     public static List<File> filesToParse = new ArrayList<>();
-    public static Map<String, CompilationUnit> units = new HashMap<>();
+    public static Map<String, CompilationUnit> units = new ConcurrentHashMap<>();
     public static AtomicReference<Integer> nodeIDCounter = new AtomicReference<>(0);
     public static TypeSolver typeSolver = null;
     public static JavaParserFacade facade = null;
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
-    public static Integer minimumSegmentPieceCount = 3;
+    public static Integer minimumSegmentPieceCount = 10;
+    public static Integer minimumCloneLineAmount = 10;
     public static List<NavigableSet<Integer>> badPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
@@ -78,23 +82,16 @@ public class Main implements Runnable{
         if (file.isDirectory())
             solver.add(new JavaParserTypeSolver(file));
         typeSolver = solver;
-        Files.walk(Paths.get(file.getAbsolutePath()))
-                .filter(Files::isRegularFile)
-                .filter(path -> {
-                    File pFile = path.toFile();
-                    return pFile.getName().
-                            substring(pFile.getName().
-                                    lastIndexOf('.') + 1).equals("java");
-                })
-                .forEach(path -> filesToParse.add(path.toFile()));
-        for (File fileToParse : filesToParse)
-            try {
-                units.put(fileToParse.getAbsolutePath(), StaticJavaParser.parse(fileToParse));
-            } catch (Exception e) {
-                System.out.println("Could not parse file: " + fileToParse.getAbsolutePath());
-                e.printStackTrace();
-                System.exit(0);
+        SourceRoot root = new SourceRoot(file.toPath());
+        root.parseParallelized(new SourceRoot.Callback() {
+            @Override
+            public Result process(Path localPath, Path absolutePath, ParseResult<CompilationUnit> result) {
+                if (result.getResult().isEmpty())
+                    return Result.TERMINATE;
+                units.put(absolutePath.toString(), result.getResult().get());
+                return Result.DONT_SAVE;
             }
+        });
     }
 
     private static void setup()
@@ -130,7 +127,7 @@ public class Main implements Runnable{
         double[] start = {0};
         double[] step = new double[start.length];
         Arrays.fill(step, 100);
-        double ftol = 0.0001;
+        double ftol = 0.001;
         int maxIterations = 5000;
         Maximisation maximize = new Maximisation();
         SimilarityFunction function = new SimilarityFunction();

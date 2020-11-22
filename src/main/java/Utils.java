@@ -163,5 +163,10 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+    static boolean dontIntersect(int l1, int r1, int l2, int r2)
+    {
+        return (l2>r1 || l1>r2);
+    }
 }
 
