@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 group 'com.chopikus'
 def vcode = (int)(((new Date().getTime()/1000) - 1606075022) / 10)
@@ -7,21 +8,28 @@ version '1.1-'+vcode
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Quickstart',
-                'Implementation-Version': '1.2-'+vcode
+        attributes 'Implementation-Title': 'Refactor',
+                'Implementation-Version': '1.2',
+                'Main-Class': 'Main'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
 repositories {
     mavenCentral()
 }
+application {
+    mainClass = 'Main'
+}
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.16.1'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile group: 'org.javatuples', name: 'javatuples', version: '1.2'
-    compile 'info.picocli:picocli:4.5.2'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation group: 'org.javatuples', name: 'javatuples', version: '1.2'
+    implementation 'info.picocli:picocli:4.5.2'
     annotationProcessor 'info.picocli:picocli-codegen:4.5.2'
 }
 
@@ -30,3 +38,7 @@ test {
         exceptionFormat = 'full'
     }
 }
+
+apply plugin: 'java'
+sourceCompatibility = 1.11
+targetCompatibility = 1.11

@@ -113,7 +113,6 @@ class Piece
     }
 
 }
-
 class Block
 {
     List<Piece> list;
