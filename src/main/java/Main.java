@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -53,8 +54,6 @@ public class Main implements Runnable{
     public static JavaParserFacade facade = null;
     public static List<Block> blocks = new ArrayList<>();
     public static long timeInMillisStart = -1;
-    public static Integer minimumSegmentPieceCount = 10;
-    public static Integer minimumCloneLineAmount = 10;
     public static List<NavigableSet<Integer>> badPieces = new ArrayList<>();
     public static APTED<Cost, NodeData> apted = new APTED<>(new Cost());
     public static List<Pair<Integer, Integer>> blockPieceIndexesToCompare = new ArrayList<>();
@@ -72,6 +71,10 @@ public class Main implements Runnable{
     public static int maxDoParametersCount = 5;
     @CommandLine.Option(names = { "--big-clone-eval"}, defaultValue = "false", description = "Print data to csv in \"BigCloneEval\" format")
     public static boolean bigCloneEval = false;
+    @CommandLine.Option(names = { "--min-line-count"}, defaultValue = "5", description = "Minimal amount of lines in clones")
+    public static Integer minimumCloneLineAmount = 10;
+    @CommandLine.Option(names = { "--min-segment-count"}, defaultValue = "5", description = "Minimal amount of segments in clones")
+    public static Integer minimumSegmentPieceCount = 10;
 
     static void countMemoryAndTime() {
         long timeInMillisEnd = System.currentTimeMillis();
@@ -86,16 +89,23 @@ public class Main implements Runnable{
         if (file.isDirectory())
             solver.add(new JavaParserTypeSolver(file));
         typeSolver = solver;
-        SourceRoot root = new SourceRoot(file.toPath());
-        root.parseParallelized(new SourceRoot.Callback() {
-            @Override
-            public Result process(Path localPath, Path absolutePath, ParseResult<CompilationUnit> result) {
-                if (result.getResult().isEmpty())
-                    return Result.TERMINATE;
-                units.put(absolutePath.toString(), result.getResult().get());
-                return Result.DONT_SAVE;
+        Files.walk(Paths.get(file.getAbsolutePath()))
+                .filter(Files::isRegularFile)
+                .filter(path -> {
+                    File pFile = path.toFile();
+                    return pFile.getName().
+                            substring(pFile.getName().
+                                    lastIndexOf('.') + 1).equals("java");
+                })
+                .forEach(path -> filesToParse.add(path.toFile()));
+        for (File fileToParse : filesToParse)
+            try {
+                units.put(fileToParse.getAbsolutePath(), StaticJavaParser.parse(fileToParse));
+            } catch (Exception e) {
+                System.out.println("Could not parse file: " + fileToParse.getAbsolutePath());
+                e.printStackTrace();
+                System.exit(0);
             }
-        });
     }
 
     private static void setup()

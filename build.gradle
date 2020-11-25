@@ -20,6 +20,8 @@ jar {
 repositories {
     mavenCentral()
 }
+
+ext.javaMainClass = "Main"
 application {
     mainClass = 'Main'
 }
