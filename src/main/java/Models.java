@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserSymbolDeclaration;
 import com.github.javaparser.utils.Pair;
 import flanagan.math.MaximisationFunction;
@@ -63,6 +64,7 @@ class Piece
         this.hash = Utils.hashNode(node);
         node.walk(NameExpr.class, nameExpr -> {
             try {
+                JavaParserFacade.clearInstances();
                 var res = nameExpr.resolve();
                 boolean okThat = false;
                 if (!res.isVariable() && !res.isParameter() && !res.isEnumConstant()
@@ -215,6 +217,7 @@ class SimilarityFunction implements MaximisationFunction
             int finalPiece = piece;
             pieceNode.walk(NameExpr.class, nameExpr -> {
                 try {
+                    JavaParserFacade.clearInstances();
                     ResolvedValueDeclaration declaration = nameExpr.resolve();
                     if (declaration instanceof JavaParserSymbolDeclaration) {
                         com.github.javaparser.ast.Node declNode = ((JavaParserSymbolDeclaration) declaration).getWrappedNode();

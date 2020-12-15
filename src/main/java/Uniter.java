@@ -9,6 +9,7 @@ import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.VoidType;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.utils.Pair;
 import org.javatuples.Quartet;
 import org.javatuples.Triplet;
@@ -157,6 +158,7 @@ public class Uniter {
                     }
                 });
                 node.walk(MethodCallExpr.class, methodCallExpr -> {
+                    JavaParserFacade.clearInstances();
                     try {
                         if (!methodCallExpr.resolve().getPackageName().startsWith("java")) {
                             if (methodCallExpr.getScope().isEmpty())
@@ -173,6 +175,7 @@ public class Uniter {
                 });
                 node.walk(FieldAccessExpr.class, fieldAccessExpr -> {
                     try {
+                        JavaParserFacade.clearInstances();
                         if (fieldAccessExpr.getScope().toString().equals(""))
                             fieldAccessExpr.setScope(new NameExpr(className[0]));
                         else if (!fieldAccessExpr.getScope().toString().startsWith(className[0]))
