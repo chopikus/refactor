@@ -23,8 +23,8 @@
 \renewcommand{\contentsname}{ЗМІСТ} %изменяем название странички с содержанием
 \def\numberline#1{#1. } % Фикс чтобы названия не налезали друг на друга в содержании
 \titlecontents{section}[0pt]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
-\titlecontents{subsection}[0pt]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
-\titlecontents{subsubsection}[2.25em]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
+\titlecontents{subsection}[1cm]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
+\titlecontents{subsubsection}[2cm]{\normalfont}{\thecontentslabel. }{}{\Dotfill \contentspage} % точки в содержании
 \newcommand{\RNum}[1]{\uppercase\expandafter{\romannumeral #1\relax}}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -73,7 +73,7 @@
 технічних наук, доцент\\
 \vspace*{\fill}\end{changemargin}
 \begin{center}
-Харків -- 2021
+Харків -- \the\year{}
 \end{center}\end{spacing}
 
 % Тези
@@ -345,7 +345,7 @@ void,myFunc,(,int,b,),{,b,++,;
 \item Досить низький відсоток знайдених копій через використання додаткових евристик. \cite{Dang15}
 \end{itemize}
 Далі буде запропоновано новий підхід, що значно зменшить час роботи, необхідний для знаходження копій, та, у той же час, збільшить ефективність їх знаходження.
-\section{Новий алгоритм пошуку повторюваних частин}
+\section{Метод пошуку та видалення копій з використанням алгоритму порівняння графів}
 Алгоритм складається із 4 кроків:
 \begin{enumerate}
 \item парсинг коду та перетворення його у абстрактне синтаксичне дерево;
@@ -523,7 +523,7 @@ $$\exists piece, LCA(son, piece_{ast}) = son,$$
 \end{itemize}
 Таким чином, для послідовності виразів-клонів закріплені вершини у абстрактному синтаксичному дереві.
 У подальшому називатимемо ці вершини інструкціями.
-\subsection{Використання алгоритму для видалення клонів}
+\subsection{Алгоритм видалення клонів}
 Для видалення списка повторюваних частин коду об'єднаємо їх у функцію. \\
 Зробимо це наступним алгоритмом: 
 \begin{enumerate}
