@@ -3,6 +3,10 @@
 \newcommand{\bigcell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
 \usepackage[russian, english, ukrainian]{babel}
 \usepackage[dotinlabels]{titletoc}
+\tolerance=1
+\emergencystretch=\maxdimen
+\hyphenpenalty=10000
+\hbadness=10000
 \usepackage{ulem}
 \renewcommand{\ULdepth}{1.8pt}
 \bibliographystyle{gost-numeric}
@@ -14,7 +18,7 @@
 \makeatletter\newcommand\Dotfill{\leavevmode\leaders\hb@xt@0.65em{\hss.\hss}\hfill}\makeatother % удобная команда
 \let\stdsection\section\renewcommand\section{\newpage\stdsection} % Новая секция -> новая страница
 \addto\captionsenglish{\renewcommand{\figurename}{Рис.}} % Подпись картинок
-\titleformat{\section}[display]{\filcenter}{\bfseries{РОЗДІЛ \thesection.}}{0pt}{\bfseries\MakeUppercase} % Изменение заголовка всех разделов
+\titleformat{\section}[display]{\filcenter}{\bfseries{РОЗДІЛ \thesection}}{0pt}{\bfseries\MakeUppercase} % Изменение заголовка всех разделов
 \renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}} % Чиним номер подраздела
 \titleformat{\subsection}{\filcenter}{\bfseries \thesubsection. }{0pt}{\bfseries}{} %чиним название подраздела 
 \captionsetup{labelsep=period} % "Рис. 1." вместо "Рис. 1:"
@@ -35,6 +39,7 @@
 \lstset{moredelim=[is][\textit]{[*}{*]}}
 \counterwithin{figure}{section}
 \counterwithin{table}{section}
+
 \begin{document}
 % Титулка
 \thispagestyle{empty}
@@ -44,7 +49,7 @@
 Департамент науки і освіти Харківської облдержадміністрації\\
 Харківське територіальне відділення МАН України\\
 \end{center}\par\null\par
-\begin{changemargin}{9.82cm}{0cm}
+\begin{changemargin}{9.75cm}{0cm}
 Відділення: комп'ютерних наук\\
 Секція: технології програмування
 \end{changemargin}\par\null\par
@@ -52,7 +57,7 @@
 МЕТОД ПОШУКУ ТА УСУНЕННЯ ПОВТОРЮВАНИХ
 ЧАСТИН У ПОЧАТКОВОМУ КОДІ ПРОГРАМНОГО ЗАБЕЗПЕЧЕННЯ
 \end{center}\par\null\par\null
-\begin{changemargin}{9.82cm}{0cm}
+\begin{changemargin}{9.75cm}{0cm}
 Роботу виконав:\\ 
 Човпан Ігор Сергійович,\\
 учень 11 класу Харківського\\
@@ -61,7 +66,7 @@
 Харківської міської ради\\
 Харківської області
 \end{changemargin}\par
-\begin{changemargin}{9.82cm}{0cm}
+\begin{changemargin}{9.75cm}{0cm}
 Науковий керівник:\\
 Руккас Кирило Маркович,\\
 професор кафедри теоретичної та\\
