@@ -743,8 +743,10 @@ static void veryImportantFunction(Double literalXx, Double literalXx2, Double li
 \newpage
 \addcontentsline{toc}{section}{Список використаних джерел}
 \printbibliography[title={\textbf{список використаних джерел}}]
+\newpage
+\stdsection*{\textbf{ДОДАТКИ}}
 \titleformat{\section}[display]{\raggedleft}{\bfseries{РОЗДІЛ \thesection}}{0pt}{} % Изменение заголовка всех разделов
-\section*{Додаток А}
+\stdsection*{\textbf{Додаток А}}
 \counterwithout{figure}{section}
 \setcounter{figure}{0}    
 \addcontentsline{toc}{section}{Додатки}
@@ -753,19 +755,19 @@ static void veryImportantFunction(Double literalXx, Double literalXx2, Double li
     \includegraphics[width=\textwidth]{add1}
     \caption{\centering Список параметрів програми}
 \end{figure} \hfill \\
-\section*{Додаток Б}
+\section*{\textbf{Додаток Б}}
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{add2}
     \caption{\centering Приклад обробки проєкту програмою}
 \end{figure} \hfill \\
-\section*{Додаток В}
+\section*{\textbf{Додаток В}}
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{add3}
     \caption{\centering Приклад обробки більш великого проєкту програмою}
 \end{figure} \hfill \\
-\section*{Додаток Г}
+\section*{\textbf{Додаток Г}}
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{add-gitlab}
