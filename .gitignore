@@ -146,7 +146,7 @@ gradle-app.setting
 .idea/
 temp/
 # End of https://www.toptal.com/developers/gitignore/api/intellij,java,gradle
-!libs/
+!libs/*
 paper/*.pyg
 paper/*.toc
 paper/*.bbl
