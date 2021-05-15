@@ -10,7 +10,7 @@
 ### Команды
 * Сборка: `gradle build` или `./build.sh`
 * Изготовление JAR-файла: `gradle jar` или `./jar.sh`
-* Запуск: `gradle run` или `./run.sh` или `java -jar refactor-XXX.jar`
+* Запуск: `gradle run` или `./run.sh` или `java -jar refactor-XXX.jar` (для собранного JAR-файла)
 
 
 Icons made by <a href="https://www.flaticon.com/authors/flat-icons" title="Flat Icons">Flat Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com </a>
