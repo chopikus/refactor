@@ -1,13 +1,11 @@
 # refactor
+Main goal of this project - to develop a program that can find and remove code clones in large codebases. 
 
-Цель этого проекта - создать программу, которая может находить и устранять антипаттерны в коде.
+## Requirements
+Gradle 6.8 is required to build the project.
 
-
-## Использование проекта
-### Требования
-Для сборки требуется Gradle 6.8.
-Для корректной работы программы на больших проектах может потребоваться до 32 ГБ ОЗУ.
-### Команды
-* Сборка: `gradle build` или `./build.sh`
-* Изготовление JAR-файла: `gradle jar` или `./jar.sh`
-* Запуск: `gradle run` или `./run.sh` или `java -jar refactor-XXX.jar` (для собранного JAR-файла)
+Large amounts of RAM (32GB+) are required for program to work on big codebases.
+## Usage
+* Building the project: `gradle build` or `./build.sh`
+* Building a JAR file: `gradle jar` or `./jar.sh`
+* Running the project: `gradle run` or `./run.sh` or `java -jar refactor-XXX.jar` (for a built JAR file)
